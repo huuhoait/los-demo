@@ -445,6 +445,110 @@ definitions:
       workflowId:
         type: string
     type: object
+  workflow.DocumentCollectionTask:
+    properties:
+      taskType:
+        description: Type of task
+        example: "document_collection"
+        type: string
+      taskReferenceName:
+        description: Reference name for the task
+        example: "document_collection_ref"
+        type: string
+      inputParameters:
+        properties:
+          applicationId:
+            description: ID of the loan application
+            example: "80588df0-d3b1-4e33-b984-385cb55e85ce"
+            type: string
+          userId:
+            description: ID of the user
+            example: "550e8400-e29b-41d4-a716-446655440001"
+            type: string
+          requiredDocuments:
+            description: List of required document types
+            example:
+            - "income_verification"
+            - "employment_verification"
+            - "bank_statements"
+            - "identification"
+            items:
+              type: string
+            type: array
+        required:
+        - applicationId
+        - userId
+        - requiredDocuments
+        type: object
+      outputKeys:
+        description: Expected output keys from the task
+        example:
+        - "documentsCollected"
+        - "incomeVerification"
+        - "employmentVerification"
+        - "bankStatements"
+        - "identificationDocument"
+        - "collectionCompletedAt"
+        items:
+          type: string
+        type: array
+      timeoutSeconds:
+        description: Task timeout in seconds
+        example: 86400
+        type: integer
+      type:
+        description: Task type (HUMAN for manual intervention)
+        example: "HUMAN"
+        type: string
+    required:
+    - taskType
+    - taskReferenceName
+    - inputParameters
+    - outputKeys
+    - timeoutSeconds
+    - type
+    type: object
+  workflow.TaskFactory:
+    properties:
+      supportedTaskTypes:
+        description: List of supported task types
+        example:
+        - "validate_application"
+        - "document_collection"
+        - "identity_verification"
+        - "update_application_state"
+        - "finalize_loan_decision"
+        items:
+          type: string
+        type: array
+      taskHandlers:
+        description: Available task handlers
+        additionalProperties:
+          $ref: '#/definitions/workflow.TaskHandler'
+        type: object
+    required:
+    - supportedTaskTypes
+    type: object
+  workflow.TaskHandler:
+    properties:
+      taskType:
+        description: Type of task this handler can process
+        example: "document_collection"
+        type: string
+      description:
+        description: Description of what the task handler does
+        example: "Handles document collection and validation for loan applications"
+        type: string
+      inputSchema:
+        description: Expected input schema for the task
+        type: object
+      outputSchema:
+        description: Expected output schema from the task
+        type: object
+    required:
+    - taskType
+    - description
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -452,16 +556,206 @@ info:
     name: API Support
     url: http://www.swagger.io/support
   description: A comprehensive loan origination service with internationalization
-    support for Vietnamese and English, featuring Netflix Conductor workflow integration.
-    The API provides comprehensive error responses with detailed validation information
-    including human-readable error messages, field-specific error details, validation
-    error context, and structured error metadata for programmatic error handling.
+    support for Vietnamese and English, featuring Netflix Conductor workflow integration
+    and document management capabilities. The API provides comprehensive error responses
+    with detailed validation information including human-readable error messages,
+    field-specific error details, validation error context, and structured error
+    metadata for programmatic error handling. Document collection tasks support
+    multiple document types including income verification, employment verification,
+    bank statements, and identification documents with automated validation and
+    workflow integration.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
   title: Loan Service API
   version: "1.0"
+definitions:
+  interfaces.DocumentUploadRequest:
+    properties:
+      documentType:
+        description: Type of document being uploaded
+        example: "income_verification"
+        type: string
+      fileName:
+        description: Name of the uploaded file
+        example: "paystub_2025_08.pdf"
+        type: string
+      fileSize:
+        description: Size of the file in bytes
+        example: 2048576
+        type: integer
+      metadata:
+        additionalProperties: true
+        description: Additional metadata about the document
+        example:
+          employer: "Tech Corp Inc"
+          period: "2025-08-01 to 2025-08-15"
+          grossIncome: 5000.00
+          netIncome: 3800.00
+        type: object
+    required:
+    - documentType
+    - fileName
+    - fileSize
+    type: object
+  interfaces.DocumentUploadResponse:
+    properties:
+      success:
+        description: Whether the document upload was successful
+        example: true
+        type: boolean
+      documentId:
+        description: Unique identifier for the uploaded document
+        example: "doc_12345678-1234-1234-1234-123456789012"
+        type: string
+      message:
+        description: Success message
+        example: "Document uploaded successfully"
+        type: string
+      uploadedAt:
+        description: Timestamp when the document was uploaded
+        example: "2025-08-15T17:36:36.352+0700"
+        type: string
+    required:
+    - success
+    - documentId
+    - message
+    - uploadedAt
+    type: object
+  interfaces.DocumentCollectionStatus:
+    properties:
+      applicationId:
+        description: ID of the loan application
+        example: "80588df0-d3b1-4e33-b984-385cb55e85ce"
+        type: string
+      userId:
+        description: ID of the user
+        example: "550e8400-e29b-41d4-a716-446655440001"
+        type: string
+      status:
+        description: Overall status of document collection
+        example: "in_progress"
+        type: string
+      documents:
+        items:
+          $ref: '#/definitions/interfaces.DocumentInfo'
+        type: array
+      requiredDocuments:
+        description: List of required document types
+        example:
+        - "income_verification"
+        - "employment_verification"
+        - "bank_statements"
+        - "identification"
+        type: array
+      collectedCount:
+        description: Number of documents collected
+        example: 2
+        type: integer
+      totalRequired:
+        description: Total number of required documents
+        example: 4
+        type: integer
+      lastUpdated:
+        description: Last update timestamp
+        example: "2025-08-15T17:36:36.352+0700"
+        type: string
+    required:
+    - applicationId
+    - userId
+    - status
+    - documents
+    - requiredDocuments
+    - collectedCount
+    - totalRequired
+    - lastUpdated
+    type: object
+  interfaces.DocumentInfo:
+    properties:
+      documentType:
+        description: Type of document
+        example: "income_verification"
+        type: string
+      fileName:
+        description: Name of the document file
+        example: "paystub_2025_08.pdf"
+        type: string
+      fileSize:
+        description: Size of the file in bytes
+        example: 2048576
+        type: integer
+      uploadedAt:
+        description: When the document was uploaded
+        example: "2025-08-15T17:36:36.352+0700"
+        type: string
+      status:
+        description: Status of the document
+        example: "uploaded"
+        type: string
+      metadata:
+        additionalProperties: true
+        description: Additional document metadata
+        example:
+          employer: "Tech Corp Inc"
+          period: "2025-08-01 to 2025-08-15"
+          grossIncome: 5000.00
+          netIncome: 3800.00
+        type: object
+    required:
+    - documentType
+    - fileName
+    - fileSize
+    - uploadedAt
+    - status
+    type: object
+  interfaces.DocumentCompletionRequest:
+    properties:
+      completionReason:
+        description: Reason for marking collection as complete
+        example: "All required documents collected and validated"
+        type: string
+      completionNotes:
+        description: Additional notes about the completion
+        example: "Documents meet all requirements for loan processing"
+        type: string
+      completedBy:
+        description: User who marked the collection as complete
+        example: "loan_officer_123"
+        type: string
+    required:
+    - completionReason
+    - completionNotes
+    type: object
+  interfaces.DocumentCompletionResponse:
+    properties:
+      success:
+        description: Whether the completion was successful
+        example: true
+        type: boolean
+      message:
+        description: Success message
+        example: "Document collection marked as complete"
+        type: string
+      completedAt:
+        description: Timestamp when collection was marked complete
+        example: "2025-08-15T17:36:36.352+0700"
+        type: string
+      applicationId:
+        description: ID of the loan application
+        example: "80588df0-d3b1-4e33-b984-385cb55e85ce"
+        type: string
+      nextStep:
+        description: Next step in the loan process
+        example: "Proceed to identity verification"
+        type: string
+    required:
+    - success
+    - message
+    - completedAt
+    - applicationId
+    - nextStep
+    type: object
 paths:
   /health:
     get:
@@ -915,6 +1209,153 @@ paths:
       summary: Terminate workflow
       tags:
       - Workflows
+  /loans/documents/upload:
+    post:
+      consumes:
+      - application/json
+      description: Upload a document for loan processing
+      parameters:
+      - description: Document upload request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/interfaces.DocumentUploadRequest'
+      - description: Language preference (en, vi)
+        in: header
+        name: X-Language
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Document uploaded successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/interfaces.DocumentUploadResponse'
+              type: object
+        "400":
+          description: Invalid document data
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload document
+      tags:
+      - Documents
+  /loans/applications/{id}/documents/status:
+    get:
+      consumes:
+      - application/json
+      description: Get document collection status for a loan application
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Language preference (en, vi)
+        in: header
+        name: X-Language
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Document status retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/interfaces.DocumentCollectionStatus'
+              type: object
+        "400":
+          description: Invalid application ID
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Application not found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get document collection status
+      tags:
+      - Documents
+  /loans/applications/{id}/documents/complete:
+    post:
+      consumes:
+      - application/json
+      description: Mark document collection as complete for a loan application
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Document completion request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/interfaces.DocumentCompletionRequest'
+      - description: Language preference (en, vi)
+        in: header
+        name: X-Language
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Document collection completed successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/interfaces.DocumentCompletionResponse'
+              type: object
+        "400":
+          description: Invalid completion data
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Application not found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Complete document collection
+      tags:
+      - Documents
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.
@@ -935,3 +1376,5 @@ tags:
   name: Health
 - description: Comprehensive error handling with detailed validation information
   name: Error Handling
+- description: Document management operations for loan applications
+  name: Documents

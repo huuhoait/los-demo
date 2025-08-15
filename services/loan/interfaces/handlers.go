@@ -497,7 +497,6 @@ func (h *LoanHandler) GetApplicationStats(c *gin.Context) {
 	middleware.CreateErrorResponse(c, http.StatusNotImplemented, domain.LOAN_023, map[string]interface{}{
 		"message": "Application statistics not implemented - database repository required",
 	})
-	return
 
 	logger.Info("Application statistics requested but not implemented",
 		zap.Int("days", days),
@@ -557,7 +556,7 @@ func (h *LoanHandler) GetWorkflowStatus(c *gin.Context) {
 	middleware.CreateErrorResponse(c, http.StatusNotImplemented, domain.LOAN_023, map[string]interface{}{
 		"message": "Workflow status retrieval not implemented - workflow service required",
 	})
-	return
+
 }
 
 // PauseWorkflow pauses a running workflow
