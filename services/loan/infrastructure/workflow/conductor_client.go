@@ -265,10 +265,12 @@ func (c *ConductorClientImpl) TerminateWorkflow(
 func (c *ConductorClientImpl) PauseWorkflow(
 	ctx context.Context,
 	workflowID string,
+	reason string,
 ) error {
 	logger := c.logger.With(
 		zap.String("workflow_id", workflowID),
 		zap.String("operation", "pause_workflow"),
+		zap.String("reason", reason),
 	)
 
 	// Create HTTP request
@@ -352,6 +354,20 @@ func (c *ConductorClientImpl) UpdateTask(
 		zap.String("operation", "update_task"),
 	)
 
+	logger.Info("Updating task with output",
+		zap.Any("output", output),
+		zap.Int("output_keys", len(output)),
+		zap.Bool("output_is_nil", output == nil))
+
+	// Validate output is not nil
+	if output == nil {
+		logger.Warn("Output is nil, creating default output")
+		output = map[string]interface{}{
+			"error": "Task output was nil",
+			"timestamp": time.Now().UTC().Format(time.RFC3339),
+		}
+	}
+
 	// Prepare request payload
 	payload := map[string]interface{}{
 		"status": status,
@@ -364,8 +380,11 @@ func (c *ConductorClientImpl) UpdateTask(
 		return fmt.Errorf("failed to marshal task update payload: %w", err)
 	}
 
+	logger.Debug("Task update payload prepared",
+		zap.String("payload", string(payloadBytes)))
+
 	// Create HTTP request
-	url := fmt.Sprintf("%s/api/task/%s", c.baseURL, taskID)
+	url := fmt.Sprintf("%s/api/tasks/%s", c.baseURL, taskID)
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		logger.Error("Failed to create HTTP request", zap.Error(err))
@@ -382,15 +401,32 @@ func (c *ConductorClientImpl) UpdateTask(
 	}
 	defer resp.Body.Close()
 
+	// Read response body for debugging
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("Failed to read response body", zap.Error(err))
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	logger.Debug("Conductor API response",
+		zap.Int("status_code", resp.StatusCode),
+		zap.String("status", resp.Status),
+		zap.String("response_body", string(responseBody)))
+
 	// Check response status
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("Failed to update task",
 			zap.Int("status_code", resp.StatusCode),
 			zap.String("status", resp.Status),
-		)
+			zap.String("response_body", string(responseBody)))
 		return fmt.Errorf("failed to update task with status: %s", resp.Status)
 	}
 
 	logger.Info("Task updated successfully")
 	return nil
+}
+
+// GetBaseURL returns the base URL of the Conductor service
+func (c *ConductorClientImpl) GetBaseURL() string {
+	return c.baseURL
 }

@@ -15,9 +15,10 @@ type ConductorClient interface {
 	StartWorkflow(ctx context.Context, workflowName string, version int, input map[string]interface{}) (*WorkflowExecution, error)
 	GetWorkflowStatus(ctx context.Context, workflowID string) (*WorkflowStatus, error)
 	TerminateWorkflow(ctx context.Context, workflowID string, reason string) error
-	PauseWorkflow(ctx context.Context, workflowID string) error
+	PauseWorkflow(ctx context.Context, workflowID string, reason string) error
 	ResumeWorkflow(ctx context.Context, workflowID string) error
 	UpdateTask(ctx context.Context, taskID string, status string, output map[string]interface{}) error
+	GetBaseURL() string
 }
 
 // WorkflowExecution represents a workflow execution instance
@@ -316,7 +317,7 @@ func (o *LoanWorkflowOrchestrator) PauseWorkflow(ctx context.Context, workflowID
 		zap.String("operation", "pause_workflow"),
 	)
 
-	err := o.conductorClient.PauseWorkflow(ctx, workflowID)
+	err := o.conductorClient.PauseWorkflow(ctx, workflowID, "Paused by user request")
 	if err != nil {
 		logger.Error("Failed to pause workflow", zap.Error(err))
 		return &domain.LoanError{

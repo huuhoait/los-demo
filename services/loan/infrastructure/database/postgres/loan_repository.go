@@ -146,7 +146,7 @@ func (r *LoanRepository) GetApplicationsByUserID(ctx context.Context, userID str
 		return nil, fmt.Errorf("error iterating over rows: %w", err)
 	}
 
-	logger.Info("Applications retrieved successfully", 
+	logger.Info("Applications retrieved successfully",
 		zap.String("user_id", userID),
 		zap.Int("count", len(applications)))
 	return applications, nil
@@ -423,7 +423,7 @@ func (r *LoanRepository) GetStateTransitions(ctx context.Context, applicationID 
 		return nil, fmt.Errorf("error iterating over rows: %w", err)
 	}
 
-	logger.Info("State transitions retrieved successfully", 
+	logger.Info("State transitions retrieved successfully",
 		zap.String("application_id", applicationID),
 		zap.Int("count", len(transitions)))
 	return transitions, nil

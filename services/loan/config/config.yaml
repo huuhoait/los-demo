@@ -12,7 +12,7 @@ default:
   
   database:
     host: "localhost"
-    port: 5432
+    port: 5433
     user: "postgres"
     password: "password"
     name: "loan_service"
@@ -74,7 +74,7 @@ development:
   
   database:
     host: "localhost"
-    port: 5432
+    port: 5433
     user: "postgres"
     password: "password"
     name: "loan_service"
@@ -136,7 +136,7 @@ docker:
   
   database:
     host: "postgres"
-    port: 5432
+    port: 5433
     user: "postgres"
     password: "password"
     name: "loan_service"
@@ -146,7 +146,7 @@ docker:
     conn_max_lifetime: 300
   
   conductor:
-    base_url: "http://conductor-server:8080"
+    base_url: "http://localhost:8082"
     timeout: 30
     retry_attempts: 3
     retry_delay: 1000
@@ -197,7 +197,7 @@ production:
   
   database:
     host: "${DB_HOST}"
-    port: 5432
+    port: 5433
     user: "${DB_USER}"
     password: "${DB_PASSWORD}"
     name: "${DB_NAME}"
@@ -207,8 +207,7 @@ production:
     conn_max_lifetime: 600
   
   conductor:
-    base_url: "${CONDUCTOR_BASE_URL}"
-    timeout: 60
+    base_url: "${CONDUCTOR_BASE_URL:http://localhost:8082}"
     retry_attempts: 5
     retry_delay: 2000
   
@@ -248,7 +247,7 @@ test:
   
   database:
     host: "localhost"
-    port: 5432
+    port: 5433
     user: "postgres"
     password: "password"
     name: "loan_service_test"

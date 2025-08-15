@@ -1,0 +1,39 @@
+{
+  "user": {
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "phone_number": "+1234567890",
+    "date_of_birth": "1990-01-01T00:00:00Z",
+    "ssn": "123456789",
+    "address": {
+      "street_address": "123 Main Street",
+      "city": "New York",
+      "state": "NY",
+      "zip_code": "10001",
+      "country": "USA",
+      "residence_type": "own",
+      "time_at_address_months": 24
+    },
+    "employment_info": {
+      "employer_name": "ABC Company",
+      "job_title": "Software Engineer",
+      "time_employed_months": 36,
+      "work_phone": "+1234567890",
+      "work_email": "john.doe@abccompany.com"
+    },
+    "banking_info": {
+      "bank_name": "Chase Bank",
+      "account_type": "checking",
+      "account_number": "1234567890",
+      "routing_number": "021000021"
+    }
+  },
+  "loan_amount": 25000,
+  "loan_purpose": "debt_consolidation",
+  "requested_term_months": 60,
+  "annual_income": 75000,
+  "monthly_income": 6250,
+  "employment_status": "full_time",
+  "monthly_debt_payments": 1500
+}
