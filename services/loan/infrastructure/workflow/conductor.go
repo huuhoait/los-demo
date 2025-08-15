@@ -17,7 +17,7 @@ type ConductorClient interface {
 	TerminateWorkflow(ctx context.Context, workflowID string, reason string) error
 	PauseWorkflow(ctx context.Context, workflowID string, reason string) error
 	ResumeWorkflow(ctx context.Context, workflowID string) error
-	UpdateTask(ctx context.Context, taskID string, status string, output map[string]interface{}) error
+	UpdateTask(ctx context.Context, taskID string, workflowInstanceId string, referenceTaskName string, status string, output map[string]interface{}) error
 	GetBaseURL() string
 }
 

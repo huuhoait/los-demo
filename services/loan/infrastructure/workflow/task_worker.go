@@ -110,11 +110,11 @@ func (w *TaskWorker) pollAndExecuteTasks(ctx context.Context) error {
 	}
 
 	if len(tasks) == 0 {
-		logger.Debug("No tasks available")
+		//logger.Debug("No tasks available")
 		return nil
 	}
 
-	logger.Info("Found tasks to execute", zap.Int("task_count", len(tasks)))
+	logger.Debug("Found tasks to execute", zap.Int("task_count", len(tasks)))
 
 	// Execute each task
 	for _, task := range tasks {
@@ -125,10 +125,16 @@ func (w *TaskWorker) pollAndExecuteTasks(ctx context.Context) error {
 				zap.Error(err),
 			)
 			// Try to mark task as failed, but don't fail the entire process if status update fails
-			if err := w.updateTaskStatus(ctx, task.TaskID, "FAILED", map[string]interface{}{
-				"error": err.Error(),
-			}); err != nil {
-				logger.Warn("Failed to update task status to failed, but continuing", zap.Error(err))
+			if task.WorkflowInstanceId == "" {
+				logger.Warn("Workflow instance ID is empty, skipping task failure update",
+					zap.String("task_id", task.TaskID),
+					zap.String("reference_task_name", task.ReferenceTaskName))
+			} else {
+				if err := w.updateTaskStatus(ctx, task.TaskID, task.WorkflowInstanceId, task.ReferenceTaskName, "FAILED", map[string]interface{}{
+					"error": err.Error(),
+				}); err != nil {
+					logger.Warn("Failed to update task status to failed, but continuing", zap.Error(err))
+				}
 			}
 		}
 	}
@@ -142,41 +148,22 @@ func (w *TaskWorker) canHandleTask(task Task) bool {
 	return exists
 }
 
-// claimTask claims a task by updating its status to IN_PROGRESS
-func (w *TaskWorker) claimTask(ctx context.Context, taskID string) error {
-	logger := w.logger.With(
-		zap.String("task_id", taskID),
-		zap.String("operation", "claim_task"),
-	)
-
-	logger.Info("Claiming task by updating status to IN_PROGRESS")
-
-	// Update task status to IN_PROGRESS to claim it
-	if err := w.conductorClient.UpdateTask(ctx, taskID, "IN_PROGRESS", map[string]interface{}{}); err != nil {
-		logger.Error("Failed to claim task", zap.Error(err))
-		return fmt.Errorf("failed to claim task: %w", err)
-	}
-
-	logger.Info("Task claimed successfully")
-	return nil
-}
-
 // pollForTasks polls the Conductor server for available tasks
 func (w *TaskWorker) pollForTasks(ctx context.Context) ([]Task, error) {
 	logger := w.logger.With(zap.String("operation", "poll_for_tasks"))
 
-	logger.Debug("Looking for SCHEDULED tasks to execute directly")
+	//logger.Debug("Looking for SCHEDULED tasks to execute directly")
 
 	scheduledTasks, err := w.findScheduledTasks(ctx)
 	if err != nil {
 		logger.Warn("Failed to find scheduled tasks", zap.Error(err))
 	} else if len(scheduledTasks) > 0 {
-		logger.Info("Found scheduled tasks", zap.Int("count", len(scheduledTasks)))
+		//logger.Debug("Found scheduled tasks", zap.Int("count", len(scheduledTasks)))
 
 		// Return the first available task that we can handle
 		for _, task := range scheduledTasks {
 			if w.canHandleTask(task) {
-				logger.Info("Found executable scheduled task",
+				logger.Debug("Found executable scheduled task",
 					zap.String("task_id", task.TaskID),
 					zap.String("task_type", task.TaskType))
 
@@ -187,16 +174,12 @@ func (w *TaskWorker) pollForTasks(ctx context.Context) ([]Task, error) {
 		}
 	}
 
-	logger.Debug("No SCHEDULED tasks found, trying normal polling")
+	//logger.Debug("No SCHEDULED tasks found, trying normal polling")
 
 	// Fall back to normal polling
 	q := url.Values{}
 	q.Add("workerid", w.workerID)
 	q.Add("timeout", "30")
-
-	logger.Debug("Polling for tasks with parameters",
-		zap.String("worker_id", w.workerID),
-		zap.String("timeout", "30"))
 
 	// Create HTTP request
 	url := fmt.Sprintf("%s/api/tasks/poll?%s", w.getConductorBaseURL(), q.Encode())
@@ -223,15 +206,8 @@ func (w *TaskWorker) pollForTasks(ctx context.Context) ([]Task, error) {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	logger.Debug("Conductor API response",
-		zap.Int("status_code", resp.StatusCode),
-		zap.String("status", resp.Status),
-		zap.String("response_body", string(responseBody)),
-		zap.String("content_type", resp.Header.Get("Content-Type")))
-
 	// Check if no tasks available
 	if resp.StatusCode == http.StatusNoContent {
-		logger.Debug("No tasks available (HTTP 204)")
 		return nil, nil
 	}
 
@@ -250,7 +226,16 @@ func (w *TaskWorker) pollForTasks(ctx context.Context) ([]Task, error) {
 		return nil, fmt.Errorf("failed to decode polling response: %w", err)
 	}
 
-	logger.Info("Successfully polled for tasks", zap.Int("task_count", len(tasks)))
+	// Debug: Log workflow instance IDs for the first few tasks
+	for i, task := range tasks {
+		if i < 3 { // Only log first 3 tasks to avoid spam
+			logger.Debug("Task details",
+				zap.String("task_id", task.TaskID),
+				zap.String("workflow_instance_id", task.WorkflowInstanceId),
+				zap.String("reference_task_name", task.ReferenceTaskName))
+		}
+	}
+
 	return tasks, nil
 }
 
@@ -260,6 +245,7 @@ func (w *TaskWorker) findScheduledTasks(ctx context.Context) ([]Task, error) {
 
 	// Search for running workflows
 	url := fmt.Sprintf("%s/api/workflow/search?query=status:RUNNING", w.getConductorBaseURL())
+
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create search request: %w", err)
@@ -304,7 +290,6 @@ func (w *TaskWorker) findScheduledTasks(ctx context.Context) ([]Task, error) {
 		}
 	}
 
-	logger.Info("Found scheduled tasks", zap.Int("count", len(scheduledTasks)))
 	return scheduledTasks, nil
 }
 
@@ -358,11 +343,12 @@ func (w *TaskWorker) getWorkflowDetail(ctx context.Context, workflowID string) (
 			for _, taskRaw := range tasksArray {
 				if taskMap, ok := taskRaw.(map[string]interface{}); ok {
 					task := Task{
-						TaskID:            getString(taskMap, "taskId"),
-						TaskType:          getString(taskMap, "taskType"),
-						Status:            getString(taskMap, "status"),
-						ReferenceTaskName: getString(taskMap, "referenceTaskName"),
-						Input:             getMap(taskMap, "inputData"), // Note: Conductor uses "inputData" not "input"
+						TaskID:             getString(taskMap, "taskId"),
+						TaskType:           getString(taskMap, "taskType"),
+						Status:             getString(taskMap, "status"),
+						ReferenceTaskName:  getString(taskMap, "referenceTaskName"),
+						Input:              getMap(taskMap, "inputData"), // Note: Conductor uses "inputData" not "input"
+						WorkflowInstanceId: getString(taskMap, "workflowInstanceId"),
 					}
 					workflow.Tasks = append(workflow.Tasks, task)
 				}
@@ -419,14 +405,16 @@ func (w *TaskWorker) executeTask(ctx context.Context, task Task) error {
 		zap.String("operation", "execute_task"),
 	)
 
-	logger.Info("Executing task",
-		zap.Any("task_input", task.Input),
-		zap.String("task_status", task.Status))
-
 	// Mark task as IN_PROGRESS since we're executing it directly
-	if err := w.updateTaskStatus(ctx, task.TaskID, "IN_PROGRESS", map[string]interface{}{}); err != nil {
-		logger.Warn("Failed to mark task as IN_PROGRESS, continuing execution", zap.Error(err))
-		// Continue execution even if status update fails
+	if task.WorkflowInstanceId == "" {
+		logger.Warn("Workflow instance ID is empty, skipping task status update",
+			zap.String("task_id", task.TaskID),
+			zap.String("reference_task_name", task.ReferenceTaskName))
+	} else {
+		if err := w.updateTaskStatus(ctx, task.TaskID, task.WorkflowInstanceId, task.ReferenceTaskName, "IN_PROGRESS", map[string]interface{}{}); err != nil {
+			logger.Warn("Failed to mark task as IN_PROGRESS, continuing execution", zap.Error(err))
+			// Continue execution even if status update fails
+		}
 	}
 
 	// Find the appropriate task handler
@@ -438,9 +426,6 @@ func (w *TaskWorker) executeTask(ctx context.Context, task Task) error {
 		return fmt.Errorf("no handler found for task type: %s", task.ReferenceTaskName)
 	}
 
-	logger.Info("Found task handler",
-		zap.String("handler_type", fmt.Sprintf("%T", handler)))
-
 	// Add task type information to the input so the handler knows what to execute
 	inputWithTaskType := make(map[string]interface{})
 	for k, v := range task.Input {
@@ -449,19 +434,12 @@ func (w *TaskWorker) executeTask(ctx context.Context, task Task) error {
 	inputWithTaskType["taskType"] = task.TaskType
 	inputWithTaskType["referenceTaskName"] = task.ReferenceTaskName
 
-	logger.Info("Executing task with enhanced input",
-		zap.Any("enhanced_input", inputWithTaskType))
-
 	// Execute the task
 	output, err := handler.Execute(ctx, inputWithTaskType)
 	if err != nil {
 		logger.Error("Task execution failed", zap.Error(err))
 		return err
 	}
-
-	logger.Info("Task execution completed successfully",
-		zap.Any("task_output", output),
-		zap.Int("output_keys", len(output)))
 
 	// Validate output is not nil
 	if output == nil {
@@ -476,14 +454,20 @@ func (w *TaskWorker) executeTask(ctx context.Context, task Task) error {
 	}
 
 	// Update task status to completed
-	if err := w.updateTaskStatus(ctx, task.TaskID, "COMPLETED", output); err != nil {
-		logger.Warn("Failed to update task status to completed, but task executed successfully",
-			zap.Error(err),
-			zap.Any("task_output", output))
-		// Don't return error since the task executed successfully
-		// The status update failure is a Conductor API limitation, not a task execution issue
+	if task.WorkflowInstanceId == "" {
+		logger.Warn("Workflow instance ID is empty, skipping task completion update",
+			zap.String("task_id", task.TaskID),
+			zap.String("reference_task_name", task.ReferenceTaskName))
 	} else {
-		logger.Info("Task executed successfully and status updated")
+		if err := w.updateTaskStatus(ctx, task.TaskID, task.WorkflowInstanceId, task.ReferenceTaskName, "COMPLETED", output); err != nil {
+			logger.Warn("Failed to update task status to completed, but task executed successfully",
+				zap.Error(err),
+				zap.Any("task_output", output))
+			// Don't return error since the task executed successfully
+			// The status update failure is a Conductor API limitation, not a task execution issue
+		} else {
+			logger.Debug("Task executed successfully and status updated")
+		}
 	}
 
 	return nil
@@ -493,10 +477,12 @@ func (w *TaskWorker) executeTask(ctx context.Context, task Task) error {
 func (w *TaskWorker) updateTaskStatus(
 	ctx context.Context,
 	taskID string,
+	workflowInstanceId string,
+	referenceTaskName string,
 	status string,
 	output map[string]interface{},
 ) error {
-	return w.conductorClient.UpdateTask(ctx, taskID, status, output)
+	return w.conductorClient.UpdateTask(ctx, taskID, workflowInstanceId, referenceTaskName, status, output)
 }
 
 // registerTaskHandlers registers all available task handlers
@@ -536,7 +522,7 @@ func (w *TaskWorker) registerTaskHandlers() {
 	w.taskHandlers["identity_verification_ref"] = loanProcessingHandler
 	w.taskHandlers["finalize_loan_decision_ref"] = loanProcessingHandler
 
-	w.logger.Info("Task handlers registered", zap.Int("handler_count", len(w.taskHandlers)))
+	w.logger.Debug("Task handlers registered", zap.Int("handler_count", len(w.taskHandlers)))
 }
 
 // getAvailableHandlerNames returns a list of available handler names for debugging

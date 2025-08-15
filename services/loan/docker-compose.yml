@@ -45,7 +45,7 @@ services:
 
     # Netflix Conductor Server
   conductor-server:
-    image: conductoross/conductor:3.15.0
+    image: orkesio/orkes-conductor-community:latest
     container_name: loan-conductor-server
     environment:
       - spring.datasource.url=jdbc:postgresql://postgres:5432/postgres
