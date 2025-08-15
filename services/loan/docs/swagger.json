@@ -1,1886 +1,1717 @@
 {
-  "swagger": "2.0",
-  "info": {
-    "description": "A comprehensive loan origination service with internationalization support for Vietnamese and English, featuring Netflix Conductor workflow integration and document management capabilities. The API provides comprehensive error responses with detailed validation information including human-readable error messages, field-specific error details, validation error context, and structured error metadata for programmatic error handling. Document collection tasks support multiple document types including income verification, employment verification, bank statements, and identification documents with automated validation and workflow integration.",
-    "title": "Loan Service API",
-    "termsOfService": "http://swagger.io/terms/",
-    "contact": {
-      "name": "API Support",
-      "url": "http://www.swagger.io/support",
-      "email": "support@swagger.io"
+    "swagger": "2.0",
+    "info": {
+        "description": "A comprehensive loan origination service with internationalization support for Vietnamese and English, featuring Netflix Conductor workflow integration. The API provides comprehensive error responses with detailed validation information including human-readable error messages, field-specific error details, validation error context, and structured error metadata for programmatic error handling.",
+        "title": "Loan Service API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
     },
-    "license": {
-      "name": "Apache 2.0",
-      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-    },
-    "version": "1.0"
-  },
-  "host": "localhost:8080",
-  "basePath": "/v1",
-  "paths": {
-    "/health": {
-      "get": {
-        "description": "Check the health status of the loan service",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Health"
-        ],
-        "summary": "Health check",
-        "responses": {
-          "200": {
-            "description": "Service is healthy",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
+    "host": "localhost:8080",
+    "basePath": "/v1",
+    "paths": {
+        "/health": {
+            "get": {
+                "description": "Check the health status of the loan service",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "Service is healthy",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
                     }
-                  }
                 }
-              ]
             }
-          }
+        },
+        "/loans/applications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve all loan applications associated with the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Get all loan applications for the current user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Applications retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/domain.LoanApplication"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new loan application with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Create a new loan application",
+                "parameters": [
+                    {
+                        "description": "Loan application details",
+                        "name": "application",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateApplicationRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Application created successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.LoanApplication"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/applications/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a specific loan application by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Get a loan application by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Application retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.LoanApplication"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid application ID",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Application not found",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/applications/{id}/documents/complete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mark the document collection process as completed for a loan application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Complete document collection",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Completion request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "force": {
+                                    "type": "boolean"
+                                },
+                                "userId": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Document collection completed successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Application not found",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/applications/{id}/documents/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the current status of document collection for a loan application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Get document collection status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Document collection status retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/interfaces.DocumentCollectionStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Application not found",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/documents/upload": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload a document file for a specific loan application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Upload a document for a loan application",
+                "parameters": [
+                    {
+                        "description": "Document upload details",
+                        "name": "document",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/interfaces.DocumentUploadRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Document uploaded successfully",
+                        "schema": {
+                            "$ref": "#/definitions/interfaces.DocumentUploadResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/prequalify": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Check if a user qualifies for a loan based on income, debt, and other factors",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pre-qualification"
+                ],
+                "summary": "Perform loan pre-qualification",
+                "parameters": [
+                    {
+                        "description": "Pre-qualification request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.PreQualifyRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pre-qualification completed",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.PreQualifyResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve statistics about loan applications (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get application statistics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by state",
+                        "name": "state",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of days to look back (default: 30)",
+                        "name": "days",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Statistics retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflows/{id}/pause": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Pause a running workflow execution",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Workflows"
+                ],
+                "summary": "Pause workflow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Workflow paused successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid workflow ID",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Workflow not found",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflows/{id}/resume": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Resume a paused workflow execution",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Workflows"
+                ],
+                "summary": "Resume workflow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Workflow resumed successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid workflow ID",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Workflow not found",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflows/{id}/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the current status of a workflow execution",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Workflows"
+                ],
+                "summary": "Get workflow status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Workflow status retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid workflow ID",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Workflow not found",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflows/{id}/terminate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Terminate a running workflow execution",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Workflows"
+                ],
+                "summary": "Terminate workflow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Termination reason",
+                        "name": "reason",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Workflow terminated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid workflow ID",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Workflow not found",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
-      }
     },
-    "/loans/applications": {
-      "get": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Retrieve all loan applications associated with the authenticated user",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Applications"
-        ],
-        "summary": "Get all loan applications for the current user",
-        "parameters": [
-          {
+    "definitions": {
+        "domain.AccountType": {
             "type": "string",
-            "description": "Language preference (en, vi)",
-            "name": "X-Language",
+            "enum": [
+                "checking",
+                "savings"
+            ],
+            "x-enum-varnames": [
+                "AccountChecking",
+                "AccountSavings"
+            ]
+        },
+        "domain.Address": {
+            "type": "object",
+            "required": [
+                "city",
+                "country",
+                "residence_type",
+                "state",
+                "street_address",
+                "time_at_address_months",
+                "zip_code"
+            ],
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "example": "New York"
+                },
+                "country": {
+                    "type": "string",
+                    "example": "USA"
+                },
+                "residence_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.ResidenceType"
+                        }
+                    ],
+                    "example": "own"
+                },
+                "state": {
+                    "type": "string",
+                    "example": "NY"
+                },
+                "street_address": {
+                    "type": "string",
+                    "example": "123 Main St"
+                },
+                "time_at_address_months": {
+                    "description": "months",
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 24
+                },
+                "zip_code": {
+                    "type": "string",
+                    "example": "10001"
+                }
+            }
+        },
+        "domain.ApplicationState": {
+            "type": "string",
+            "enum": [
+                "initiated",
+                "pre_qualified",
+                "documents_submitted",
+                "identity_verified",
+                "underwriting",
+                "manual_review",
+                "approved",
+                "denied",
+                "documents_signed",
+                "funded",
+                "active",
+                "closed"
+            ],
+            "x-enum-varnames": [
+                "StateInitiated",
+                "StatePreQualified",
+                "StateDocumentsSubmitted",
+                "StateIdentityVerified",
+                "StateUnderwriting",
+                "StateManualReview",
+                "StateApproved",
+                "StateDenied",
+                "StateDocumentsSigned",
+                "StateFunded",
+                "StateActive",
+                "StateClosed"
+            ]
+        },
+        "domain.ApplicationStatus": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "submitted",
+                "under_review",
+                "approved",
+                "denied",
+                "funded",
+                "active",
+                "closed"
+            ],
+            "x-enum-varnames": [
+                "StatusDraft",
+                "StatusSubmitted",
+                "StatusUnderReview",
+                "StatusApproved",
+                "StatusDenied",
+                "StatusFunded",
+                "StatusActive",
+                "StatusClosed"
+            ]
+        },
+        "domain.BankingInfo": {
+            "type": "object",
+            "required": [
+                "account_number",
+                "account_type",
+                "bank_name",
+                "routing_number"
+            ],
+            "properties": {
+                "account_number": {
+                    "type": "string",
+                    "example": "1234567890"
+                },
+                "account_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.AccountType"
+                        }
+                    ],
+                    "example": "checking"
+                },
+                "bank_name": {
+                    "type": "string",
+                    "example": "Chase Bank"
+                },
+                "routing_number": {
+                    "type": "string",
+                    "example": "021000021"
+                }
+            }
+        },
+        "domain.CreateApplicationRequest": {
+            "description": "Request to create a new loan application with user information",
+            "type": "object",
+            "required": [
+                "annual_income",
+                "employment_status",
+                "loan_amount",
+                "loan_purpose",
+                "monthly_income",
+                "requested_term_months",
+                "user"
+            ],
+            "properties": {
+                "annual_income": {
+                    "type": "number",
+                    "minimum": 0,
+                    "example": 75000
+                },
+                "employment_status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.EmploymentStatus"
+                        }
+                    ],
+                    "example": "full_time"
+                },
+                "loan_amount": {
+                    "description": "Loan application details",
+                    "type": "number",
+                    "maximum": 50000,
+                    "minimum": 5000,
+                    "example": 25000
+                },
+                "loan_purpose": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.LoanPurpose"
+                        }
+                    ],
+                    "example": "debt_consolidation"
+                },
+                "monthly_debt_payments": {
+                    "type": "number",
+                    "minimum": 0,
+                    "example": 1500
+                },
+                "monthly_income": {
+                    "type": "number",
+                    "minimum": 0,
+                    "example": 6250
+                },
+                "requested_term_months": {
+                    "type": "integer",
+                    "maximum": 84,
+                    "minimum": 12,
+                    "example": 60
+                },
+                "user": {
+                    "description": "User information for application",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.User"
+                        }
+                    ]
+                }
+            }
+        },
+        "domain.EmploymentInfo": {
+            "type": "object",
+            "required": [
+                "employer_name",
+                "job_title",
+                "time_employed_months",
+                "work_phone"
+            ],
+            "properties": {
+                "employer_name": {
+                    "type": "string",
+                    "example": "ABC Company"
+                },
+                "job_title": {
+                    "type": "string",
+                    "example": "Software Engineer"
+                },
+                "time_employed_months": {
+                    "description": "months",
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 36
+                },
+                "work_email": {
+                    "type": "string",
+                    "example": "john.doe@abccompany.com"
+                },
+                "work_phone": {
+                    "type": "string",
+                    "example": "+1234567890"
+                }
+            }
+        },
+        "domain.EmploymentStatus": {
+            "type": "string",
+            "enum": [
+                "full_time",
+                "part_time",
+                "self_employed",
+                "retired",
+                "unemployed",
+                "student"
+            ],
+            "x-enum-varnames": [
+                "EmploymentFullTime",
+                "EmploymentPartTime",
+                "EmploymentSelfEmployed",
+                "EmploymentRetired",
+                "EmploymentUnemployed",
+                "EmploymentStudent"
+            ]
+        },
+        "domain.LoanApplication": {
+            "type": "object",
+            "properties": {
+                "annual_income": {
+                    "type": "number"
+                },
+                "application_number": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "current_state": {
+                    "$ref": "#/definitions/domain.ApplicationState"
+                },
+                "employment_status": {
+                    "$ref": "#/definitions/domain.EmploymentStatus"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "loan_amount": {
+                    "type": "number"
+                },
+                "loan_purpose": {
+                    "$ref": "#/definitions/domain.LoanPurpose"
+                },
+                "monthly_debt_payments": {
+                    "type": "number"
+                },
+                "monthly_income": {
+                    "type": "number"
+                },
+                "requested_term_months": {
+                    "type": "integer"
+                },
+                "risk_score": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.ApplicationStatus"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "workflow_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.LoanPurpose": {
+            "type": "string",
+            "enum": [
+                "debt_consolidation",
+                "home_improvement",
+                "medical",
+                "vacation",
+                "wedding",
+                "major_purchase",
+                "other"
+            ],
+            "x-enum-varnames": [
+                "PurposeDebtConsolidation",
+                "PurposeHomeImprovement",
+                "PurposeMedical",
+                "PurposeVacation",
+                "PurposeWedding",
+                "PurposeMajorPurchase",
+                "PurposeOther"
+            ]
+        },
+        "domain.PreQualifyRequest": {
+            "description": "Request to perform loan pre-qualification",
+            "type": "object",
+            "required": [
+                "annual_income",
+                "employment_status",
+                "loan_amount"
+            ],
+            "properties": {
+                "annual_income": {
+                    "type": "number",
+                    "minimum": 0,
+                    "example": 75000
+                },
+                "employment_status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.EmploymentStatus"
+                        }
+                    ],
+                    "example": "full_time"
+                },
+                "loan_amount": {
+                    "type": "number",
+                    "maximum": 50000,
+                    "minimum": 5000,
+                    "example": 25000
+                },
+                "monthly_debt_payments": {
+                    "type": "number",
+                    "minimum": 0,
+                    "example": 1500
+                }
+            }
+        },
+        "domain.PreQualifyResult": {
+            "description": "Result of loan pre-qualification",
+            "type": "object",
+            "properties": {
+                "dti_ratio": {
+                    "type": "number",
+                    "example": 0.24
+                },
+                "max_interest_rate": {
+                    "type": "number",
+                    "example": 12
+                },
+                "max_loan_amount": {
+                    "type": "number",
+                    "example": 50000
+                },
+                "message": {
+                    "type": "string",
+                    "example": "You are pre-qualified for a loan"
+                },
+                "min_interest_rate": {
+                    "type": "number",
+                    "example": 8.5
+                },
+                "qualified": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "recommended_terms": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "domain.ResidenceType": {
+            "type": "string",
+            "enum": [
+                "own",
+                "rent",
+                "family",
+                "other"
+            ],
+            "x-enum-varnames": [
+                "ResidenceOwn",
+                "ResidenceRent",
+                "ResidenceFamily",
+                "ResidenceOther"
+            ]
+        },
+        "domain.User": {
+            "type": "object",
+            "required": [
+                "address",
+                "banking_info",
+                "date_of_birth",
+                "email",
+                "employment_info",
+                "first_name",
+                "last_name",
+                "phone_number",
+                "ssn"
+            ],
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/domain.Address"
+                },
+                "banking_info": {
+                    "$ref": "#/definitions/domain.BankingInfo"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "date_of_birth": {
+                    "type": "string",
+                    "example": "1990-01-01"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "john.doe@example.com"
+                },
+                "employment_info": {
+                    "$ref": "#/definitions/domain.EmploymentInfo"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "John"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Doe"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+1234567890"
+                },
+                "ssn": {
+                    "type": "string",
+                    "example": "123456789"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "interfaces.DocumentCollectionStatus": {
+            "type": "object",
+            "properties": {
+                "applicationId": {
+                    "type": "string"
+                },
+                "collected": {
+                    "type": "integer"
+                },
+                "collectionCompletedAt": {
+                    "type": "string"
+                },
+                "collectionStarted": {
+                    "type": "string"
+                },
+                "documents": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/interfaces.DocumentInfo"
+                    }
+                },
+                "pending": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "totalRequired": {
+                    "type": "integer"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "validationErrors": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "interfaces.DocumentInfo": {
+            "type": "object",
+            "properties": {
+                "collected": {
+                    "type": "boolean"
+                },
+                "documentType": {
+                    "type": "string"
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "fileSize": {
+                    "type": "integer"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "uploadedAt": {
+                    "type": "string"
+                },
+                "validated": {
+                    "type": "boolean"
+                },
+                "validatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "interfaces.DocumentUploadRequest": {
+            "type": "object",
+            "required": [
+                "applicationId",
+                "contentType",
+                "documentType",
+                "fileName",
+                "fileSize",
+                "userId"
+            ],
+            "properties": {
+                "applicationId": {
+                    "type": "string"
+                },
+                "contentType": {
+                    "type": "string"
+                },
+                "documentType": {
+                    "type": "string"
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "fileSize": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "interfaces.DocumentUploadResponse": {
+            "type": "object",
+            "properties": {
+                "documentId": {
+                    "type": "string"
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "uploadedAt": {
+                    "type": "string"
+                },
+                "validationStatus": {
+                    "type": "string"
+                }
+            }
+        },
+        "loan-service_interfaces_middleware.ErrorDetail": {
+            "description": "Detailed error information with comprehensive error details",
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "LOAN_020"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Validation error: parsing time \"1990-01-01\" as \"2006-01-02T15:04:05Z07:00\": cannot parse \"\" as \"T\"; date_format: Date must be in ISO 8601 format (e.g., 1990-01-01T00:00:00Z)"
+                },
+                "field": {
+                    "type": "string",
+                    "example": "date_of_birth"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Invalid request format - please check your JSON data and field validation"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "loan-service_interfaces_middleware.ErrorResponse": {
+            "description": "Standardized error response",
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {
+                    "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorDetail"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "loan-service_interfaces_middleware.SuccessResponse": {
+            "description": "Standardized success response",
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "Application created successfully"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
             "in": "header"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Applications retrieved successfully",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/definitions/domain.LoanApplication"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
         }
-      },
-      "post": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Create a new loan application with the provided details",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Applications"
-        ],
-        "summary": "Create a new loan application",
-        "parameters": [
-          {
-            "description": "Loan application details",
-            "name": "application",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/domain.CreateApplicationRequest"
-            }
-          },
-          {
-            "type": "string",
-            "description": "Language preference (en, vi)",
-            "name": "X-Language",
-            "in": "header"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Application created successfully",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/domain.LoanApplication"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "Invalid request data",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
+    },
+    "tags": [
+        {
+            "description": "Loan application management operations",
+            "name": "Applications"
+        },
+        {
+            "description": "Loan pre-qualification operations",
+            "name": "Pre-qualification"
+        },
+        {
+            "description": "Loan offer management operations",
+            "name": "Offers"
+        },
+        {
+            "description": "Administrative operations",
+            "name": "Admin"
+        },
+        {
+            "description": "Health check operations",
+            "name": "Health"
+        },
+        {
+            "description": "Comprehensive error handling with detailed validation information",
+            "name": "Error Handling"
         }
-      }
-    },
-    "/loans/applications/{id}": {
-      "get": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Retrieve a specific loan application by its ID",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Applications"
-        ],
-        "summary": "Get a loan application by ID",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Application ID",
-            "name": "id",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "Language preference (en, vi)",
-            "name": "X-Language",
-            "in": "header"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Application retrieved successfully",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/domain.LoanApplication"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "Invalid application ID",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "404": {
-            "description": "Application not found",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
-        }
-      }
-    },
-    "/loans/prequalify": {
-      "post": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Check if a user qualifies for a loan based on income, debt, and other factors",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Pre-qualification"
-        ],
-        "summary": "Perform loan pre-qualification",
-        "parameters": [
-          {
-            "description": "Pre-qualification request",
-            "name": "request",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/domain.PreQualifyRequest"
-            }
-          },
-          {
-            "type": "string",
-            "description": "Language preference (en, vi)",
-            "name": "X-Language",
-            "in": "header"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Pre-qualification completed",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/domain.PreQualifyResult"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "Invalid request data",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
-        }
-      }
-    },
-    "/loans/stats": {
-      "get": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Retrieve statistics about loan applications (admin only)",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Admin"
-        ],
-        "summary": "Get application statistics",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Filter by status",
-            "name": "status",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Filter by state",
-            "name": "state",
-            "in": "query"
-          },
-          {
-            "type": "integer",
-            "description": "Number of days to look back (default: 30)",
-            "name": "days",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Language preference (en, vi)",
-            "name": "X-Language",
-            "in": "header"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Statistics retrieved successfully",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
-        }
-      }
-    },
-    "/workflows/{id}/pause": {
-      "post": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Pause a running workflow execution",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Workflows"
-        ],
-        "summary": "Pause workflow",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Workflow ID",
-            "name": "id",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "Language preference (en, vi)",
-            "name": "X-Language",
-            "in": "header"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Workflow paused successfully",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "Invalid workflow ID",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "404": {
-            "description": "Workflow not found",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
-        }
-      }
-    },
-    "/workflows/{id}/resume": {
-      "post": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Resume a paused workflow execution",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Workflows"
-        ],
-        "summary": "Resume workflow",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Workflow ID",
-            "name": "id",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "Language preference (en, vi)",
-            "name": "X-Language",
-            "in": "header"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Workflow resumed successfully",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "Invalid workflow ID",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "404": {
-            "description": "Workflow not found",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
-        }
-      }
-    },
-    "/workflows/{id}/status": {
-      "get": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Retrieve the current status of a workflow execution",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Workflows"
-        ],
-        "summary": "Get workflow status",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Workflow ID",
-            "name": "id",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "Language preference (en, vi)",
-            "name": "X-Language",
-            "in": "header"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Workflow status retrieved successfully",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/workflow.WorkflowStatus"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "Invalid workflow ID",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "404": {
-            "description": "Workflow not found",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
-        }
-      }
-    },
-    "/workflows/{id}/terminate": {
-      "post": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Terminate a running workflow execution",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Workflows"
-        ],
-        "summary": "Terminate workflow",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Workflow ID",
-            "name": "id",
-            "in": "path",
-            "required": true
-          },
-          {
-            "description": "Termination reason",
-            "name": "reason",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          },
-          {
-            "type": "string",
-            "description": "Language preference (en, vi)",
-            "name": "X-Language",
-            "in": "header"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Workflow terminated successfully",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "Invalid workflow ID",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "404": {
-            "description": "Workflow not found",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
-        }
-      }
-    },
-    "/loans/documents/upload": {
-      "post": {
-        "consumes": [
-          "application/json"
-        ],
-        "description": "Upload a document for loan processing",
-        "parameters": [
-          {
-            "description": "Document upload request",
-            "in": "body",
-            "name": "request",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/interfaces.DocumentUploadRequest"
-            }
-          },
-          {
-            "description": "Language preference (en, vi)",
-            "in": "header",
-            "name": "X-Language",
-            "type": "string"
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Document uploaded successfully",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/interfaces.DocumentUploadResponse"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "Invalid document data",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "summary": "Upload document",
-        "tags": [
-          "Documents"
-        ]
-      }
-    },
-    "/loans/applications/{id}/documents/status": {
-      "get": {
-        "consumes": [
-          "application/json"
-        ],
-        "description": "Get document collection status for a loan application",
-        "parameters": [
-          {
-            "description": "Application ID",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "description": "Language preference (en, vi)",
-            "in": "header",
-            "name": "X-Language",
-            "type": "string"
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Document status retrieved successfully",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/interfaces.DocumentCollectionStatus"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "Invalid application ID",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "404": {
-            "description": "Application not found",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "summary": "Get document collection status",
-        "tags": [
-          "Documents"
-        ]
-      }
-    },
-    "/loans/applications/{id}/documents/complete": {
-      "post": {
-        "consumes": [
-          "application/json"
-        ],
-        "description": "Mark document collection as complete for a loan application",
-        "parameters": [
-          {
-            "description": "Application ID",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "description": "Document completion request",
-            "in": "body",
-            "name": "request",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/interfaces.DocumentCompletionRequest"
-            }
-          },
-          {
-            "description": "Language preference (en, vi)",
-            "in": "header",
-            "name": "X-Language",
-            "type": "string"
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Document collection completed successfully",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/middleware.SuccessResponse"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/interfaces.DocumentCompletionResponse"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "Invalid completion data",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "404": {
-            "description": "Application not found",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/middleware.ErrorResponse"
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "summary": "Complete document collection",
-        "tags": [
-          "Documents"
-        ]
-      }
-    }
-  },
-  "definitions": {
-    "domain.AccountType": {
-      "type": "string",
-      "enum": [
-        "checking",
-        "savings"
-      ],
-      "x-enum-varnames": [
-        "AccountChecking",
-        "AccountSavings"
-      ]
-    },
-    "domain.Address": {
-      "type": "object",
-      "required": [
-        "city",
-        "country",
-        "residence_type",
-        "state",
-        "street_address",
-        "time_at_address_months",
-        "zip_code"
-      ],
-      "properties": {
-        "city": {
-          "type": "string",
-          "example": "New York"
-        },
-        "country": {
-          "type": "string",
-          "example": "USA"
-        },
-        "residence_type": {
-          "allOf": [
-            {
-              "$ref": "#/definitions/domain.ResidenceType"
-            }
-          ],
-          "example": "own"
-        },
-        "state": {
-          "type": "string",
-          "example": "NY"
-        },
-        "street_address": {
-          "type": "string",
-          "example": "123 Main St"
-        },
-        "time_at_address_months": {
-          "description": "months",
-          "type": "integer",
-          "minimum": 0,
-          "example": 24
-        },
-        "zip_code": {
-          "type": "string",
-          "example": "10001"
-        }
-      }
-    },
-    "domain.ApplicationState": {
-      "type": "string",
-      "enum": [
-        "initiated",
-        "pre_qualified",
-        "documents_submitted",
-        "identity_verified",
-        "underwriting",
-        "manual_review",
-        "approved",
-        "denied",
-        "documents_signed",
-        "funded",
-        "active",
-        "closed"
-      ],
-      "x-enum-varnames": [
-        "StateInitiated",
-        "StatePreQualified",
-        "StateDocumentsSubmitted",
-        "StateIdentityVerified",
-        "StateUnderwriting",
-        "StateManualReview",
-        "StateApproved",
-        "StateDenied",
-        "StateDocumentsSigned",
-        "StateFunded",
-        "StateActive",
-        "StateClosed"
-      ]
-    },
-    "domain.ApplicationStatus": {
-      "type": "string",
-      "enum": [
-        "draft",
-        "submitted",
-        "under_review",
-        "approved",
-        "denied",
-        "funded",
-        "active",
-        "closed"
-      ],
-      "x-enum-varnames": [
-        "StatusDraft",
-        "StatusSubmitted",
-        "StatusUnderReview",
-        "StatusApproved",
-        "StatusDenied",
-        "StatusFunded",
-        "StatusActive",
-        "StatusClosed"
-      ]
-    },
-    "domain.BankingInfo": {
-      "type": "object",
-      "required": [
-        "account_number",
-        "account_type",
-        "bank_name",
-        "routing_number"
-      ],
-      "properties": {
-        "account_number": {
-          "type": "string",
-          "example": "1234567890"
-        },
-        "account_type": {
-          "allOf": [
-            {
-              "$ref": "#/definitions/domain.AccountType"
-            }
-          ],
-          "example": "checking"
-        },
-        "bank_name": {
-          "type": "string",
-          "example": "Chase Bank"
-        },
-        "routing_number": {
-          "type": "string",
-          "example": "021000021"
-        }
-      }
-    },
-    "domain.CreateApplicationRequest": {
-      "description": "Request to create a new loan application with user information",
-      "type": "object",
-      "required": [
-        "annual_income",
-        "employment_status",
-        "loan_amount",
-        "loan_purpose",
-        "monthly_income",
-        "requested_term_months",
-        "user"
-      ],
-      "properties": {
-        "annual_income": {
-          "type": "number",
-          "minimum": 0,
-          "example": 75000
-        },
-        "employment_status": {
-          "allOf": [
-            {
-              "$ref": "#/definitions/domain.EmploymentStatus"
-            }
-          ],
-          "example": "full_time"
-        },
-        "loan_amount": {
-          "description": "Loan application details",
-          "type": "number",
-          "maximum": 50000,
-          "minimum": 5000,
-          "example": 25000
-        },
-        "loan_purpose": {
-          "allOf": [
-            {
-              "$ref": "#/definitions/domain.LoanPurpose"
-            }
-          ],
-          "example": "debt_consolidation"
-        },
-        "monthly_debt_payments": {
-          "type": "number",
-          "minimum": 0,
-          "example": 1500
-        },
-        "monthly_income": {
-          "type": "number",
-          "minimum": 0,
-          "example": 6250
-        },
-        "requested_term_months": {
-          "type": "integer",
-          "maximum": 84,
-          "minimum": 12,
-          "example": 60
-        },
-        "user": {
-          "description": "User information for application",
-          "allOf": [
-            {
-              "$ref": "#/definitions/domain.User"
-            }
-          ]
-        }
-      }
-    },
-    "domain.EmploymentInfo": {
-      "type": "object",
-      "required": [
-        "employer_name",
-        "job_title",
-        "time_employed_months",
-        "work_phone"
-      ],
-      "properties": {
-        "employer_name": {
-          "type": "string",
-          "example": "ABC Company"
-        },
-        "job_title": {
-          "type": "string",
-          "example": "Software Engineer"
-        },
-        "time_employed_months": {
-          "description": "months",
-          "type": "integer",
-          "minimum": 0,
-          "example": 36
-        },
-        "work_email": {
-          "type": "string",
-          "example": "john.doe@abccompany.com"
-        },
-        "work_phone": {
-          "type": "string",
-          "example": "+1234567890"
-        }
-      }
-    },
-    "domain.EmploymentStatus": {
-      "type": "string",
-      "enum": [
-        "full_time",
-        "part_time",
-        "self_employed",
-        "retired",
-        "unemployed",
-        "student"
-      ],
-      "x-enum-varnames": [
-        "EmploymentFullTime",
-        "EmploymentPartTime",
-        "EmploymentSelfEmployed",
-        "EmploymentRetired",
-        "EmploymentUnemployed",
-        "EmploymentStudent"
-      ]
-    },
-    "domain.LoanApplication": {
-      "type": "object",
-      "properties": {
-        "annual_income": {
-          "type": "number"
-        },
-        "application_number": {
-          "type": "string"
-        },
-        "created_at": {
-          "type": "string"
-        },
-        "current_state": {
-          "$ref": "#/definitions/domain.ApplicationState"
-        },
-        "employment_status": {
-          "$ref": "#/definitions/domain.EmploymentStatus"
-        },
-        "id": {
-          "type": "string"
-        },
-        "loan_amount": {
-          "type": "number"
-        },
-        "loan_purpose": {
-          "$ref": "#/definitions/domain.LoanPurpose"
-        },
-        "monthly_debt_payments": {
-          "type": "number"
-        },
-        "monthly_income": {
-          "type": "number"
-        },
-        "requested_term_months": {
-          "type": "integer"
-        },
-        "risk_score": {
-          "type": "integer"
-        },
-        "status": {
-          "$ref": "#/definitions/domain.ApplicationStatus"
-        },
-        "updated_at": {
-          "type": "string"
-        },
-        "user_id": {
-          "type": "string"
-        },
-        "workflow_id": {
-          "type": "string"
-        }
-      }
-    },
-    "domain.LoanPurpose": {
-      "type": "string",
-      "enum": [
-        "debt_consolidation",
-        "home_improvement",
-        "medical",
-        "vacation",
-        "wedding",
-        "major_purchase",
-        "other"
-      ],
-      "x-enum-varnames": [
-        "PurposeDebtConsolidation",
-        "PurposeHomeImprovement",
-        "PurposeMedical",
-        "PurposeVacation",
-        "PurposeWedding",
-        "PurposeMajorPurchase",
-        "PurposeOther"
-      ]
-    },
-    "domain.PreQualifyRequest": {
-      "description": "Request to perform loan pre-qualification",
-      "type": "object",
-      "required": [
-        "annual_income",
-        "employment_status",
-        "loan_amount"
-      ],
-      "properties": {
-        "annual_income": {
-          "type": "number",
-          "minimum": 0,
-          "example": 75000
-        },
-        "employment_status": {
-          "allOf": [
-            {
-              "$ref": "#/definitions/domain.EmploymentStatus"
-            }
-          ],
-          "example": "full_time"
-        },
-        "loan_amount": {
-          "type": "number",
-          "maximum": 50000,
-          "minimum": 5000,
-          "example": 25000
-        },
-        "monthly_debt_payments": {
-          "type": "number",
-          "minimum": 0,
-          "example": 1500
-        }
-      }
-    },
-    "domain.PreQualifyResult": {
-      "description": "Result of loan pre-qualification",
-      "type": "object",
-      "properties": {
-        "dti_ratio": {
-          "type": "number",
-          "example": 0.24
-        },
-        "max_interest_rate": {
-          "type": "number",
-          "example": 12
-        },
-        "max_loan_amount": {
-          "type": "number",
-          "example": 50000
-        },
-        "message": {
-          "type": "string",
-          "example": "You are pre-qualified for a loan"
-        },
-        "min_interest_rate": {
-          "type": "number",
-          "example": 8.5
-        },
-        "qualified": {
-          "type": "boolean",
-          "example": true
-        },
-        "recommended_terms": {
-          "type": "array",
-          "items": {
-            "type": "integer"
-          }
-        }
-      }
-    },
-    "domain.ResidenceType": {
-      "type": "string",
-      "enum": [
-        "own",
-        "rent",
-        "family",
-        "other"
-      ],
-      "x-enum-varnames": [
-        "ResidenceOwn",
-        "ResidenceRent",
-        "ResidenceFamily",
-        "ResidenceOther"
-      ]
-    },
-    "domain.User": {
-      "type": "object",
-      "required": [
-        "address",
-        "banking_info",
-        "date_of_birth",
-        "email",
-        "employment_info",
-        "first_name",
-        "last_name",
-        "phone_number",
-        "ssn"
-      ],
-      "properties": {
-        "address": {
-          "$ref": "#/definitions/domain.Address"
-        },
-        "banking_info": {
-          "$ref": "#/definitions/domain.BankingInfo"
-        },
-        "created_at": {
-          "type": "string"
-        },
-        "date_of_birth": {
-          "type": "string",
-          "example": "1990-01-01"
-        },
-        "email": {
-          "type": "string",
-          "example": "john.doe@example.com"
-        },
-        "employment_info": {
-          "$ref": "#/definitions/domain.EmploymentInfo"
-        },
-        "first_name": {
-          "type": "string",
-          "example": "John"
-        },
-        "id": {
-          "type": "string"
-        },
-        "last_name": {
-          "type": "string",
-          "example": "Doe"
-        },
-        "phone_number": {
-          "type": "string",
-          "example": "+1234567890"
-        },
-        "ssn": {
-          "type": "string",
-          "example": "123456789"
-        },
-        "updated_at": {
-          "type": "string"
-        }
-      }
-    },
-    "middleware.ErrorDetail": {
-      "description": "Detailed error information with comprehensive error details",
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "example": "LOAN_020"
-        },
-        "description": {
-          "type": "string",
-          "example": "Validation error: parsing time \"1990-01-01\" as \"2006-01-02T15:04:05Z07:00\": cannot parse \"\" as \"T\"; date_format: Date must be in ISO 8601 format (e.g., 1990-01-01T00:00:00Z)"
-        },
-        "field": {
-          "type": "string",
-          "example": "date_of_birth"
-        },
-        "message": {
-          "type": "string",
-          "example": "Invalid request format - please check your JSON data and field validation"
-        },
-        "metadata": {
-          "type": "object",
-          "additionalProperties": true
-        }
-      }
-    },
-    "middleware.ErrorResponse": {
-      "description": "Standardized error response",
-      "type": "object",
-      "properties": {
-        "data": {},
-        "error": {
-          "$ref": "#/definitions/middleware.ErrorDetail"
-        },
-        "metadata": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "success": {
-          "type": "boolean",
-          "example": false
-        }
-      }
-    },
-    "middleware.SuccessResponse": {
-      "description": "Standardized success response",
-      "type": "object",
-      "properties": {
-        "data": {},
-        "message": {
-          "type": "string",
-          "example": "Application created successfully"
-        },
-        "metadata": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "success": {
-          "type": "boolean",
-          "example": true
-        }
-      }
-    },
-    "workflow.TaskStatus": {
-      "type": "object",
-      "properties": {
-        "endTime": {
-          "type": "string"
-        },
-        "inputData": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "outputData": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "referenceTaskName": {
-          "type": "string"
-        },
-        "startTime": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        },
-        "taskId": {
-          "type": "string"
-        },
-        "taskType": {
-          "type": "string"
-        }
-      }
-    },
-    "workflow.WorkflowStatus": {
-      "type": "object",
-      "properties": {
-        "input": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "output": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "status": {
-          "type": "string"
-        },
-        "tasks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/workflow.TaskStatus"
-          }
-        },
-        "workflowId": {
-          "type": "string"
-        }
-      }
-    },
-    "interfaces.DocumentUploadRequest": {
-      "properties": {
-        "documentType": {
-          "description": "Type of document being uploaded",
-          "example": "income_verification",
-          "type": "string"
-        },
-        "fileName": {
-          "description": "Name of the uploaded file",
-          "example": "paystub_2025_08.pdf",
-          "type": "string"
-        },
-        "fileSize": {
-          "description": "Size of the file in bytes",
-          "example": 2048576,
-          "type": "integer"
-        },
-        "metadata": {
-          "additionalProperties": true,
-          "description": "Additional metadata about the document",
-          "example": {
-            "employer": "Tech Corp Inc",
-            "period": "2025-08-01 to 2025-08-15",
-            "grossIncome": 5000.00,
-            "netIncome": 3800.00
-          },
-          "type": "object"
-        }
-      },
-      "required": [
-        "documentType",
-        "fileName",
-        "fileSize"
-      ],
-      "type": "object"
-    },
-    "interfaces.DocumentUploadResponse": {
-      "properties": {
-        "success": {
-          "description": "Whether the document upload was successful",
-          "example": true,
-          "type": "boolean"
-        },
-        "documentId": {
-          "description": "Unique identifier for the uploaded document",
-          "example": "doc_12345678-1234-1234-1234-123456789012",
-          "type": "string"
-        },
-        "message": {
-          "description": "Success message",
-          "example": "Document uploaded successfully",
-          "type": "string"
-        },
-        "uploadedAt": {
-          "description": "Timestamp when the document was uploaded",
-          "example": "2025-08-15T17:36:36.352+0700",
-          "type": "string"
-        }
-      },
-      "required": [
-        "success",
-        "documentId",
-        "message",
-        "uploadedAt"
-      ],
-      "type": "object"
-    },
-    "interfaces.DocumentCollectionStatus": {
-      "properties": {
-        "applicationId": {
-          "description": "ID of the loan application",
-          "example": "80588df0-d3b1-4e33-b984-385cb55e85ce",
-          "type": "string"
-        },
-        "userId": {
-          "description": "ID of the user",
-          "example": "550e8400-e29b-41d4-a716-446655440001",
-          "type": "string"
-        },
-        "status": {
-          "description": "Overall status of document collection",
-          "example": "in_progress",
-          "type": "string"
-        },
-        "documents": {
-          "items": {
-            "$ref": "#/definitions/interfaces.DocumentInfo"
-          },
-          "type": "array"
-        },
-        "requiredDocuments": {
-          "description": "List of required document types",
-          "example": [
-            "income_verification",
-            "employment_verification",
-            "bank_statements",
-            "identification"
-          ],
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "collectedCount": {
-          "description": "Number of documents collected",
-          "example": 2,
-          "type": "integer"
-        },
-        "totalRequired": {
-          "description": "Total number of required documents",
-          "example": 4,
-          "type": "integer"
-        },
-        "lastUpdated": {
-          "description": "Last update timestamp",
-          "example": "2025-08-15T17:36:36.352+0700",
-          "type": "string"
-        }
-      },
-      "required": [
-        "applicationId",
-        "userId",
-        "status",
-        "documents",
-        "requiredDocuments",
-        "collectedCount",
-        "totalRequired",
-        "lastUpdated"
-      ],
-      "type": "object"
-    },
-    "interfaces.DocumentInfo": {
-      "properties": {
-        "documentType": {
-          "description": "Type of document",
-          "example": "income_verification",
-          "type": "string"
-        },
-        "fileName": {
-          "description": "Name of the document file",
-          "example": "paystub_2025_08.pdf",
-          "type": "string"
-        },
-        "fileSize": {
-          "description": "Size of the file in bytes",
-          "example": 2048576,
-          "type": "integer"
-        },
-        "uploadedAt": {
-          "description": "When the document was uploaded",
-          "example": "2025-08-15T17:36:36.352+0700",
-          "type": "string"
-        },
-        "status": {
-          "description": "Status of the document",
-          "example": "uploaded",
-          "type": "string"
-        },
-        "metadata": {
-          "additionalProperties": true,
-          "description": "Additional document metadata",
-          "example": {
-            "employer": "Tech Corp Inc",
-            "period": "2025-08-01 to 2025-08-15",
-            "grossIncome": 5000.00,
-            "netIncome": 3800.00
-          },
-          "type": "object"
-        }
-      },
-      "required": [
-        "documentType",
-        "fileName",
-        "fileSize",
-        "uploadedAt",
-        "status"
-      ],
-      "type": "object"
-    },
-    "interfaces.DocumentCompletionRequest": {
-      "properties": {
-        "completionReason": {
-          "description": "Reason for marking collection as complete",
-          "example": "All required documents collected and validated",
-          "type": "string"
-        },
-        "completionNotes": {
-          "description": "Additional notes about the completion",
-          "example": "Documents meet all requirements for loan processing",
-          "type": "string"
-        },
-        "completedBy": {
-          "description": "User who marked the collection as complete",
-          "example": "loan_officer_123",
-          "type": "string"
-        }
-      },
-      "required": [
-        "completionReason",
-        "completionNotes"
-      ],
-      "type": "object"
-    },
-    "interfaces.DocumentCompletionResponse": {
-      "properties": {
-        "success": {
-          "description": "Whether the completion was successful",
-          "example": true,
-          "type": "boolean"
-        },
-        "message": {
-          "description": "Success message",
-          "example": "Document collection marked as complete",
-          "type": "string"
-        },
-        "completedAt": {
-          "description": "Timestamp when collection was marked complete",
-          "example": "2025-08-15T17:36:36.352+0700",
-          "type": "string"
-        },
-        "applicationId": {
-          "description": "ID of the loan application",
-          "example": "80588df0-d3b1-4e33-b984-385cb55e85ce",
-          "type": "string"
-        },
-        "nextStep": {
-          "description": "Next step in the loan process",
-          "example": "Proceed to identity verification",
-          "type": "string"
-        }
-      },
-      "required": [
-        "success",
-        "message",
-        "completedAt",
-        "applicationId",
-        "nextStep"
-      ],
-      "type": "object"
-    }
-  },
-  "securityDefinitions": {
-    "BearerAuth": {
-      "description": "Type \"Bearer\" followed by a space and JWT token.",
-      "type": "apiKey",
-      "name": "Authorization",
-      "in": "header"
-    }
-  },
-  "tags": [
-    {
-      "description": "Loan application management operations",
-      "name": "Applications"
-    },
-    {
-      "description": "Loan pre-qualification operations",
-      "name": "Pre-qualification"
-    },
-    {
-      "description": "Loan offer management operations",
-      "name": "Offers"
-    },
-    {
-      "description": "Administrative operations",
-      "name": "Admin"
-    },
-    {
-      "description": "Health check operations",
-      "name": "Health"
-    },
-    {
-      "description": "Comprehensive error handling with detailed validation information",
-      "name": "Error Handling"
-    },
-    {
-      "name": "Documents",
-      "description": "Document management operations for loan applications"
-    }
-  ]
+    ]
 }

@@ -43,7 +43,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/middleware.SuccessResponse"
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
@@ -92,7 +92,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/middleware.SuccessResponse"
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
@@ -111,13 +111,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     }
                 }
@@ -162,7 +162,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/middleware.SuccessResponse"
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
@@ -178,19 +178,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request data",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     }
                 }
@@ -235,7 +235,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/middleware.SuccessResponse"
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
@@ -251,25 +251,254 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid application ID",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Application not found",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/applications/{id}/documents/complete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mark the document collection process as completed for a loan application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Complete document collection",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Completion request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "force": {
+                                    "type": "boolean"
+                                },
+                                "userId": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Document collection completed successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Application not found",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/applications/{id}/documents/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the current status of document collection for a loan application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Get document collection status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Document collection status retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/interfaces.DocumentCollectionStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Application not found",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/documents/upload": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload a document file for a specific loan application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Upload a document for a loan application",
+                "parameters": [
+                    {
+                        "description": "Document upload details",
+                        "name": "document",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/interfaces.DocumentUploadRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language preference (en, vi)",
+                        "name": "X-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Document uploaded successfully",
+                        "schema": {
+                            "$ref": "#/definitions/interfaces.DocumentUploadResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     }
                 }
@@ -316,7 +545,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/middleware.SuccessResponse"
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
@@ -332,19 +561,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request data",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     }
                 }
@@ -400,7 +629,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/middleware.SuccessResponse"
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
@@ -417,19 +646,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     }
                 }
@@ -474,7 +703,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/middleware.SuccessResponse"
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
@@ -491,25 +720,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid workflow ID",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Workflow not found",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     }
                 }
@@ -554,7 +783,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/middleware.SuccessResponse"
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
@@ -571,25 +800,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid workflow ID",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Workflow not found",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     }
                 }
@@ -634,13 +863,14 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/middleware.SuccessResponse"
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/workflow.WorkflowStatus"
+                                            "type": "object",
+                                            "additionalProperties": true
                                         }
                                     }
                                 }
@@ -650,25 +880,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid workflow ID",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Workflow not found",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     }
                 }
@@ -725,7 +955,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/middleware.SuccessResponse"
+                                    "$ref": "#/definitions/loan-service_interfaces_middleware.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
@@ -742,25 +972,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid workflow ID",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Workflow not found",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/middleware.ErrorResponse"
+                            "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorResponse"
                         }
                     }
                 }
@@ -1249,7 +1479,150 @@ const docTemplate = `{
                 }
             }
         },
-        "middleware.ErrorDetail": {
+        "interfaces.DocumentCollectionStatus": {
+            "type": "object",
+            "properties": {
+                "applicationId": {
+                    "type": "string"
+                },
+                "collected": {
+                    "type": "integer"
+                },
+                "collectionCompletedAt": {
+                    "type": "string"
+                },
+                "collectionStarted": {
+                    "type": "string"
+                },
+                "documents": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/interfaces.DocumentInfo"
+                    }
+                },
+                "pending": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "totalRequired": {
+                    "type": "integer"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "validationErrors": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "interfaces.DocumentInfo": {
+            "type": "object",
+            "properties": {
+                "collected": {
+                    "type": "boolean"
+                },
+                "documentType": {
+                    "type": "string"
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "fileSize": {
+                    "type": "integer"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "uploadedAt": {
+                    "type": "string"
+                },
+                "validated": {
+                    "type": "boolean"
+                },
+                "validatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "interfaces.DocumentUploadRequest": {
+            "type": "object",
+            "required": [
+                "applicationId",
+                "contentType",
+                "documentType",
+                "fileName",
+                "fileSize",
+                "userId"
+            ],
+            "properties": {
+                "applicationId": {
+                    "type": "string"
+                },
+                "contentType": {
+                    "type": "string"
+                },
+                "documentType": {
+                    "type": "string"
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "fileSize": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "interfaces.DocumentUploadResponse": {
+            "type": "object",
+            "properties": {
+                "documentId": {
+                    "type": "string"
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "uploadedAt": {
+                    "type": "string"
+                },
+                "validationStatus": {
+                    "type": "string"
+                }
+            }
+        },
+        "loan-service_interfaces_middleware.ErrorDetail": {
             "description": "Detailed error information with comprehensive error details",
             "type": "object",
             "properties": {
@@ -1275,13 +1648,13 @@ const docTemplate = `{
                 }
             }
         },
-        "middleware.ErrorResponse": {
+        "loan-service_interfaces_middleware.ErrorResponse": {
             "description": "Standardized error response",
             "type": "object",
             "properties": {
                 "data": {},
                 "error": {
-                    "$ref": "#/definitions/middleware.ErrorDetail"
+                    "$ref": "#/definitions/loan-service_interfaces_middleware.ErrorDetail"
                 },
                 "metadata": {
                     "type": "object",
@@ -1293,7 +1666,7 @@ const docTemplate = `{
                 }
             }
         },
-        "middleware.SuccessResponse": {
+        "loan-service_interfaces_middleware.SuccessResponse": {
             "description": "Standardized success response",
             "type": "object",
             "properties": {
@@ -1309,62 +1682,6 @@ const docTemplate = `{
                 "success": {
                     "type": "boolean",
                     "example": true
-                }
-            }
-        },
-        "workflow.TaskStatus": {
-            "type": "object",
-            "properties": {
-                "endTime": {
-                    "type": "string"
-                },
-                "inputData": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "outputData": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "referenceTaskName": {
-                    "type": "string"
-                },
-                "startTime": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "taskId": {
-                    "type": "string"
-                },
-                "taskType": {
-                    "type": "string"
-                }
-            }
-        },
-        "workflow.WorkflowStatus": {
-            "type": "object",
-            "properties": {
-                "input": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "output": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "status": {
-                    "type": "string"
-                },
-                "tasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/workflow.TaskStatus"
-                    }
-                },
-                "workflowId": {
-                    "type": "string"
                 }
             }
         }

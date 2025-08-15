@@ -537,7 +537,7 @@ func (h *LoanHandler) Health(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Workflow ID"
 // @Param X-Language header string false "Language preference (en, vi)"
-// @Success 200 {object} middleware.SuccessResponse{data=workflow.WorkflowStatus} "Workflow status retrieved successfully"
+// @Success 200 {object} middleware.SuccessResponse{data=map[string]interface{}} "Workflow status retrieved successfully"
 // @Failure 400 {object} middleware.ErrorResponse "Invalid workflow ID"
 // @Failure 401 {object} middleware.ErrorResponse "Unauthorized"
 // @Failure 404 {object} middleware.ErrorResponse "Workflow not found"
@@ -723,6 +723,19 @@ type DocumentInfo struct {
 }
 
 // UploadDocument handles document upload for loan applications
+// @Summary Upload a document for a loan application
+// @Description Upload a document file for a specific loan application
+// @Tags Documents
+// @Accept json
+// @Produce json
+// @Param document body DocumentUploadRequest true "Document upload details"
+// @Param X-Language header string false "Language preference (en, vi)"
+// @Success 200 {object} DocumentUploadResponse "Document uploaded successfully"
+// @Failure 400 {object} middleware.ErrorResponse "Invalid request data"
+// @Failure 401 {object} middleware.ErrorResponse "Unauthorized"
+// @Failure 500 {object} middleware.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /loans/documents/upload [post]
 func (h *LoanHandler) UploadDocument(c *gin.Context) {
 	logger := h.logger.With(zap.String("operation", "upload_document"))
 
@@ -793,6 +806,21 @@ func (h *LoanHandler) UploadDocument(c *gin.Context) {
 }
 
 // GetDocumentCollectionStatus retrieves the status of document collection for an application
+// @Summary Get document collection status
+// @Description Retrieve the current status of document collection for a loan application
+// @Tags Documents
+// @Accept json
+// @Produce json
+// @Param id path string true "Application ID"
+// @Param userId query string true "User ID"
+// @Param X-Language header string false "Language preference (en, vi)"
+// @Success 200 {object} DocumentCollectionStatus "Document collection status retrieved successfully"
+// @Failure 400 {object} middleware.ErrorResponse "Invalid request data"
+// @Failure 401 {object} middleware.ErrorResponse "Unauthorized"
+// @Failure 404 {object} middleware.ErrorResponse "Application not found"
+// @Failure 500 {object} middleware.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /loans/applications/{id}/documents/status [get]
 func (h *LoanHandler) GetDocumentCollectionStatus(c *gin.Context) {
 	logger := h.logger.With(zap.String("operation", "get_document_collection_status"))
 
@@ -846,6 +874,21 @@ func (h *LoanHandler) GetDocumentCollectionStatus(c *gin.Context) {
 }
 
 // CompleteDocumentCollection marks document collection as completed
+// @Summary Complete document collection
+// @Description Mark the document collection process as completed for a loan application
+// @Tags Documents
+// @Accept json
+// @Produce json
+// @Param id path string true "Application ID"
+// @Param request body object{userId=string,force=bool} true "Completion request"
+// @Param X-Language header string false "Language preference (en, vi)"
+// @Success 200 {object} object{success=bool,message=string} "Document collection completed successfully"
+// @Failure 400 {object} middleware.ErrorResponse "Invalid request data"
+// @Failure 401 {object} middleware.ErrorResponse "Unauthorized"
+// @Failure 404 {object} middleware.ErrorResponse "Application not found"
+// @Failure 500 {object} middleware.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /loans/applications/{id}/documents/complete [post]
 func (h *LoanHandler) CompleteDocumentCollection(c *gin.Context) {
 	logger := h.logger.With(zap.String("operation", "complete_document_collection"))
 
