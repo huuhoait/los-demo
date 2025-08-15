@@ -1,0 +1,212 @@
+# English translations for User Service
+
+[errors]
+# User Management Errors
+USER_001 = "User not found"
+USER_002 = "Email already exists"
+USER_003 = "Username already exists" 
+USER_004 = "Invalid user credentials"
+USER_005 = "User account is inactive"
+USER_006 = "User account is suspended"
+USER_007 = "User account requires verification"
+USER_008 = "Email verification required"
+USER_009 = "Phone verification required"
+USER_010 = "Two-factor authentication required"
+
+# Profile Management Errors
+USER_011 = "Profile not found"
+USER_012 = "Invalid profile data"
+USER_013 = "Profile update failed"
+USER_014 = "Employment information required"
+USER_015 = "Financial information required"
+
+# Document Management Errors
+USER_016 = "Document not found"
+USER_017 = "Invalid document type"
+USER_018 = "Document upload failed"
+USER_019 = "Document processing failed"
+USER_020 = "File size exceeds limit"
+USER_021 = "Invalid file format"
+USER_022 = "Document virus scan failed"
+USER_023 = "Document encryption failed"
+USER_024 = "Document storage failed"
+USER_025 = "Document download failed"
+
+# KYC Verification Errors
+USER_026 = "KYC verification not found"
+USER_027 = "KYC verification failed"
+USER_028 = "KYC verification expired"
+USER_029 = "KYC verification pending"
+USER_030 = "KYC verification rejected"
+USER_031 = "KYC provider error"
+USER_032 = "Insufficient verification documents"
+
+# System Errors
+USER_033 = "Internal server error"
+USER_034 = "Database connection failed"
+USER_035 = "Cache service unavailable"
+
+[messages]
+# Success Messages
+user_created = "User account created successfully"
+user_updated = "User account updated successfully"
+user_deleted = "User account deleted successfully"
+profile_updated = "Profile updated successfully"
+document_uploaded = "Document uploaded successfully"
+document_deleted = "Document deleted successfully"
+kyc_initiated = "KYC verification initiated"
+kyc_approved = "KYC verification approved"
+kyc_rejected = "KYC verification rejected"
+email_sent = "Email sent successfully"
+phone_verified = "Phone number verified successfully"
+
+# Info Messages
+welcome_message = "Welcome to our platform"
+verification_pending = "Your account verification is pending"
+verification_complete = "Account verification completed"
+profile_incomplete = "Please complete your profile"
+documents_required = "Additional documents required"
+
+[validation]
+# Field Validation Messages
+required_field = "This field is required"
+invalid_email = "Please enter a valid email address"
+invalid_phone = "Please enter a valid phone number"
+password_too_short = "Password must be at least 8 characters"
+password_too_weak = "Password must contain uppercase, lowercase, numbers and symbols"
+invalid_date = "Please enter a valid date"
+invalid_format = "Invalid format"
+min_length = "Minimum length is {MinLength} characters"
+max_length = "Maximum length is {MaxLength} characters"
+min_value = "Minimum value is {MinValue}"
+max_value = "Maximum value is {MaxValue}"
+
+# Specific Field Validations
+first_name_required = "First name is required"
+last_name_required = "Last name is required"
+email_required = "Email address is required"
+phone_required = "Phone number is required"
+date_of_birth_required = "Date of birth is required"
+address_required = "Address is required"
+employment_info_required = "Employment information is required"
+income_info_required = "Income information is required"
+
+[notifications]
+# Email Subject Lines
+welcome_subject = "Welcome to our platform"
+verification_subject = "Verify your email address"
+password_reset_subject = "Reset your password"
+security_alert_subject = "Security alert for your account"
+kyc_status_subject = "KYC verification status update"
+document_processed_subject = "Document processing complete"
+
+# Email Content
+welcome_body = "Welcome {FirstName}! Your account has been created successfully."
+verification_body = "Please verify your email address by entering code: {VerificationCode}"
+password_reset_body = "Click the link below to reset your password: {ResetLink}"
+security_alert_body = "We detected a security event on your account. If this wasn't you, please contact support."
+kyc_approved_body = "Your KYC verification has been approved. You can now access all features."
+kyc_rejected_body = "Your KYC verification was rejected. Reason: {Reason}. Please resubmit your documents."
+
+# SMS Messages
+phone_verification_sms = "Your verification code is: {VerificationCode}"
+security_alert_sms = "Security alert: New login detected on your account."
+
+[ui]
+# Form Labels
+first_name = "First Name"
+last_name = "Last Name"
+middle_name = "Middle Name"
+email = "Email Address"
+phone = "Phone Number"
+date_of_birth = "Date of Birth"
+gender = "Gender"
+nationality = "Nationality"
+marital_status = "Marital Status"
+address = "Address"
+city = "City"
+state = "State"
+postal_code = "Postal Code"
+country = "Country"
+employment_type = "Employment Type"
+employer_name = "Employer Name"
+job_title = "Job Title"
+annual_income = "Annual Income"
+monthly_income = "Monthly Income"
+work_experience = "Work Experience"
+
+# Button Labels
+submit = "Submit"
+cancel = "Cancel"
+save = "Save"
+delete = "Delete"
+upload = "Upload"
+download = "Download"
+verify = "Verify"
+approve = "Approve"
+reject = "Reject"
+continue = "Continue"
+back = "Back"
+next = "Next"
+finish = "Finish"
+
+# Status Labels
+active = "Active"
+inactive = "Inactive"
+suspended = "Suspended"
+pending = "Pending"
+approved = "Approved"
+rejected = "Rejected"
+in_progress = "In Progress"
+completed = "Completed"
+expired = "Expired"
+
+# Document Types
+passport = "Passport"
+driver_license = "Driver's License"
+national_id = "National ID"
+utility_bill = "Utility Bill"
+bank_statement = "Bank Statement"
+employment_letter = "Employment Letter"
+pay_stub = "Pay Stub"
+tax_return = "Tax Return"
+other_document = "Other Document"
+
+# KYC Verification Types
+identity_verification = "Identity Verification"
+address_verification = "Address Verification"
+employment_verification = "Employment Verification"
+income_verification = "Income Verification"
+assets_verification = "Assets Verification"
+
+[help]
+# Help Text
+password_requirements = "Password must be at least 8 characters and contain uppercase letters, lowercase letters, numbers, and special characters."
+phone_format = "Enter phone number with country code (e.g., +1234567890)"
+document_upload_help = "Supported formats: JPG, PNG, PDF. Maximum size: 50MB"
+kyc_help = "KYC (Know Your Customer) verification is required for account activation and compliance."
+profile_completion_help = "Complete your profile to unlock all features and improve your experience."
+
+[time]
+# Time-related messages
+just_now = "Just now"
+minutes_ago = "{Count} minutes ago"
+hours_ago = "{Count} hours ago"
+days_ago = "{Count} days ago"
+weeks_ago = "{Count} weeks ago"
+months_ago = "{Count} months ago"
+years_ago = "{Count} years ago"
+
+[pagination]
+# Pagination labels
+page = "Page"
+of = "of"
+showing = "Showing"
+to = "to"
+entries = "entries"
+results = "results"
+per_page = "per page"
+first = "First"
+last = "Last"
+previous = "Previous"
+next = "Next"

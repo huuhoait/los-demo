@@ -1,0 +1,89 @@
+environment: development
+
+service:
+  name: user-service
+  port: 8082
+  version: 1.0.0
+
+server:
+  host: 0.0.0.0
+  port: 8082
+  read_timeout: 30
+  write_timeout: 30
+  idle_timeout: 120
+
+database:
+  host: localhost
+  port: 5432
+  name: los_user
+  user: root
+  password: "123456"
+  ssl_mode: disable
+  max_open_conns: 25
+  max_idle_conns: 5
+  conn_max_lifetime: 300
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 1
+  pool_size: 10
+  min_idle_conns: 3
+  max_retries: 3
+
+storage:
+  provider: local
+  bucket: user-service-documents
+  region: local
+  access_key: ""
+  secret_key: ""
+  endpoint: ""
+
+encryption:
+  master_key: "dev-master-key-for-development-only"
+  key_rotation_days: 90
+
+logging:
+  level: debug
+  format: json
+  output: stdout
+  file_path: logs/user-service.log
+  max_size: 100
+  max_backups: 5
+  max_age: 30
+
+security:
+  jwt_secret: "dev-jwt-secret-for-development-only"
+  bcrypt_cost: 10
+  rate_limit_requests: 1000
+  rate_limit_window: 60
+
+external_services:
+  kyc_provider:
+    url: ""
+    api_key: ""
+    timeout: 30
+  notification_service:
+    url: "http://localhost:8084"
+    timeout: 10
+  audit_service:
+    url: "http://localhost:8085"
+    timeout: 5
+
+features:
+  enable_2fa: true
+  enable_document_ocr: false
+  enable_real_kyc: false
+  max_file_size: 52428800
+  allowed_file_types:
+    - "image/jpeg"
+    - "image/png"
+    - "application/pdf"
+
+i18n:
+  default_language: en
+  supported_languages:
+    - en
+    - vi
+  fallback_language: en

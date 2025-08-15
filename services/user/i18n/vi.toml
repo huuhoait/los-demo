@@ -1,0 +1,212 @@
+# Bản dịch tiếng Việt cho Dịch vụ Người dùng
+
+[errors]
+# Lỗi Quản lý Người dùng
+USER_001 = "Không tìm thấy người dùng"
+USER_002 = "Email đã tồn tại"
+USER_003 = "Tên đăng nhập đã tồn tại"
+USER_004 = "Thông tin đăng nhập không hợp lệ"
+USER_005 = "Tài khoản người dùng không hoạt động"
+USER_006 = "Tài khoản người dùng bị tạm khóa"
+USER_007 = "Tài khoản người dùng cần xác minh"
+USER_008 = "Cần xác minh email"
+USER_009 = "Cần xác minh số điện thoại"
+USER_010 = "Cần xác thực hai yếu tố"
+
+# Lỗi Quản lý Hồ sơ
+USER_011 = "Không tìm thấy hồ sơ"
+USER_012 = "Dữ liệu hồ sơ không hợp lệ"
+USER_013 = "Cập nhật hồ sơ thất bại"
+USER_014 = "Cần thông tin việc làm"
+USER_015 = "Cần thông tin tài chính"
+
+# Lỗi Quản lý Tài liệu
+USER_016 = "Không tìm thấy tài liệu"
+USER_017 = "Loại tài liệu không hợp lệ"
+USER_018 = "Tải lên tài liệu thất bại"
+USER_019 = "Xử lý tài liệu thất bại"
+USER_020 = "Kích thước tệp vượt quá giới hạn"
+USER_021 = "Định dạng tệp không hợp lệ"
+USER_022 = "Quét virus tài liệu thất bại"
+USER_023 = "Mã hóa tài liệu thất bại"
+USER_024 = "Lưu trữ tài liệu thất bại"
+USER_025 = "Tải xuống tài liệu thất bại"
+
+# Lỗi Xác minh KYC
+USER_026 = "Không tìm thấy xác minh KYC"
+USER_027 = "Xác minh KYC thất bại"
+USER_028 = "Xác minh KYC đã hết hạn"
+USER_029 = "Xác minh KYC đang chờ xử lý"
+USER_030 = "Xác minh KYC bị từ chối"
+USER_031 = "Lỗi nhà cung cấp KYC"
+USER_032 = "Không đủ tài liệu xác minh"
+
+# Lỗi Hệ thống
+USER_033 = "Lỗi máy chủ nội bộ"
+USER_034 = "Kết nối cơ sở dữ liệu thất bại"
+USER_035 = "Dịch vụ bộ nhớ đệm không khả dụng"
+
+[messages]
+# Thông báo Thành công
+user_created = "Tạo tài khoản người dùng thành công"
+user_updated = "Cập nhật tài khoản người dùng thành công"
+user_deleted = "Xóa tài khoản người dùng thành công"
+profile_updated = "Cập nhật hồ sơ thành công"
+document_uploaded = "Tải lên tài liệu thành công"
+document_deleted = "Xóa tài liệu thành công"
+kyc_initiated = "Khởi tạo xác minh KYC"
+kyc_approved = "Xác minh KYC được phê duyệt"
+kyc_rejected = "Xác minh KYC bị từ chối"
+email_sent = "Gửi email thành công"
+phone_verified = "Xác minh số điện thoại thành công"
+
+# Thông báo Thông tin
+welcome_message = "Chào mừng bạn đến với nền tảng của chúng tôi"
+verification_pending = "Xác minh tài khoản của bạn đang chờ xử lý"
+verification_complete = "Hoàn thành xác minh tài khoản"
+profile_incomplete = "Vui lòng hoàn thiện hồ sơ của bạn"
+documents_required = "Cần thêm tài liệu"
+
+[validation]
+# Thông báo Xác thực Trường
+required_field = "Trường này là bắt buộc"
+invalid_email = "Vui lòng nhập địa chỉ email hợp lệ"
+invalid_phone = "Vui lòng nhập số điện thoại hợp lệ"
+password_too_short = "Mật khẩu phải có ít nhất 8 ký tự"
+password_too_weak = "Mật khẩu phải chứa chữ hoa, chữ thường, số và ký hiệu"
+invalid_date = "Vui lòng nhập ngày hợp lệ"
+invalid_format = "Định dạng không hợp lệ"
+min_length = "Độ dài tối thiểu là {MinLength} ký tự"
+max_length = "Độ dài tối đa là {MaxLength} ký tự"
+min_value = "Giá trị tối thiểu là {MinValue}"
+max_value = "Giá trị tối đa là {MaxValue}"
+
+# Xác thực Trường Cụ thể
+first_name_required = "Họ là bắt buộc"
+last_name_required = "Tên là bắt buộc"
+email_required = "Địa chỉ email là bắt buộc"
+phone_required = "Số điện thoại là bắt buộc"
+date_of_birth_required = "Ngày sinh là bắt buộc"
+address_required = "Địa chỉ là bắt buộc"
+employment_info_required = "Thông tin việc làm là bắt buộc"
+income_info_required = "Thông tin thu nhập là bắt buộc"
+
+[notifications]
+# Tiêu đề Email
+welcome_subject = "Chào mừng bạn đến với nền tảng của chúng tôi"
+verification_subject = "Xác minh địa chỉ email của bạn"
+password_reset_subject = "Đặt lại mật khẩu của bạn"
+security_alert_subject = "Cảnh báo bảo mật cho tài khoản của bạn"
+kyc_status_subject = "Cập nhật trạng thái xác minh KYC"
+document_processed_subject = "Hoàn thành xử lý tài liệu"
+
+# Nội dung Email
+welcome_body = "Chào mừng {FirstName}! Tài khoản của bạn đã được tạo thành công."
+verification_body = "Vui lòng xác minh địa chỉ email của bạn bằng cách nhập mã: {VerificationCode}"
+password_reset_body = "Nhấp vào liên kết bên dưới để đặt lại mật khẩu: {ResetLink}"
+security_alert_body = "Chúng tôi phát hiện một sự kiện bảo mật trên tài khoản của bạn. Nếu không phải bạn, vui lòng liên hệ hỗ trợ."
+kyc_approved_body = "Xác minh KYC của bạn đã được phê duyệt. Bạn có thể truy cập tất cả các tính năng."
+kyc_rejected_body = "Xác minh KYC của bạn bị từ chối. Lý do: {Reason}. Vui lòng gửi lại tài liệu của bạn."
+
+# Tin nhắn SMS
+phone_verification_sms = "Mã xác minh của bạn là: {VerificationCode}"
+security_alert_sms = "Cảnh báo bảo mật: Phát hiện đăng nhập mới trên tài khoản của bạn."
+
+[ui]
+# Nhãn Biểu mẫu
+first_name = "Họ"
+last_name = "Tên"
+middle_name = "Tên đệm"
+email = "Địa chỉ Email"
+phone = "Số điện thoại"
+date_of_birth = "Ngày sinh"
+gender = "Giới tính"
+nationality = "Quốc tịch"
+marital_status = "Tình trạng hôn nhân"
+address = "Địa chỉ"
+city = "Thành phố"
+state = "Tỉnh/Thành"
+postal_code = "Mã bưu điện"
+country = "Quốc gia"
+employment_type = "Loại việc làm"
+employer_name = "Tên nhà tuyển dụng"
+job_title = "Chức danh công việc"
+annual_income = "Thu nhập hàng năm"
+monthly_income = "Thu nhập hàng tháng"
+work_experience = "Kinh nghiệm làm việc"
+
+# Nhãn Nút
+submit = "Gửi"
+cancel = "Hủy"
+save = "Lưu"
+delete = "Xóa"
+upload = "Tải lên"
+download = "Tải xuống"
+verify = "Xác minh"
+approve = "Phê duyệt"
+reject = "Từ chối"
+continue = "Tiếp tục"
+back = "Quay lại"
+next = "Tiếp theo"
+finish = "Hoàn thành"
+
+# Nhãn Trạng thái
+active = "Hoạt động"
+inactive = "Không hoạt động"
+suspended = "Tạm khóa"
+pending = "Chờ xử lý"
+approved = "Đã phê duyệt"
+rejected = "Đã từ chối"
+in_progress = "Đang xử lý"
+completed = "Hoàn thành"
+expired = "Hết hạn"
+
+# Loại Tài liệu
+passport = "Hộ chiếu"
+driver_license = "Giấy phép lái xe"
+national_id = "Chứng minh nhân dân"
+utility_bill = "Hóa đơn tiện ích"
+bank_statement = "Sao kê ngân hàng"
+employment_letter = "Thư xác nhận việc làm"
+pay_stub = "Phiếu lương"
+tax_return = "Tờ khai thuế"
+other_document = "Tài liệu khác"
+
+# Loại Xác minh KYC
+identity_verification = "Xác minh danh tính"
+address_verification = "Xác minh địa chỉ"
+employment_verification = "Xác minh việc làm"
+income_verification = "Xác minh thu nhập"
+assets_verification = "Xác minh tài sản"
+
+[help]
+# Văn bản Trợ giúp
+password_requirements = "Mật khẩu phải có ít nhất 8 ký tự và chứa chữ hoa, chữ thường, số và ký tự đặc biệt."
+phone_format = "Nhập số điện thoại với mã quốc gia (ví dụ: +84987654321)"
+document_upload_help = "Định dạng được hỗ trợ: JPG, PNG, PDF. Kích thước tối đa: 50MB"
+kyc_help = "Xác minh KYC (Biết khách hàng của bạn) được yêu cầu để kích hoạt tài khoản và tuân thủ quy định."
+profile_completion_help = "Hoàn thiện hồ sơ của bạn để mở khóa tất cả các tính năng và cải thiện trải nghiệm."
+
+[time]
+# Thông báo liên quan đến thời gian
+just_now = "Vừa xong"
+minutes_ago = "{Count} phút trước"
+hours_ago = "{Count} giờ trước"
+days_ago = "{Count} ngày trước"
+weeks_ago = "{Count} tuần trước"
+months_ago = "{Count} tháng trước"
+years_ago = "{Count} năm trước"
+
+[pagination]
+# Nhãn Phân trang
+page = "Trang"
+of = "của"
+showing = "Hiển thị"
+to = "đến"
+entries = "mục"
+results = "kết quả"
+per_page = "mỗi trang"
+first = "Đầu"
+last = "Cuối"
+previous = "Trước"
+next = "Tiếp"
