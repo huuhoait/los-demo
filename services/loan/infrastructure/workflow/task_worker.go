@@ -434,8 +434,18 @@ func (w *TaskWorker) executeTask(ctx context.Context, task Task) error {
 	inputWithTaskType["taskType"] = task.TaskType
 	inputWithTaskType["referenceTaskName"] = task.ReferenceTaskName
 
-	// Execute the task
-	output, err := handler.Execute(ctx, inputWithTaskType)
+	// Execute the task using the new task handler structure
+	var output map[string]interface{}
+	var err error
+
+	// Check if this is a loan processing task handler
+	if loanHandler, ok := handler.(*LoanProcessingTaskHandler); ok {
+		// Use the new HandleTask method
+		output, err = loanHandler.HandleTask(ctx, task.TaskType, inputWithTaskType)
+	} else {
+		// Use the old Execute method for other handlers
+		output, err = handler.Execute(ctx, inputWithTaskType)
+	}
 	if err != nil {
 		logger.Error("Task execution failed", zap.Error(err))
 		return err
@@ -512,10 +522,7 @@ func (w *TaskWorker) registerTaskHandlers() {
 	// The specific handler will be determined by the taskReferenceName
 
 	// Register loan processing task handlers
-	loanProcessingHandler := &LoanProcessingTaskHandler{
-		logger:    w.logger,
-		localizer: w.localizer,
-	}
+	loanProcessingHandler := NewLoanProcessingTaskHandler(w.logger, w.localizer)
 	w.taskHandlers["validate_application_ref"] = loanProcessingHandler
 	w.taskHandlers["update_state_to_prequalified_ref"] = loanProcessingHandler
 	w.taskHandlers["document_collection_ref"] = loanProcessingHandler

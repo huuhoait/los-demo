@@ -668,6 +668,371 @@ func (s *LoanService) GetApplicationsByUserID(ctx context.Context, userID string
 	return applications, nil
 }
 
+// DocumentUploadRequest represents a document upload request
+type DocumentUploadRequest struct {
+	ApplicationID string                 `json:"applicationId" validate:"required"`
+	UserID        string                 `json:"userId" validate:"required"`
+	DocumentType  string                 `json:"documentType" validate:"required"`
+	FileName      string                 `json:"fileName" validate:"required"`
+	FileSize      int64                  `json:"fileSize" validate:"required,min=1"`
+	ContentType   string                 `json:"contentType" validate:"required"`
+	Metadata      map[string]interface{} `json:"metadata,omitempty"`
+}
+
+// DocumentUploadResponse represents a document upload response
+type DocumentUploadResponse struct {
+	Success          bool                   `json:"success"`
+	DocumentID       string                 `json:"documentId,omitempty"`
+	UploadedAt       time.Time              `json:"uploadedAt,omitempty"`
+	ValidationStatus string                 `json:"validationStatus,omitempty"`
+	Errors           []string               `json:"errors,omitempty"`
+	Metadata         map[string]interface{} `json:"metadata,omitempty"`
+}
+
+// DocumentCollectionStatus represents the status of document collection
+type DocumentCollectionStatus struct {
+	ApplicationID         string                  `json:"applicationId"`
+	UserID                string                  `json:"userId"`
+	Status                string                  `json:"status"`
+	TotalRequired         int                     `json:"totalRequired"`
+	Collected             int                     `json:"collected"`
+	Pending               int                     `json:"pending"`
+	Documents             map[string]DocumentInfo `json:"documents"`
+	CollectionStarted     time.Time               `json:"collectionStarted"`
+	CollectionCompletedAt *time.Time              `json:"collectionCompletedAt,omitempty"`
+	ValidationErrors      map[string][]string     `json:"validationErrors,omitempty"`
+}
+
+// DocumentInfo represents information about a specific document
+type DocumentInfo struct {
+	DocumentType string                 `json:"documentType"`
+	Collected    bool                   `json:"collected"`
+	Validated    bool                   `json:"validated"`
+	FileName     string                 `json:"fileName,omitempty"`
+	FileSize     int64                  `json:"fileSize,omitempty"`
+	UploadedAt   *time.Time             `json:"uploadedAt,omitempty"`
+	ValidatedAt  *time.Time             `json:"validatedAt,omitempty"`
+	Errors       []string               `json:"errors,omitempty"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
+}
+
+// UploadDocument handles document upload for loan applications
+func (s *LoanService) UploadDocument(ctx context.Context, req DocumentUploadRequest) (*DocumentUploadResponse, error) {
+	logger := s.logger.With(
+		zap.String("operation", "upload_document"),
+		zap.String("application_id", req.ApplicationID),
+		zap.String("user_id", req.UserID),
+		zap.String("document_type", req.DocumentType),
+	)
+
+	logger.Info("Processing document upload")
+
+	// Validate application exists and belongs to user
+	application, err := s.repo.GetApplicationByID(ctx, req.ApplicationID)
+	if err != nil {
+		logger.Error("Failed to get application", zap.Error(err))
+		return nil, &domain.LoanError{
+			Code:        domain.LOAN_010,
+			Message:     "Application not found",
+			Description: err.Error(),
+			HTTPStatus:  404,
+		}
+	}
+
+	if application.UserID != req.UserID {
+		logger.Error("User not authorized for this application")
+		return nil, &domain.LoanError{
+			Code:        domain.LOAN_022,
+			Message:     "Unauthorized access",
+			Description: "User not authorized for this application",
+			HTTPStatus:  403,
+		}
+	}
+
+	// Validate document type
+	validDocumentTypes := []string{"income_verification", "employment_verification", "bank_statements", "identification"}
+	isValidType := false
+	for _, validType := range validDocumentTypes {
+		if req.DocumentType == validType {
+			isValidType = true
+			break
+		}
+	}
+
+	if !isValidType {
+		logger.Error("Invalid document type", zap.String("document_type", req.DocumentType))
+		return nil, &domain.LoanError{
+			Code:        domain.LOAN_020,
+			Message:     "Invalid document type",
+			Description: fmt.Sprintf("Document type %s is not supported", req.DocumentType),
+			HTTPStatus:  400,
+		}
+	}
+
+	// Validate file size (max 10MB)
+	if req.FileSize > 10*1024*1024 {
+		logger.Error("File size too large", zap.Int64("file_size", req.FileSize))
+		return nil, &domain.LoanError{
+			Code:        domain.LOAN_020,
+			Message:     "File size too large",
+			Description: "Maximum file size is 10MB",
+			HTTPStatus:  400,
+		}
+	}
+
+	// Generate document ID
+	documentID := uuid.New().String()
+	uploadedAt := time.Now()
+
+	// Simulate document processing and validation
+	validationStatus := "validated"
+	errors := []string{}
+
+	// Simulate validation logic based on document type
+	switch req.DocumentType {
+	case "income_verification":
+		if req.FileSize < 1024*1024 { // Less than 1MB
+			validationStatus = "validation_failed"
+			errors = append(errors, "Document appears to be incomplete or corrupted")
+		}
+	case "identification":
+		if !strings.Contains(req.ContentType, "image") && !strings.Contains(req.ContentType, "pdf") {
+			validationStatus = "validation_failed"
+			errors = append(errors, "Identification document must be an image or PDF")
+		}
+	}
+
+	// Store document metadata (in real implementation, this would store the actual file)
+	documentMetadata := map[string]interface{}{
+		"documentId":       documentID,
+		"applicationId":    req.ApplicationID,
+		"userId":           req.UserID,
+		"documentType":     req.DocumentType,
+		"fileName":         req.FileName,
+		"fileSize":         req.FileSize,
+		"contentType":      req.ContentType,
+		"uploadedAt":       uploadedAt,
+		"validationStatus": validationStatus,
+	}
+
+	// Merge with provided metadata
+	for k, v := range req.Metadata {
+		documentMetadata[k] = v
+	}
+
+	logger.Info("Document upload completed",
+		zap.String("document_id", documentID),
+		zap.String("validation_status", validationStatus),
+		zap.Int("error_count", len(errors)))
+
+	return &DocumentUploadResponse{
+		Success:          len(errors) == 0,
+		DocumentID:       documentID,
+		UploadedAt:       uploadedAt,
+		ValidationStatus: validationStatus,
+		Errors:           errors,
+		Metadata:         documentMetadata,
+	}, nil
+}
+
+// GetDocumentCollectionStatus retrieves the status of document collection for an application
+func (s *LoanService) GetDocumentCollectionStatus(ctx context.Context, applicationID, userID string) (*DocumentCollectionStatus, error) {
+	logger := s.logger.With(
+		zap.String("operation", "get_document_collection_status"),
+		zap.String("application_id", applicationID),
+		zap.String("user_id", userID),
+	)
+
+	logger.Info("Retrieving document collection status")
+
+	// Validate application exists and belongs to user
+	application, err := s.repo.GetApplicationByID(ctx, applicationID)
+	if err != nil {
+		logger.Error("Failed to get application", zap.Error(err))
+		return nil, &domain.LoanError{
+			Code:        domain.LOAN_010,
+			Message:     "Application not found",
+			Description: err.Error(),
+			HTTPStatus:  404,
+		}
+	}
+
+	if application.UserID != userID {
+		logger.Error("User not authorized for this application")
+		return nil, &domain.LoanError{
+			Code:        domain.LOAN_022,
+			Message:     "Unauthorized access",
+			Description: "User not authorized for this application",
+			HTTPStatus:  403,
+		}
+	}
+
+	// Define required documents based on application state
+	requiredDocuments := []string{"income_verification", "employment_verification", "bank_statements", "identification"}
+
+	// Simulate document collection status
+	// In real implementation, this would query the document storage system
+	documents := make(map[string]DocumentInfo)
+	collectedCount := 0
+	validationErrors := make(map[string][]string)
+
+	for _, docType := range requiredDocuments {
+		// Simulate document status based on application state
+		isCollected := application.CurrentState == domain.StateDocumentsSubmitted || application.CurrentState == domain.StateIdentityVerified
+		isValidated := isCollected && application.CurrentState != domain.StateDocumentsSubmitted
+
+		docInfo := DocumentInfo{
+			DocumentType: docType,
+			Collected:    isCollected,
+			Validated:    isValidated,
+		}
+
+		if isCollected {
+			docInfo.FileName = fmt.Sprintf("%s_%s.pdf", docType, applicationID)
+			docInfo.FileSize = 2048576 // 2MB
+			uploadedAt := time.Now().Add(-2 * time.Hour)
+			docInfo.UploadedAt = &uploadedAt
+
+			if isValidated {
+				validatedAt := time.Now().Add(-1 * time.Hour)
+				docInfo.ValidatedAt = &validatedAt
+			} else {
+				// Simulate validation errors for pending documents
+				validationErrors[docType] = []string{"Document pending validation"}
+			}
+		}
+
+		documents[docType] = docInfo
+
+		if isCollected {
+			collectedCount++
+		}
+	}
+
+	status := "pending"
+	if collectedCount == len(requiredDocuments) {
+		status = "completed"
+	} else if collectedCount > 0 {
+		status = "in_progress"
+	}
+
+	collectionStarted := application.CreatedAt
+	var collectionCompletedAt *time.Time
+	if status == "completed" {
+		completedAt := time.Now()
+		collectionCompletedAt = &completedAt
+	}
+
+	logger.Info("Document collection status retrieved",
+		zap.String("status", status),
+		zap.Int("collected", collectedCount),
+		zap.Int("total_required", len(requiredDocuments)))
+
+	return &DocumentCollectionStatus{
+		ApplicationID:         applicationID,
+		UserID:                userID,
+		Status:                status,
+		TotalRequired:         len(requiredDocuments),
+		Collected:             collectedCount,
+		Pending:               len(requiredDocuments) - collectedCount,
+		Documents:             documents,
+		CollectionStarted:     collectionStarted,
+		CollectionCompletedAt: collectionCompletedAt,
+		ValidationErrors:      validationErrors,
+	}, nil
+}
+
+// CompleteDocumentCollection marks document collection as completed
+func (s *LoanService) CompleteDocumentCollection(ctx context.Context, applicationID, userID string, force bool) error {
+	logger := s.logger.With(
+		zap.String("operation", "complete_document_collection"),
+		zap.String("application_id", applicationID),
+		zap.String("user_id", userID),
+		zap.Bool("force", force),
+	)
+
+	logger.Info("Completing document collection")
+
+	// Validate application exists and belongs to user
+	application, err := s.repo.GetApplicationByID(ctx, applicationID)
+	if err != nil {
+		logger.Error("Failed to get application", zap.Error(err))
+		return &domain.LoanError{
+			Code:        domain.LOAN_010,
+			Message:     "Application not found",
+			Description: err.Error(),
+			HTTPStatus:  404,
+		}
+	}
+
+	if application.UserID != userID {
+		logger.Error("User not authorized for this application")
+		return &domain.LoanError{
+			Code:        domain.LOAN_022,
+			Message:     "Unauthorized access",
+			Description: "User not authorized for this application",
+			HTTPStatus:  403,
+		}
+	}
+
+	// Check if documents are ready for completion
+	if !force {
+		status, err := s.GetDocumentCollectionStatus(ctx, applicationID, userID)
+		if err != nil {
+			logger.Error("Failed to get document collection status", zap.Error(err))
+			return err
+		}
+
+		if status.Status != "completed" {
+			logger.Error("Documents not ready for completion", zap.String("status", status.Status))
+			return &domain.LoanError{
+				Code:        domain.LOAN_025,
+				Message:     "Document verification required",
+				Description: "All required documents must be collected and validated before completion",
+				HTTPStatus:  400,
+			}
+		}
+	}
+
+	// Update application state to documents_submitted
+	if application.CurrentState != domain.StateDocumentsSubmitted {
+		application.CurrentState = domain.StateDocumentsSubmitted
+		application.UpdatedAt = time.Now()
+
+		err = s.repo.UpdateApplication(ctx, application)
+		if err != nil {
+			logger.Error("Failed to update application state", zap.Error(err))
+			return &domain.LoanError{
+				Code:        domain.LOAN_023,
+				Message:     "Database error",
+				Description: err.Error(),
+				HTTPStatus:  500,
+			}
+		}
+
+		// Create state transition record
+		fromState := application.CurrentState
+		transition := &domain.StateTransition{
+			ID:               uuid.New().String(),
+			ApplicationID:    applicationID,
+			FromState:        &fromState,
+			ToState:          domain.StateDocumentsSubmitted,
+			TransitionReason: "Document collection completed",
+			CreatedAt:        time.Now(),
+		}
+
+		err = s.repo.CreateStateTransition(ctx, transition)
+		if err != nil {
+			logger.Error("Failed to create state transition", zap.Error(err))
+			// Don't fail the operation for this error
+		}
+	}
+
+	logger.Info("Document collection completed successfully")
+
+	return nil
+}
+
 // Helper methods
 
 func (s *LoanService) generateApplicationNumber() string {

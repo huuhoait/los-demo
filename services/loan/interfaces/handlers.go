@@ -6,10 +6,13 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 
+	"errors"
 	"loan-service/application"
 	"loan-service/domain"
 	"loan-service/interfaces/middleware"
@@ -21,6 +24,7 @@ type LoanHandler struct {
 	loanService *application.LoanService
 	logger      *zap.Logger
 	localizer   *i18n.Localizer
+	validate    *validator.Validate
 }
 
 // NewLoanHandler creates a new loan handler
@@ -29,6 +33,7 @@ func NewLoanHandler(loanService *application.LoanService, logger *zap.Logger, lo
 		loanService: loanService,
 		logger:      logger,
 		localizer:   localizer,
+		validate:    validator.New(),
 	}
 }
 
@@ -670,6 +675,247 @@ func (h *LoanHandler) TerminateWorkflow(c *gin.Context) {
 	middleware.CreateSuccessResponse(c, gin.H{"status": "terminated"}, "WORKFLOW_TERMINATED", nil)
 }
 
+// DocumentUploadRequest represents a document upload request
+type DocumentUploadRequest struct {
+	ApplicationID string                 `json:"applicationId" validate:"required"`
+	UserID        string                 `json:"userId" validate:"required"`
+	DocumentType  string                 `json:"documentType" validate:"required"`
+	FileName      string                 `json:"fileName" validate:"required"`
+	FileSize      int64                  `json:"fileSize" validate:"required,min=1"`
+	ContentType   string                 `json:"contentType" validate:"required"`
+	Metadata      map[string]interface{} `json:"metadata,omitempty"`
+}
+
+// DocumentUploadResponse represents a document upload response
+type DocumentUploadResponse struct {
+	Success          bool                   `json:"success"`
+	DocumentID       string                 `json:"documentId,omitempty"`
+	UploadedAt       time.Time              `json:"uploadedAt,omitempty"`
+	ValidationStatus string                 `json:"validationStatus,omitempty"`
+	Errors           []string               `json:"errors,omitempty"`
+	Metadata         map[string]interface{} `json:"metadata,omitempty"`
+}
+
+// DocumentCollectionStatus represents the status of document collection
+type DocumentCollectionStatus struct {
+	ApplicationID         string                  `json:"applicationId"`
+	UserID                string                  `json:"userId"`
+	Status                string                  `json:"status"`
+	TotalRequired         int                     `json:"totalRequired"`
+	Collected             int                     `json:"collected"`
+	Pending               int                     `json:"pending"`
+	Documents             map[string]DocumentInfo `json:"documents"`
+	CollectionStarted     time.Time               `json:"collectionStarted"`
+	CollectionCompletedAt *time.Time              `json:"collectionCompletedAt,omitempty"`
+	ValidationErrors      map[string][]string     `json:"validationErrors,omitempty"`
+}
+
+// DocumentInfo represents information about a specific document
+type DocumentInfo struct {
+	DocumentType string                 `json:"documentType"`
+	Collected    bool                   `json:"collected"`
+	Validated    bool                   `json:"validated"`
+	FileName     string                 `json:"fileName,omitempty"`
+	FileSize     int64                  `json:"fileSize,omitempty"`
+	UploadedAt   *time.Time             `json:"uploadedAt,omitempty"`
+	ValidatedAt  *time.Time             `json:"validatedAt,omitempty"`
+	Errors       []string               `json:"errors,omitempty"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
+}
+
+// UploadDocument handles document upload for loan applications
+func (h *LoanHandler) UploadDocument(c *gin.Context) {
+	logger := h.logger.With(zap.String("operation", "upload_document"))
+
+	var req DocumentUploadRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Error("Failed to bind request", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Validate request
+	if err := h.validate.Struct(req); err != nil {
+		logger.Error("Validation failed", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Validation failed",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	logger.Info("Processing document upload",
+		zap.String("application_id", req.ApplicationID),
+		zap.String("user_id", req.UserID),
+		zap.String("document_type", req.DocumentType),
+		zap.String("file_name", req.FileName),
+		zap.Int64("file_size", req.FileSize))
+
+	// Convert to application DocumentUploadRequest
+	appReq := application.DocumentUploadRequest{
+		ApplicationID: req.ApplicationID,
+		UserID:        req.UserID,
+		DocumentType:  req.DocumentType,
+		FileName:      req.FileName,
+		FileSize:      req.FileSize,
+		ContentType:   req.ContentType,
+		Metadata:      req.Metadata,
+	}
+
+	// Process document upload
+	response, err := h.loanService.UploadDocument(c.Request.Context(), appReq)
+	if err != nil {
+		logger.Error("Document upload failed", zap.Error(err))
+
+		var loanErr *domain.LoanError
+		if errors.As(err, &loanErr) {
+			c.JSON(loanErr.HTTPStatus, gin.H{
+				"error":   loanErr.Message,
+				"code":    loanErr.Code,
+				"details": loanErr.Description,
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Document upload failed",
+		})
+		return
+	}
+
+	logger.Info("Document upload completed successfully",
+		zap.String("document_id", response.DocumentID),
+		zap.String("validation_status", response.ValidationStatus))
+
+	c.JSON(http.StatusOK, response)
+}
+
+// GetDocumentCollectionStatus retrieves the status of document collection for an application
+func (h *LoanHandler) GetDocumentCollectionStatus(c *gin.Context) {
+	logger := h.logger.With(zap.String("operation", "get_document_collection_status"))
+
+	applicationID := c.Param("id")
+	if applicationID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Application ID is required",
+		})
+		return
+	}
+
+	userID := c.Query("userId")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "User ID is required",
+		})
+		return
+	}
+
+	logger.Info("Retrieving document collection status",
+		zap.String("application_id", applicationID),
+		zap.String("user_id", userID))
+
+	// Get document collection status
+	status, err := h.loanService.GetDocumentCollectionStatus(c.Request.Context(), applicationID, userID)
+	if err != nil {
+		logger.Error("Failed to get document collection status", zap.Error(err))
+
+		var loanErr *domain.LoanError
+		if errors.As(err, &loanErr) {
+			c.JSON(loanErr.HTTPStatus, gin.H{
+				"error":   loanErr.Message,
+				"code":    loanErr.Code,
+				"details": loanErr.Description,
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get document collection status",
+		})
+		return
+	}
+
+	logger.Info("Document collection status retrieved",
+		zap.String("status", status.Status),
+		zap.Int("collected", status.Collected),
+		zap.Int("pending", status.Pending))
+
+	c.JSON(http.StatusOK, status)
+}
+
+// CompleteDocumentCollection marks document collection as completed
+func (h *LoanHandler) CompleteDocumentCollection(c *gin.Context) {
+	logger := h.logger.With(zap.String("operation", "complete_document_collection"))
+
+	applicationID := c.Param("id")
+	if applicationID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Application ID is required",
+		})
+		return
+	}
+
+	var req struct {
+		UserID string `json:"userId" validate:"required"`
+		Force  bool   `json:"force,omitempty"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Error("Failed to bind request", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Validate request
+	if err := h.validate.Struct(req); err != nil {
+		logger.Error("Validation failed", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Validation failed",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	logger.Info("Completing document collection",
+		zap.String("application_id", applicationID),
+		zap.String("user_id", req.UserID),
+		zap.Bool("force", req.Force))
+
+	// Complete document collection
+	err := h.loanService.CompleteDocumentCollection(c.Request.Context(), applicationID, req.UserID, req.Force)
+	if err != nil {
+		logger.Error("Failed to complete document collection", zap.Error(err))
+
+		var loanErr *domain.LoanError
+		if errors.As(err, &loanErr) {
+			c.JSON(loanErr.HTTPStatus, gin.H{
+				"error":   loanErr.Message,
+				"code":    loanErr.Code,
+				"details": loanErr.Description,
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to complete document collection",
+		})
+		return
+	}
+
+	logger.Info("Document collection completed successfully")
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Document collection completed successfully",
+	})
+}
+
 // getFieldErrors extracts field-specific errors from validation errors
 func getFieldErrors(err error) map[string]string {
 	fieldErrors := make(map[string]string)
@@ -745,6 +991,11 @@ func (h *LoanHandler) RegisterRoutes(router *gin.RouterGroup) {
 		// Admin endpoints (would typically require admin role)
 		loans.POST("/applications/:id/transition", h.TransitionState)
 		loans.GET("/stats", h.GetApplicationStats)
+
+		// Document management
+		loans.POST("/documents/upload", h.UploadDocument)
+		loans.GET("/applications/:id/documents/status", h.GetDocumentCollectionStatus)
+		loans.POST("/applications/:id/documents/complete", h.CompleteDocumentCollection)
 	}
 
 	// Workflow management routes
