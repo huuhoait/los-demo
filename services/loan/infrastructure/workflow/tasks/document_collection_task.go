@@ -113,6 +113,69 @@ func (h *DocumentCollectionTaskHandler) Execute(
 	return output, nil
 }
 
+// ExecuteHumanTask handles the document collection as a HUMAN task
+// This method is specifically for human intervention scenarios
+func (h *DocumentCollectionTaskHandler) ExecuteHumanTask(
+	ctx context.Context,
+	input map[string]interface{},
+) (map[string]interface{}, error) {
+	logger := h.logger.With(zap.String("operation", "document_collection_human"))
+
+	logger.Info("Document collection HUMAN task initiated",
+		zap.Any("input", input))
+
+	// Extract input parameters
+	applicationID, _ := input["applicationId"].(string)
+	userID, _ := input["userId"].(string)
+	requiredDocuments, _ := input["requiredDocuments"].([]interface{})
+
+	// Validate required fields
+	if applicationID == "" {
+		return nil, fmt.Errorf("application ID is required")
+	}
+	if userID == "" {
+		return nil, fmt.Errorf("user ID is required")
+	}
+	if len(requiredDocuments) == 0 {
+		return nil, fmt.Errorf("required documents list is empty")
+	}
+
+	logger.Info("Document collection HUMAN task requires manual intervention",
+		zap.String("application_id", applicationID),
+		zap.String("user_id", userID),
+		zap.Int("required_documents_count", len(requiredDocuments)))
+
+	// For HUMAN tasks, we don't process documents automatically
+	// Instead, we set up the task for human operators to handle
+	logger.Info("Setting up document collection task for human processing")
+
+	// Create initial status indicating human intervention is needed
+	output := map[string]interface{}{
+		"taskType":                  "document_collection",
+		"taskStatus":                "PENDING_HUMAN_ACTION",
+		"humanInterventionRequired": true,
+		"applicationId":             applicationID,
+		"userId":                    userID,
+		"requiredDocuments":         requiredDocuments,
+		"message":                   "Document collection requires manual processing by loan officer",
+		"nextSteps": []string{
+			"1. Review required documents list",
+			"2. Contact applicant for document submission",
+			"3. Verify document authenticity",
+			"4. Update task status when complete",
+		},
+		"estimatedProcessingTime": "24 hours",
+		"createdAt":               time.Now().UTC().Format(time.RFC3339),
+		"status":                  "pending_human_action",
+	}
+
+	logger.Info("Document collection HUMAN task setup completed",
+		zap.String("application_id", applicationID),
+		zap.String("status", "PENDING_HUMAN_ACTION"))
+
+	return output, nil
+}
+
 // processDocumentCollection processes the collection of required documents
 func (h *DocumentCollectionTaskHandler) processDocumentCollection(
 	ctx context.Context,
@@ -365,4 +428,32 @@ func (h *DocumentCollectionTaskHandler) getValidationErrors(results map[string]D
 		}
 	}
 	return errors
+}
+
+// GetHumanTaskInstructions returns instructions for human operators
+func (h *DocumentCollectionTaskHandler) GetHumanTaskInstructions() map[string]interface{} {
+	return map[string]interface{}{
+		"taskType": "document_collection",
+		"instructions": []string{
+			"Review the loan application and identify required documents",
+			"Contact the applicant to request missing documents",
+			"Verify document authenticity and completeness",
+			"Upload documents to the system",
+			"Mark the task as complete when all documents are collected",
+		},
+		"requiredDocuments": []string{
+			"income_verification",
+			"employment_verification",
+			"bank_statements",
+			"identification",
+		},
+		"estimatedTime": "2-4 hours",
+		"priority":      "High",
+		"assignedTo":    "Loan Officer",
+	}
+}
+
+// GetEstimatedProcessingTime returns the estimated processing time for human tasks
+func (h *DocumentCollectionTaskHandler) GetEstimatedProcessingTime() string {
+	return "24 hours"
 }

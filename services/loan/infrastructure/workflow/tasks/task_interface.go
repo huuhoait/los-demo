@@ -12,16 +12,24 @@ type TaskHandler interface {
 	Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error)
 }
 
+// HumanTaskHandler defines the interface for HUMAN tasks that require manual intervention
+type HumanTaskHandler interface {
+	TaskHandler
+	ExecuteHumanTask(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error)
+	GetHumanTaskInstructions() map[string]interface{}
+	GetEstimatedProcessingTime() string
+}
+
 // TaskFactory creates and manages task handlers
 type TaskFactory struct {
-	logger *zap.Logger
+	logger   *zap.Logger
 	handlers map[string]TaskHandler
 }
 
 // NewTaskFactory creates a new task factory
 func NewTaskFactory(logger *zap.Logger) *TaskFactory {
 	factory := &TaskFactory{
-		logger: logger,
+		logger:   logger,
 		handlers: make(map[string]TaskHandler),
 	}
 
@@ -48,7 +56,7 @@ func (f *TaskFactory) GetHandler(taskType string) (TaskHandler, error) {
 	if f.handlers == nil {
 		return nil, fmt.Errorf("task handlers map is nil")
 	}
-	
+
 	handler, exists := f.handlers[taskType]
 	if !exists {
 		// Log available handlers for debugging
