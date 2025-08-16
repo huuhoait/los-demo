@@ -12,7 +12,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.8
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
-	github.com/swaggo/swag v1.16.6 // indirect
+	github.com/swaggo/swag v1.16.6
 	go.uber.org/zap v1.25.0
 	golang.org/x/text v0.21.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -57,3 +57,5 @@ require (
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+require github.com/go-playground/universal-translator v0.18.1 // indirect

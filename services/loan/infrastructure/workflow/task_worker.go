@@ -12,6 +12,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"loan-service/infrastructure/workflow/tasks"
 	"loan-service/pkg/i18n"
 )
 
@@ -64,6 +65,31 @@ func NewTaskWorker(
 
 	// Register task handlers
 	worker.registerTaskHandlers()
+
+	return worker
+}
+
+// NewTaskWorkerWithRepository creates a new task worker with repository dependency
+func NewTaskWorkerWithRepository(
+	conductorClient ConductorClient,
+	logger *zap.Logger,
+	localizer *i18n.Localizer,
+	loanRepository tasks.LoanRepository,
+) *TaskWorker {
+	worker := &TaskWorker{
+		conductorClient: conductorClient,
+		taskHandlers:    make(map[string]TaskHandler),
+		logger:          logger,
+		localizer:       localizer,
+		workerID:        fmt.Sprintf("worker_%d", time.Now().UnixNano()),
+		pollInterval:    5 * time.Second,
+		httpClient: &http.Client{
+			Timeout: 35 * time.Second,
+		},
+	}
+
+	// Register task handlers with repository
+	worker.registerTaskHandlersWithRepository(loanRepository)
 
 	return worker
 }
@@ -530,6 +556,41 @@ func (w *TaskWorker) registerTaskHandlers() {
 	w.taskHandlers["finalize_loan_decision_ref"] = loanProcessingHandler
 
 	w.logger.Debug("Task handlers registered", zap.Int("handler_count", len(w.taskHandlers)))
+}
+
+// registerTaskHandlersWithRepository registers all available task handlers with repository dependency
+func (w *TaskWorker) registerTaskHandlersWithRepository(loanRepository tasks.LoanRepository) {
+	// Register prequalification task handlers
+	w.taskHandlers["validate_prequalify_input"] = &PreQualificationTaskHandler{
+		logger:    w.logger,
+		localizer: w.localizer,
+	}
+	w.taskHandlers["calculate_dti_ratio"] = &PreQualificationTaskHandler{
+		logger:    w.logger,
+		localizer: w.localizer,
+	}
+	w.taskHandlers["assess_prequalify_risk"] = &PreQualificationTaskHandler{
+		logger:    w.logger,
+		localizer: w.localizer,
+	}
+	w.taskHandlers["generate_prequalify_terms"] = &PreQualificationTaskHandler{
+		logger:    w.logger,
+		localizer: w.localizer,
+	}
+	w.taskHandlers["finalize_prequalification"] = &PreQualificationTaskHandler{
+		logger:    w.logger,
+		localizer: w.localizer,
+	}
+
+	// Register loan processing task handlers with repository
+	loanProcessingHandler := NewLoanProcessingTaskHandlerWithRepository(w.logger, w.localizer, loanRepository)
+	w.taskHandlers["validate_application_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_prequalified_ref"] = loanProcessingHandler
+	w.taskHandlers["document_collection_ref"] = loanProcessingHandler
+	w.taskHandlers["identity_verification_ref"] = loanProcessingHandler
+	w.taskHandlers["finalize_loan_decision_ref"] = loanProcessingHandler
+
+	w.logger.Debug("Task handlers registered with repository", zap.Int("handler_count", len(w.taskHandlers)))
 }
 
 // getAvailableHandlerNames returns a list of available handler names for debugging

@@ -5,7 +5,16 @@ import (
 	"fmt"
 
 	"go.uber.org/zap"
+
+	"loan-service/domain"
 )
+
+// LoanRepository interface for task handlers to avoid import cycles
+type LoanRepository interface {
+	GetApplicationByID(ctx context.Context, id string) (*domain.LoanApplication, error)
+	UpdateApplication(ctx context.Context, app *domain.LoanApplication) error
+	CreateStateTransition(ctx context.Context, transition *domain.StateTransition) error
+}
 
 // TaskHandler defines the interface for all task handlers
 type TaskHandler interface {
@@ -22,8 +31,9 @@ type HumanTaskHandler interface {
 
 // TaskFactory creates and manages task handlers
 type TaskFactory struct {
-	logger   *zap.Logger
-	handlers map[string]TaskHandler
+	logger         *zap.Logger
+	handlers       map[string]TaskHandler
+	loanRepository LoanRepository
 }
 
 // NewTaskFactory creates a new task factory
@@ -39,13 +49,33 @@ func NewTaskFactory(logger *zap.Logger) *TaskFactory {
 	return factory
 }
 
+// NewTaskFactoryWithRepository creates a new task factory with repository dependency
+func NewTaskFactoryWithRepository(logger *zap.Logger, loanRepository LoanRepository) *TaskFactory {
+	factory := &TaskFactory{
+		logger:         logger,
+		handlers:       make(map[string]TaskHandler),
+		loanRepository: loanRepository,
+	}
+
+	// Register all task handlers
+	factory.registerHandlers()
+
+	return factory
+}
+
 // registerHandlers registers all available task handlers
 func (f *TaskFactory) registerHandlers() {
 	f.handlers["validate_application"] = NewValidateApplicationTaskHandler(f.logger)
 	f.handlers["document_collection"] = NewDocumentCollectionTaskHandler(f.logger)
 	f.handlers["identity_verification"] = NewIdentityVerificationTaskHandler(f.logger)
-	f.handlers["update_application_state"] = NewUpdateApplicationStateTaskHandler(f.logger)
 	f.handlers["finalize_loan_decision"] = NewFinalizeLoanDecisionTaskHandler(f.logger)
+
+	// Register update_application_state handler with repository if available
+	if f.loanRepository != nil {
+		f.handlers["update_application_state"] = NewUpdateApplicationStateTaskHandlerWithRepository(f.logger, f.loanRepository)
+	} else {
+		f.handlers["update_application_state"] = NewUpdateApplicationStateTaskHandler(f.logger)
+	}
 }
 
 // GetHandler returns a task handler for the given task type

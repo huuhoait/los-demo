@@ -26,6 +26,15 @@ func NewLoanProcessingTaskHandler(logger *zap.Logger, localizer *i18n.Localizer)
 	}
 }
 
+// NewLoanProcessingTaskHandlerWithRepository creates a new loan processing task handler with repository
+func NewLoanProcessingTaskHandlerWithRepository(logger *zap.Logger, localizer *i18n.Localizer, loanRepository tasks.LoanRepository) *LoanProcessingTaskHandler {
+	return &LoanProcessingTaskHandler{
+		logger:      logger,
+		localizer:   localizer,
+		taskFactory: tasks.NewTaskFactoryWithRepository(logger, loanRepository),
+	}
+}
+
 // HandleTask handles loan processing tasks by delegating to the appropriate task handler
 func (h *LoanProcessingTaskHandler) HandleTask(
 	ctx context.Context,

@@ -258,8 +258,8 @@ func main() {
 	)
 	workflowOrchestrator := workflow.NewLoanWorkflowOrchestrator(conductorClient, logger, localizer)
 
-	// Initialize and start task worker
-	taskWorker := workflow.NewTaskWorker(conductorClient, logger, localizer)
+	// Initialize and start task worker with repository
+	taskWorker := workflow.NewTaskWorkerWithRepository(conductorClient, logger, localizer, loanRepo)
 
 	// Start task worker in a goroutine
 	go func() {
