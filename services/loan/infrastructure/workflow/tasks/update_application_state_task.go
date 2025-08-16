@@ -81,6 +81,25 @@ func (h *UpdateApplicationStateTaskHandler) Execute(
 
 	// Validate state transition
 	targetState := domain.ApplicationState(toState)
+
+	// Check if already in target state (idempotent operation)
+	if application.CurrentState == targetState {
+		logger.Info("Application already in target state, treating as successful idempotent operation",
+			zap.String("current_state", string(application.CurrentState)),
+			zap.String("target_state", toState))
+
+		// Return success response for idempotent operation
+		return map[string]interface{}{
+			"success":       true,
+			"newState":      string(targetState),
+			"previousState": string(application.CurrentState),
+			"newStatus":     string(application.Status),
+			"updatedAt":     time.Now().UTC().Format(time.RFC3339),
+			"idempotent":    true,
+			"message":       "Application already in target state",
+		}, nil
+	}
+
 	if !application.CanTransitionTo(targetState) {
 		logger.Error("Invalid state transition",
 			zap.String("current_state", string(application.CurrentState)),

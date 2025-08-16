@@ -552,8 +552,30 @@ func (w *TaskWorker) registerTaskHandlers() {
 	w.taskHandlers["validate_application_ref"] = loanProcessingHandler
 	w.taskHandlers["update_state_to_prequalified_ref"] = loanProcessingHandler
 	w.taskHandlers["document_collection_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_documents_submitted_ref"] = loanProcessingHandler
 	w.taskHandlers["identity_verification_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_identity_verified_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_underwriting_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_approved_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_denied_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_manual_review_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_manual_approved_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_manual_denied_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_default_denied_ref"] = loanProcessingHandler
 	w.taskHandlers["finalize_loan_decision_ref"] = loanProcessingHandler
+	// Underwriting specific tasks
+	w.taskHandlers["credit_check_ref"] = loanProcessingHandler
+	w.taskHandlers["income_verification_ref"] = loanProcessingHandler
+	w.taskHandlers["calculate_risk_score_ref"] = loanProcessingHandler
+	w.taskHandlers["decision_engine_ref"] = loanProcessingHandler
+	w.taskHandlers["auto_approve_ref"] = loanProcessingHandler
+	w.taskHandlers["auto_deny_ref"] = loanProcessingHandler
+	w.taskHandlers["flag_manual_review_ref"] = loanProcessingHandler
+	w.taskHandlers["manual_review_ref"] = loanProcessingHandler
+	w.taskHandlers["process_manual_decision_ref"] = loanProcessingHandler
+	w.taskHandlers["manual_approve_ref"] = loanProcessingHandler
+	w.taskHandlers["manual_deny_ref"] = loanProcessingHandler
+	w.taskHandlers["default_deny_ref"] = loanProcessingHandler
 
 	w.logger.Debug("Task handlers registered", zap.Int("handler_count", len(w.taskHandlers)))
 }
@@ -587,8 +609,30 @@ func (w *TaskWorker) registerTaskHandlersWithRepository(loanRepository tasks.Loa
 	w.taskHandlers["validate_application_ref"] = loanProcessingHandler
 	w.taskHandlers["update_state_to_prequalified_ref"] = loanProcessingHandler
 	w.taskHandlers["document_collection_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_documents_submitted_ref"] = loanProcessingHandler
 	w.taskHandlers["identity_verification_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_identity_verified_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_underwriting_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_approved_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_denied_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_to_manual_review_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_manual_approved_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_manual_denied_ref"] = loanProcessingHandler
+	w.taskHandlers["update_state_default_denied_ref"] = loanProcessingHandler
 	w.taskHandlers["finalize_loan_decision_ref"] = loanProcessingHandler
+	// Underwriting specific tasks
+	w.taskHandlers["credit_check_ref"] = loanProcessingHandler
+	w.taskHandlers["income_verification_ref"] = loanProcessingHandler
+	w.taskHandlers["calculate_risk_score_ref"] = loanProcessingHandler
+	w.taskHandlers["decision_engine_ref"] = loanProcessingHandler
+	w.taskHandlers["auto_approve_ref"] = loanProcessingHandler
+	w.taskHandlers["auto_deny_ref"] = loanProcessingHandler
+	w.taskHandlers["flag_manual_review_ref"] = loanProcessingHandler
+	w.taskHandlers["manual_review_ref"] = loanProcessingHandler
+	w.taskHandlers["process_manual_decision_ref"] = loanProcessingHandler
+	w.taskHandlers["manual_approve_ref"] = loanProcessingHandler
+	w.taskHandlers["manual_deny_ref"] = loanProcessingHandler
+	w.taskHandlers["default_deny_ref"] = loanProcessingHandler
 
 	w.logger.Debug("Task handlers registered with repository", zap.Int("handler_count", len(w.taskHandlers)))
 }
