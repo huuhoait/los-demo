@@ -1,0 +1,272 @@
+# English translations for Loan Service
+# Error messages
+[LOAN_001]
+other = "Invalid loan amount"
+
+[LOAN_002]
+other = "Invalid loan purpose"
+
+[LOAN_003]
+other = "Invalid loan term"
+
+[LOAN_004]
+other = "Invalid income information"
+
+[LOAN_005]
+other = "Loan amount is below minimum requirement"
+
+[LOAN_006]
+other = "Loan amount exceeds maximum limit"
+
+[LOAN_007]
+other = "Insufficient income for requested loan amount"
+
+[LOAN_008]
+other = "Invalid state transition"
+
+[LOAN_009]
+other = "Loan offer has expired"
+
+[LOAN_010]
+other = "Loan application not found"
+
+[LOAN_011]
+other = "Failed to start workflow"
+
+[LOAN_012]
+other = "Workflow execution failed"
+
+[LOAN_013]
+other = "State conflict detected"
+
+[LOAN_014]
+other = "Conductor service unavailable"
+
+[LOAN_015]
+other = "Decision engine error"
+
+[LOAN_016]
+other = "State machine error"
+
+[LOAN_017]
+other = "Offer calculation error"
+
+[LOAN_018]
+other = "Application validation failed"
+
+[LOAN_019]
+other = "Invalid application status"
+
+[LOAN_020]
+other = "Invalid request format - please check your JSON data and field validation"
+
+[LOAN_021]
+other = "User not found"
+
+[LOAN_022]
+other = "Unauthorized access"
+
+[LOAN_023]
+other = "Database connection error"
+
+[LOAN_024]
+other = "External service error"
+
+[LOAN_025]
+other = "Document verification required"
+
+[LOAN_026]
+other = "Credit check failed"
+
+[LOAN_027]
+other = "KYC verification pending"
+
+[LOAN_028]
+other = "Manual review required"
+
+[LOAN_029]
+other = "Application already exists"
+
+[LOAN_030]
+other = "Invalid offer terms"
+
+# Success messages
+[APPLICATION_CREATED]
+other = "Loan application created successfully"
+
+[APPLICATION_UPDATED]
+other = "Loan application updated successfully"
+
+[APPLICATION_SUBMITTED]
+other = "Loan application submitted successfully"
+
+[PRE_QUALIFICATION_SUCCESS]
+other = "Pre-qualification completed successfully"
+
+[OFFER_GENERATED]
+other = "Loan offer generated successfully"
+
+[OFFER_ACCEPTED]
+other = "Loan offer accepted successfully"
+
+[WORKFLOW_STARTED]
+other = "Loan processing workflow started"
+
+[STATE_TRANSITION_SUCCESS]
+other = "Application state updated successfully"
+
+[DOCUMENTS_UPLOADED]
+other = "Documents uploaded successfully"
+
+[VERIFICATION_COMPLETE]
+other = "Verification completed successfully"
+
+# Field validation messages
+[VALIDATION_REQUIRED]
+other = "This field is required"
+
+[VALIDATION_INVALID_AMOUNT]
+other = "Please enter a valid loan amount between ${{.MinAmount}} and ${{.MaxAmount}}"
+
+[VALIDATION_INVALID_PURPOSE]
+other = "Please select a valid loan purpose"
+
+[VALIDATION_INVALID_TERM]
+other = "Please select a valid loan term"
+
+[VALIDATION_INVALID_INCOME]
+other = "Please enter a valid monthly income"
+
+[VALIDATION_INVALID_EMAIL]
+other = "Please enter a valid email address"
+
+[VALIDATION_INVALID_PHONE]
+other = "Please enter a valid phone number"
+
+[VALIDATION_INVALID_SSN]
+other = "Please enter a valid Social Security Number"
+
+[VALIDATION_INVALID_DATE]
+other = "Please enter a valid date"
+
+# UI elements
+[BUTTON_SUBMIT]
+other = "Submit Application"
+
+[BUTTON_CONTINUE]
+other = "Continue"
+
+[BUTTON_CANCEL]
+other = "Cancel"
+
+[BUTTON_SAVE_DRAFT]
+other = "Save as Draft"
+
+[BUTTON_ACCEPT_OFFER]
+other = "Accept Offer"
+
+[BUTTON_DECLINE_OFFER]
+other = "Decline Offer"
+
+[LABEL_LOAN_AMOUNT]
+other = "Loan Amount"
+
+[LABEL_LOAN_PURPOSE]
+other = "Loan Purpose"
+
+[LABEL_LOAN_TERM]
+other = "Loan Term"
+
+[LABEL_MONTHLY_INCOME]
+other = "Monthly Income"
+
+[LABEL_EMPLOYMENT_STATUS]
+other = "Employment Status"
+
+[LABEL_ANNUAL_INCOME]
+other = "Annual Income"
+
+# Status messages
+[STATUS_DRAFT]
+other = "Draft"
+
+[STATUS_SUBMITTED]
+other = "Submitted"
+
+[STATUS_UNDER_REVIEW]
+other = "Under Review"
+
+[STATUS_APPROVED]
+other = "Approved"
+
+[STATUS_DENIED]
+other = "Denied"
+
+[STATUS_FUNDED]
+other = "Funded"
+
+[STATUS_ACTIVE]
+other = "Active"
+
+# Workflow status messages
+[WORKFLOW_INITIATED]
+other = "Application initiated"
+
+[WORKFLOW_PRE_QUALIFIED]
+other = "Pre-qualification completed"
+
+[WORKFLOW_DOCUMENTS_SUBMITTED]
+other = "Documents submitted"
+
+[WORKFLOW_IDENTITY_VERIFIED]
+other = "Identity verified"
+
+[WORKFLOW_UNDERWRITING]
+other = "Under underwriting review"
+
+[WORKFLOW_MANUAL_REVIEW]
+other = "Manual review in progress"
+
+[WORKFLOW_APPROVED]
+other = "Application approved"
+
+[WORKFLOW_DENIED]
+other = "Application denied"
+
+[WORKFLOW_DOCUMENTS_SIGNED]
+other = "Documents signed"
+
+[WORKFLOW_FUNDED]
+other = "Loan funded"
+
+# Notifications
+[NOTIFICATION_APPLICATION_RECEIVED]
+other = "We have received your loan application and will review it shortly"
+
+[NOTIFICATION_DOCUMENTS_REQUIRED]
+other = "Additional documents are required to process your application"
+
+[NOTIFICATION_APPROVED]
+other = "Congratulations! Your loan application has been approved"
+
+[NOTIFICATION_DENIED]
+other = "We're sorry, but your loan application has been denied"
+
+[NOTIFICATION_OFFER_AVAILABLE]
+other = "A loan offer is available for your review"
+
+[NOTIFICATION_FUNDING_COMPLETE]
+other = "Your loan has been funded and is now active"
+
+# Help text
+[HELP_LOAN_AMOUNT]
+other = "Enter the amount you would like to borrow (minimum $5,000, maximum $50,000)"
+
+[HELP_LOAN_PURPOSE]
+other = "Select the primary purpose for your loan"
+
+[HELP_LOAN_TERM]
+other = "Choose the repayment term that works best for you"
+
+[HELP_INCOME_VERIFICATION]
+other = "Provide accurate income information to help us process your application"

@@ -1,0 +1,135 @@
+{
+  "name": "prequalification_workflow",
+  "description": "Pre-qualification workflow for loan applications",
+  "version": 1,
+  "tasks": [
+    {
+      "name": "validate_prequalify_input",
+      "taskReferenceName": "validate_prequalify_input_ref",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "loanAmount": "${workflow.input.loanAmount}",
+        "annualIncome": "${workflow.input.annualIncome}",
+        "monthlyDebt": "${workflow.input.monthlyDebt}",
+        "employmentStatus": "${workflow.input.employmentStatus}"
+      },
+      "type": "SIMPLE",
+      "decisionCases": {},
+      "defaultCase": [],
+      "forkTasks": [],
+      "startDelay": 0,
+      "joinOn": [],
+      "optional": false,
+      "defaultExclusiveJoinTask": [],
+      "asyncComplete": false,
+      "loopOver": []
+    },
+    {
+      "name": "calculate_dti_ratio",
+      "taskReferenceName": "calculate_dti_ratio_ref", 
+      "inputParameters": {
+        "annualIncome": "${workflow.input.annualIncome}",
+        "monthlyDebt": "${workflow.input.monthlyDebt}"
+      },
+      "type": "SIMPLE",
+      "decisionCases": {},
+      "defaultCase": [],
+      "forkTasks": [],
+      "startDelay": 0,
+      "joinOn": [],
+      "optional": false,
+      "defaultExclusiveJoinTask": [],
+      "asyncComplete": false,
+      "loopOver": []
+    },
+    {
+      "name": "assess_prequalify_risk",
+      "taskReferenceName": "assess_prequalify_risk_ref",
+      "inputParameters": {
+        "loanAmount": "${workflow.input.loanAmount}",
+        "annualIncome": "${workflow.input.annualIncome}",
+        "employmentStatus": "${workflow.input.employmentStatus}",
+        "dtiRatio": "${calculate_dti_ratio_ref.output.dtiRatio}"
+      },
+      "type": "SIMPLE",
+      "decisionCases": {},
+      "defaultCase": [],
+      "forkTasks": [],
+      "startDelay": 0,
+      "joinOn": [],
+      "optional": false,
+      "defaultExclusiveJoinTask": [],
+      "asyncComplete": false,
+      "loopOver": []
+    },
+    {
+      "name": "generate_prequalify_terms",
+      "taskReferenceName": "generate_prequalify_terms_ref",
+      "inputParameters": {
+        "loanAmount": "${workflow.input.loanAmount}",
+        "annualIncome": "${workflow.input.annualIncome}",
+        "employmentStatus": "${workflow.input.employmentStatus}",
+        "dtiRatio": "${calculate_dti_ratio_ref.output.dtiRatio}",
+        "riskAssessment": "${assess_prequalify_risk_ref.output}"
+      },
+      "type": "SIMPLE",
+      "decisionCases": {},
+      "defaultCase": [],
+      "forkTasks": [],
+      "startDelay": 0,
+      "joinOn": [],
+      "optional": false,
+      "defaultExclusiveJoinTask": [],
+      "asyncComplete": false,
+      "loopOver": []
+    },
+    {
+      "name": "finalize_prequalification",
+      "taskReferenceName": "finalize_prequalification_ref",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "qualified": "${generate_prequalify_terms_ref.output.qualified}",
+        "maxLoanAmount": "${generate_prequalify_terms_ref.output.maxLoanAmount}",
+        "interestRateRange": "${generate_prequalify_terms_ref.output.interestRateRange}",
+        "recommendedTerms": "${generate_prequalify_terms_ref.output.recommendedTerms}",
+        "dtiRatio": "${calculate_dti_ratio_ref.output.dtiRatio}",
+        "message": "${generate_prequalify_terms_ref.output.message}"
+      },
+      "type": "SIMPLE",
+      "decisionCases": {},
+      "defaultCase": [],
+      "forkTasks": [],
+      "startDelay": 0,
+      "joinOn": [],
+      "optional": false,
+      "defaultExclusiveJoinTask": [],
+      "asyncComplete": false,
+      "loopOver": []
+    }
+  ],
+  "inputParameters": [
+    "userId",
+    "loanAmount", 
+    "annualIncome",
+    "monthlyDebt",
+    "employmentStatus",
+    "startTime"
+  ],
+  "outputParameters": {
+    "qualified": "${finalize_prequalification_ref.output.qualified}",
+    "maxLoanAmount": "${finalize_prequalification_ref.output.maxLoanAmount}",
+    "interestRateRange": "${finalize_prequalification_ref.output.interestRateRange}",
+    "recommendedTerms": "${finalize_prequalification_ref.output.recommendedTerms}",
+    "dtiRatio": "${finalize_prequalification_ref.output.dtiRatio}",
+    "message": "${finalize_prequalification_ref.output.message}"
+  },
+  "failureWorkflow": "",
+  "restartable": true,
+  "workflowStatusListenerEnabled": false,
+  "ownerEmail": "loan-service@company.com",
+  "timeoutPolicy": "ALERT_ONLY",
+  "timeoutSeconds": 300,
+  "variables": {},
+  "inputTemplate": {},
+  "schemaVersion": 2
+}

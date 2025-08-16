@@ -1,0 +1,273 @@
+# Loan Service Configuration
+# This file contains configuration for different environments
+
+# Default configuration (used when no environment is specified)
+default:
+  server:
+    port: 8080
+    host: "0.0.0.0"
+    read_timeout: 30
+    write_timeout: 30
+    graceful_shutdown_timeout: 30
+  
+  database:
+    host: "localhost"
+    port: 5433
+    user: "postgres"
+    password: "password"
+    name: "loan_service"
+    ssl_mode: "disable"
+    max_open_conns: 25
+    max_idle_conns: 5
+    conn_max_lifetime: 300
+  
+  conductor:
+    base_url: "http://localhost:8082"
+    timeout: 30
+    retry_attempts: 3
+    retry_delay: 1000
+  
+  logging:
+    level: "info"
+    format: "json"
+    output: "stdout"
+    enable_console: true
+    enable_file: false
+    file_path: "./logs/loan-service.log"
+    max_size: 100
+    max_age: 30
+    max_backups: 10
+  
+  security:
+    jwt_secret: "your-secret-key-change-in-production"
+    jwt_expiration: 3600
+    bcrypt_cost: 12
+    cors_allowed_origins: ["*"]
+    cors_allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_allowed_headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+  
+  application:
+    name: "loan-service"
+    version: "v1.0.0"
+    environment: "development"
+    max_loan_amount: 50000
+    min_loan_amount: 5000
+    max_dti_ratio: 0.43
+    default_interest_rate: 8.5
+    max_interest_rate: 15.0
+    min_interest_rate: 5.0
+    offer_expiration_hours: 168  # 7 days
+  
+  i18n:
+    default_language: "en"
+    supported_languages: ["en", "vi"]
+    fallback_language: "en"
+
+# Development environment
+development:
+  server:
+    port: 8080
+    host: "0.0.0.0"
+    read_timeout: 30
+    write_timeout: 30
+    graceful_shutdown_timeout: 30
+  
+  database:
+    host: "localhost"
+    port: 5433
+    user: "postgres"
+    password: "password"
+    name: "loan_service"
+    ssl_mode: "disable"
+    max_open_conns: 25
+    max_idle_conns: 5
+    conn_max_lifetime: 300
+  
+  conductor:
+    base_url: "http://localhost:8082"
+    timeout: 30
+    retry_attempts: 3
+    retry_delay: 1000
+  
+  logging:
+    level: "debug"
+    format: "console"
+    output: "stdout"
+    enable_console: true
+    enable_file: false
+    file_path: "./logs/loan-service.log"
+    max_size: 100
+    max_age: 30
+    max_backups: 10
+  
+  security:
+    jwt_secret: "dev-secret-key"
+    jwt_expiration: 3600
+    bcrypt_cost: 12
+    cors_allowed_origins: ["*"]
+    cors_allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_allowed_headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+  
+  application:
+    name: "loan-service"
+    version: "v1.0.0"
+    environment: "development"
+    max_loan_amount: 50000
+    min_loan_amount: 5000
+    max_dti_ratio: 0.43
+    default_interest_rate: 8.5
+    max_interest_rate: 15.0
+    min_interest_rate: 5.0
+    offer_expiration_hours: 168
+  
+  i18n:
+    default_language: "en"
+    supported_languages: ["en", "vi"]
+    fallback_language: "en"
+
+# Docker environment
+docker:
+  server:
+    port: 8080
+    host: "0.0.0.0"
+    read_timeout: 30
+    write_timeout: 30
+    graceful_shutdown_timeout: 30
+  
+  database:
+    host: "postgres"
+    port: 5433
+    user: "postgres"
+    password: "password"
+    name: "loan_service"
+    ssl_mode: "disable"
+    max_open_conns: 25
+    max_idle_conns: 5
+    conn_max_lifetime: 300
+  
+  conductor:
+    base_url: "http://localhost:8082"
+    timeout: 30
+    retry_attempts: 3
+    retry_delay: 1000
+  
+  logging:
+    level: "info"
+    format: "json"
+    output: "stdout"
+    enable_console: true
+    enable_file: false
+    file_path: "./logs/loan-service.log"
+    max_size: 100
+    max_age: 30
+    max_backups: 10
+  
+  security:
+    jwt_secret: "docker-secret-key"
+    jwt_expiration: 3600
+    bcrypt_cost: 12
+    cors_allowed_origins: ["*"]
+    cors_allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_allowed_headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+  
+  application:
+    name: "loan-service"
+    version: "v1.0.0"
+    environment: "docker"
+    max_loan_amount: 50000
+    min_loan_amount: 5000
+    max_dti_ratio: 0.43
+    default_interest_rate: 8.5
+    max_interest_rate: 15.0
+    min_interest_rate: 5.0
+    offer_expiration_hours: 168
+  
+  i18n:
+    default_language: "en"
+    supported_languages: ["en", "vi"]
+    fallback_language: "en"
+
+# Production environment
+production:
+  server:
+    port: 8080
+    host: "0.0.0.0"
+    read_timeout: 60
+    write_timeout: 60
+  
+  database:
+    host: "${DB_HOST}"
+    port: 5433
+    user: "${DB_USER}"
+    password: "${DB_PASSWORD}"
+    name: "${DB_NAME}"
+    ssl_mode: "require"
+    max_open_conns: 100
+    max_idle_conns: 25
+    conn_max_lifetime: 600
+  
+  conductor:
+    base_url: "${CONDUCTOR_BASE_URL:http://localhost:8082}"
+    retry_attempts: 5
+    retry_delay: 2000
+  
+  logging:
+    level: "info"
+    format: "json"
+    enable_console: false
+    enable_file: true
+    file_path: "/var/log/loan-service/loan-service.log"
+    max_size: 500
+    max_age: 90
+    max_backups: 50
+  
+  security:
+    jwt_secret: "${JWT_SECRET}"
+    jwt_expiration: 7200
+    bcrypt_cost: 14
+    cors_allowed_origins: ["https://yourdomain.com"]
+    cors_allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_allowed_headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+  
+  application:
+    environment: "production"
+    max_loan_amount: 100000
+    min_loan_amount: 1000
+    max_dti_ratio: 0.50
+    default_interest_rate: 7.5
+    max_interest_rate: 12.0
+    min_interest_rate: 4.0
+    offer_expiration_hours: 168  # 7 days
+
+# Test environment
+test:
+  server:
+    port: 8080
+    host: "localhost"
+  
+  database:
+    host: "localhost"
+    port: 5433
+    user: "postgres"
+    password: "password"
+    name: "loan_service_test"
+    ssl_mode: "disable"
+  
+  conductor:
+    base_url: "http://localhost:8082"
+  
+  logging:
+    level: "warn"
+    format: "console"
+    enable_console: true
+    enable_file: false
+  
+  security:
+    jwt_secret: "test-secret-key"
+    cors_allowed_origins: ["*"]
+  
+  application:
+    environment: "test"
+    max_loan_amount: 10000
+    min_loan_amount: 100
+    offer_expiration_hours: 1  # 1 hour for testing

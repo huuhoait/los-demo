@@ -1,0 +1,134 @@
+[
+  {
+    "name": "validate_prequalify_input",
+    "description": "Validates pre-qualification request input parameters",
+    "retryCount": 2,
+    "timeoutSeconds": 30,
+    "inputKeys": [
+      "userId",
+      "loanAmount", 
+      "annualIncome",
+      "monthlyDebt",
+      "employmentStatus"
+    ],
+    "outputKeys": [
+      "valid",
+      "validationErrors"
+    ],
+    "timeoutPolicy": "TIME_OUT_WF",
+    "retryLogic": "FIXED",
+    "retryDelaySeconds": 5,
+    "responseTimeoutSeconds": 25,
+    "concurrentExecLimit": 100,
+    "rateLimitPerFrequency": 0,
+    "rateLimitFrequencyInSeconds": 1,
+    "ownerEmail": "loan-service@company.com"
+  },
+  {
+    "name": "calculate_dti_ratio",
+    "description": "Calculates debt-to-income ratio for risk assessment",
+    "retryCount": 1,
+    "timeoutSeconds": 15,
+    "inputKeys": [
+      "annualIncome",
+      "monthlyDebt"
+    ],
+    "outputKeys": [
+      "dtiRatio",
+      "monthlyIncome"
+    ],
+    "timeoutPolicy": "TIME_OUT_WF",
+    "retryLogic": "FIXED",
+    "retryDelaySeconds": 3,
+    "responseTimeoutSeconds": 10,
+    "concurrentExecLimit": 200,
+    "rateLimitPerFrequency": 0,
+    "rateLimitFrequencyInSeconds": 1,
+    "ownerEmail": "loan-service@company.com"
+  },
+  {
+    "name": "assess_prequalify_risk",
+    "description": "Performs initial risk assessment for pre-qualification",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "inputKeys": [
+      "loanAmount",
+      "annualIncome", 
+      "employmentStatus",
+      "dtiRatio"
+    ],
+    "outputKeys": [
+      "riskLevel",
+      "riskFactors",
+      "baseInterestRate"
+    ],
+    "timeoutPolicy": "TIME_OUT_WF",
+    "retryLogic": "EXPONENTIAL_BACKOFF",
+    "retryDelaySeconds": 5,
+    "responseTimeoutSeconds": 50,
+    "concurrentExecLimit": 50,
+    "rateLimitPerFrequency": 0,
+    "rateLimitFrequencyInSeconds": 1,
+    "ownerEmail": "loan-service@company.com"
+  },
+  {
+    "name": "generate_prequalify_terms",
+    "description": "Generates pre-qualification terms and loan offers",
+    "retryCount": 2,
+    "timeoutSeconds": 45,
+    "inputKeys": [
+      "loanAmount",
+      "annualIncome",
+      "employmentStatus", 
+      "dtiRatio",
+      "riskAssessment"
+    ],
+    "outputKeys": [
+      "qualified",
+      "maxLoanAmount",
+      "interestRateRange",
+      "recommendedTerms",
+      "message"
+    ],
+    "timeoutPolicy": "TIME_OUT_WF",
+    "retryLogic": "FIXED",
+    "retryDelaySeconds": 10,
+    "responseTimeoutSeconds": 40,
+    "concurrentExecLimit": 100,
+    "rateLimitPerFrequency": 0,
+    "rateLimitFrequencyInSeconds": 1,
+    "ownerEmail": "loan-service@company.com"
+  },
+  {
+    "name": "finalize_prequalification",
+    "description": "Finalizes pre-qualification result and saves to database",
+    "retryCount": 3,
+    "timeoutSeconds": 30,
+    "inputKeys": [
+      "userId",
+      "qualified",
+      "maxLoanAmount",
+      "interestRateRange",
+      "recommendedTerms",
+      "dtiRatio",
+      "message"
+    ],
+    "outputKeys": [
+      "qualified",
+      "maxLoanAmount", 
+      "interestRateRange",
+      "recommendedTerms",
+      "dtiRatio",
+      "message",
+      "prequalificationId"
+    ],
+    "timeoutPolicy": "TIME_OUT_WF",
+    "retryLogic": "EXPONENTIAL_BACKOFF",
+    "retryDelaySeconds": 3,
+    "responseTimeoutSeconds": 25,
+    "concurrentExecLimit": 200,
+    "rateLimitPerFrequency": 0,
+    "rateLimitFrequencyInSeconds": 1,
+    "ownerEmail": "loan-service@company.com"
+  }
+]

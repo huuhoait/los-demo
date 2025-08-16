@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # Loan API Service
+  loan-api:
+    build: ./loan-api
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=loan_service
+      - CONDUCTOR_BASE_URL=http://conductor:8080
+      - LOG_LEVEL=info
+    depends_on:
+      - postgres
+      - conductor
+    networks:
+      - loan-network
+    restart: unless-stopped
+
+  # Loan Worker Service
+  loan-worker:
+    build: ./loan-worker
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=loan_service
+      - CONDUCTOR_BASE_URL=http://conductor:8080
+      - LOG_LEVEL=info
+    depends_on:
+      - postgres
+      - conductor
+    networks:
+      - loan-network
+    restart: unless-stopped
+    deploy:
+      replicas: 2  # Scale worker instances
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=loan_service
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./loan/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./loan/init-conductor-db.sql:/docker-entrypoint-initdb.d/init-conductor-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - loan-network
+    restart: unless-stopped
+
+  # Netflix Conductor
+  conductor:
+    image: conductor:latest
+    ports:
+      - "8082:8080"
+    environment:
+      - DB=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=conductor
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+    depends_on:
+      - postgres
+    networks:
+      - loan-network
+    restart: unless-stopped
+
+  # Redis (for Conductor caching)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - loan-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  loan-network:
+    driver: bridge
