@@ -1,4 +1,4 @@
-module loan-service
+module github.com/lendingplatform/los/services/loan
 
 go 1.21
 

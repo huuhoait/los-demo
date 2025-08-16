@@ -1,0 +1,8 @@
+go 1.21
+
+use (
+		./loan
+	./loan-api
+	./loan-worker
+	
+	)

@@ -1,4 +1,4 @@
-module loan-api
+module github.com/lendingplatform/los/services/loan-api
 
 go 1.21
 
@@ -9,8 +9,6 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/nicksnyder/go-i18n/v2 v2.2.2
 	github.com/pelletier/go-toml/v2 v2.0.8
-	github.com/swaggo/files v1.0.1
-	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/zap v1.25.0
 	golang.org/x/text v0.21.0
