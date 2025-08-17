@@ -3,9 +3,9 @@ go 1.23.3
 use (
         ./auth
         ./decision-engine
-        ./loan
         ./loan-api
         ./loan-worker
         ./underwriting-worker
         ./user
+        ./shared
         )

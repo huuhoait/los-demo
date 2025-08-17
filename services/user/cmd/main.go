@@ -243,11 +243,11 @@ func initializeHTTPServer(app *Application, cfg *config.Config, appLogger *logge
 	router.Use(gin.Recovery())
 	router.Use(sharedMiddleware.CORSMiddleware())
 	router.Use(sharedMiddleware.RequestIDMiddleware())
-	
+
 	// Add logger middleware
 	loggerMiddleware := logger.NewLoggerMiddleware(appLogger)
 	router.Use(loggerMiddleware.Handler())
-	
+
 	router.Use(timestampMiddleware())
 
 	// Add i18n middleware

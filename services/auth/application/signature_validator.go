@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/huuhoait/los-demo/services/auth/domain"
-	customI18n "// github.com/huuhoait/los-demo/services/shared/pkg/i18n // DISABLED"
+github.com/huuhoait/los-demo/services/shared/pkg/i18n
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -22,7 +22,7 @@ import (
 type HTTPSignatureValidator struct {
 	keyStore     domain.KeyStore
 	logger       *zap.Logger
-	localizer    *customI18n.Localizer
+	localizer    *i18n.Localizer
 	maxClockSkew time.Duration
 }
 
@@ -30,7 +30,7 @@ type HTTPSignatureValidator struct {
 func NewHTTPSignatureValidator(
 	keyStore domain.KeyStore,
 	logger *zap.Logger,
-	localizer *customI18n.Localizer,
+	localizer *i18n.Localizer,
 ) *HTTPSignatureValidator {
 	return &HTTPSignatureValidator{
 		keyStore:     keyStore,
