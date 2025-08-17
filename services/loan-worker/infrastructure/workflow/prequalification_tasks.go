@@ -8,7 +8,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"loan-worker/pkg/i18n"
+	"github.com/lendingplatform/los/services/loan-worker/pkg/i18n"
 )
 
 // PreQualificationTaskHandler handles pre-qualification workflow tasks

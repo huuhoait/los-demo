@@ -6,8 +6,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"loan-worker/infrastructure/workflow/tasks"
-	"loan-worker/pkg/i18n"
+	"github.com/lendingplatform/los/services/loan-worker/infrastructure/workflow/tasks"
+	"github.com/lendingplatform/los/services/loan-worker/pkg/i18n"
 )
 
 // LoanProcessingTaskHandler handles loan processing tasks using the task factory

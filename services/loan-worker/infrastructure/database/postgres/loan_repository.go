@@ -8,7 +8,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"loan-worker/domain"
+	"github.com/lendingplatform/los/services/loan-worker/domain"
 )
 
 // LoanRepository implements domain.LoanRepository interface

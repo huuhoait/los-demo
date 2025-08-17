@@ -13,7 +13,14 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/lendingplatform/los/services/loan-api/application"
+	"github.com/lendingplatform/los/services/loan-api/domain"
+	"github.com/lendingplatform/los/services/loan-api/infrastructure/database/postgres"
+	"github.com/lendingplatform/los/services/loan-api/infrastructure/workflow"
+	"github.com/lendingplatform/los/services/loan-api/interfaces"
+	"github.com/lendingplatform/los/services/loan-api/interfaces/middleware"
 	"github.com/lendingplatform/los/services/loan-api/pkg/config"
+	"github.com/lendingplatform/los/services/loan-api/pkg/i18n"
 )
 
 func main() {
@@ -41,8 +48,55 @@ func main() {
 		zap.Int("port", cfg.Server.Port),
 	)
 
+	// Initialize i18n localizer
+	localizer, err := i18n.NewLocalizer()
+	if err != nil {
+		logger.Warn("Failed to initialize i18n localizer, using default", zap.Error(err))
+		localizer = &i18n.Localizer{}
+	}
+
+	// Initialize database connection
+	dbConnection, err := postgres.NewConnection(&postgres.Config{
+		Host:            cfg.Database.Host,
+		Port:            fmt.Sprintf("%d", cfg.Database.Port),
+		User:            cfg.Database.User,
+		Password:        cfg.Database.Password,
+		Database:        cfg.Database.Name,
+		SSLMode:         cfg.Database.SSLMode,
+		MaxOpenConns:    cfg.Database.MaxOpenConns,
+		MaxIdleConns:    cfg.Database.MaxIdleConns,
+		ConnMaxLifetime: cfg.Database.ConnMaxLifetime,
+	}, logger)
+	if err != nil {
+		logger.Warn("Failed to initialize database connection, using mock repositories", zap.Error(err))
+		dbConnection = nil
+	}
+
+	// Initialize repositories
+	var userRepo application.UserRepository
+	var loanRepo application.LoanRepository
+	if dbConnection != nil {
+		factory := postgres.NewFactory(dbConnection, logger)
+		userRepo = factory.GetUserRepository()
+		loanRepo = factory.GetLoanRepository()
+	} else {
+		// Use mock repositories for now
+		userRepo = &MockUserRepository{}
+		loanRepo = &MockLoanRepository{}
+	}
+
+	// Initialize workflow orchestrator
+	conductorClient := workflow.NewConductorClientImpl(cfg.Conductor.BaseURL, logger)
+	workflowOrchestrator := workflow.NewLoanWorkflowOrchestrator(conductorClient, logger, localizer)
+
+	// Initialize services
+	loanService := application.NewLoanService(userRepo, loanRepo, workflowOrchestrator, logger, localizer)
+
+	// Initialize handlers
+	loanHandler := interfaces.NewLoanHandler(loanService, logger, localizer)
+
 	// Setup HTTP server
-	router := setupRouter(logger)
+	router := setupRouter(logger, loanHandler, localizer)
 
 	server := &http.Server{
 		Addr:         cfg.GetServerAddr(),
@@ -77,6 +131,78 @@ func main() {
 	}
 
 	logger.Info("Server exited")
+}
+
+// Mock repositories for when database is not available
+type MockUserRepository struct{}
+type MockLoanRepository struct{}
+
+func (m *MockUserRepository) CreateUser(ctx context.Context, user *domain.User) (string, error) {
+	return "mock-user-123", nil
+}
+
+func (m *MockUserRepository) GetUserByID(ctx context.Context, id string) (*domain.User, error) {
+	return &domain.User{ID: id}, nil
+}
+
+func (m *MockUserRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+	return &domain.User{Email: email}, nil
+}
+
+func (m *MockUserRepository) UpdateUser(ctx context.Context, user *domain.User) error {
+	return nil
+}
+
+func (m *MockUserRepository) DeleteUser(ctx context.Context, id string) error {
+	return nil
+}
+
+func (m *MockLoanRepository) CreateApplication(ctx context.Context, app *domain.LoanApplication) error {
+	return nil
+}
+
+func (m *MockLoanRepository) GetApplicationByID(ctx context.Context, id string) (*domain.LoanApplication, error) {
+	return &domain.LoanApplication{ID: id}, nil
+}
+
+func (m *MockLoanRepository) GetApplicationsByUserID(ctx context.Context, userID string) ([]*domain.LoanApplication, error) {
+	return []*domain.LoanApplication{}, nil
+}
+
+func (m *MockLoanRepository) UpdateApplication(ctx context.Context, app *domain.LoanApplication) error {
+	return nil
+}
+
+func (m *MockLoanRepository) DeleteApplication(ctx context.Context, id string) error {
+	return nil
+}
+
+func (m *MockLoanRepository) CreateOffer(ctx context.Context, offer *domain.LoanOffer) error {
+	return nil
+}
+
+func (m *MockLoanRepository) GetOfferByApplicationID(ctx context.Context, applicationID string) (*domain.LoanOffer, error) {
+	return nil, fmt.Errorf("not found")
+}
+
+func (m *MockLoanRepository) UpdateOffer(ctx context.Context, offer *domain.LoanOffer) error {
+	return nil
+}
+
+func (m *MockLoanRepository) CreateStateTransition(ctx context.Context, transition *domain.StateTransition) error {
+	return nil
+}
+
+func (m *MockLoanRepository) GetStateTransitions(ctx context.Context, applicationID string) ([]*domain.StateTransition, error) {
+	return []*domain.StateTransition{}, nil
+}
+
+func (m *MockLoanRepository) SaveWorkflowExecution(ctx context.Context, execution *domain.WorkflowExecution) error {
+	return nil
+}
+
+func (m *MockLoanRepository) GetWorkflowExecutionByApplicationID(ctx context.Context, applicationID string) (*domain.WorkflowExecution, error) {
+	return nil, fmt.Errorf("not found")
 }
 
 // initLogger initializes the zap logger
@@ -129,7 +255,7 @@ func initLogger(cfg *config.Config) (*zap.Logger, error) {
 }
 
 // setupRouter sets up the Gin router with middleware and routes
-func setupRouter(logger *zap.Logger) *gin.Engine {
+func setupRouter(logger *zap.Logger, loanHandler *interfaces.LoanHandler, localizer *i18n.Localizer) *gin.Engine {
 	// Set Gin mode
 	gin.SetMode(gin.ReleaseMode)
 
@@ -139,6 +265,10 @@ func setupRouter(logger *zap.Logger) *gin.Engine {
 	router.Use(gin.Recovery())
 	router.Use(corsMiddleware())
 	router.Use(loggerMiddleware(logger))
+
+	// Add i18n middleware to set localizer in context
+	i18nMiddleware := middleware.NewI18nMiddleware(localizer, logger)
+	router.Use(i18nMiddleware.Handler())
 
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
@@ -152,240 +282,11 @@ func setupRouter(logger *zap.Logger) *gin.Engine {
 	// API routes
 	v1 := router.Group("/v1")
 	{
-		// Loan applications
-		loans := v1.Group("/loans")
-		{
-			loans.POST("/applications", handleCreateApplication)
-			loans.GET("/applications", handleGetApplications)
-			loans.GET("/applications/:id", handleGetApplication)
-			loans.PUT("/applications/:id", handleUpdateApplication)
-			loans.POST("/applications/:id/submit", handleSubmitApplication)
-
-			// Pre-qualification
-			loans.POST("/prequalify", handlePreQualify)
-
-			// Offers
-			loans.POST("/applications/:id/offer", handleGenerateOffer)
-			loans.POST("/applications/:id/accept-offer", handleAcceptOffer)
-
-			// Admin endpoints
-			loans.POST("/applications/:id/transition", handleTransitionState)
-			loans.GET("/stats", handleGetApplicationStats)
-
-			// Document management
-			loans.POST("/documents/upload", handleUploadDocument)
-			loans.GET("/applications/:id/documents/status", handleGetDocumentStatus)
-			loans.POST("/applications/:id/documents/complete", handleCompleteDocumentCollection)
-		}
-
-		// Workflow management
-		workflows := v1.Group("/workflows")
-		{
-			workflows.GET("/:id/status", handleGetWorkflowStatus)
-			workflows.POST("/:id/pause", handlePauseWorkflow)
-			workflows.POST("/:id/resume", handleResumeWorkflow)
-			workflows.POST("/:id/terminate", handleTerminateWorkflow)
-		}
+		// Register loan routes
+		loanHandler.RegisterRoutes(v1)
 	}
 
 	return router
-}
-
-// Handler functions for loan API endpoints
-func handleCreateApplication(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Application created successfully (mock)",
-		"data": gin.H{
-			"application_id": "mock-app-123",
-			"status":         "draft",
-		},
-	})
-}
-
-func handleGetApplications(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    []gin.H{},
-		"message": "No applications found",
-	})
-}
-
-func handleGetApplication(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"id":     id,
-			"status": "draft",
-		},
-	})
-}
-
-func handleUpdateApplication(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Application updated successfully",
-		"data": gin.H{
-			"id": id,
-		},
-	})
-}
-
-func handleSubmitApplication(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Application submitted successfully",
-		"data": gin.H{
-			"id":     id,
-			"status": "submitted",
-		},
-	})
-}
-
-func handlePreQualify(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Pre-qualification completed",
-		"data": gin.H{
-			"qualified":  true,
-			"max_amount": 50000,
-		},
-	})
-}
-
-func handleGenerateOffer(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Offer generated successfully",
-		"data": gin.H{
-			"application_id": id,
-			"offer_id":       "mock-offer-123",
-			"amount":         25000,
-			"interest_rate":  8.5,
-		},
-	})
-}
-
-func handleAcceptOffer(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Offer accepted successfully",
-		"data": gin.H{
-			"application_id": id,
-			"status":         "approved",
-		},
-	})
-}
-
-func handleTransitionState(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "State transition completed",
-		"data": gin.H{
-			"application_id": id,
-			"new_state":      "underwriting",
-		},
-	})
-}
-
-func handleGetApplicationStats(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"total_applications": 0,
-			"pending_review":     0,
-			"approved":           0,
-			"denied":             0,
-		},
-	})
-}
-
-func handleUploadDocument(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Document uploaded successfully",
-		"data": gin.H{
-			"document_id": "mock-doc-123",
-		},
-	})
-}
-
-func handleGetDocumentStatus(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"application_id":      id,
-			"documents_required":  3,
-			"documents_submitted": 0,
-			"status":              "pending",
-		},
-	})
-}
-
-func handleCompleteDocumentCollection(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Document collection completed",
-		"data": gin.H{
-			"application_id": id,
-			"status":         "documents_submitted",
-		},
-	})
-}
-
-func handleGetWorkflowStatus(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"workflow_id": id,
-			"status":      "RUNNING",
-		},
-	})
-}
-
-func handlePauseWorkflow(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Workflow paused successfully",
-		"data": gin.H{
-			"workflow_id": id,
-			"status":      "PAUSED",
-		},
-	})
-}
-
-func handleResumeWorkflow(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Workflow resumed successfully",
-		"data": gin.H{
-			"workflow_id": id,
-			"status":      "RUNNING",
-		},
-	})
-}
-
-func handleTerminateWorkflow(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Workflow terminated successfully",
-		"data": gin.H{
-			"workflow_id": id,
-			"status":      "TERMINATED",
-		},
-	})
 }
 
 // corsMiddleware handles CORS

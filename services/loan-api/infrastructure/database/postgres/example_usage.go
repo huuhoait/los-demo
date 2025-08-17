@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"loan-api/domain"
+	"github.com/lendingplatform/los/services/loan-api/domain"
 )
 
 // ExampleUsage demonstrates how to use the database repositories

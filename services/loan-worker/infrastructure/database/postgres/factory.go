@@ -2,8 +2,6 @@ package postgres
 
 import (
 	"go.uber.org/zap"
-
-	"loan-worker/application"
 )
 
 // Factory manages database repositories
@@ -21,12 +19,12 @@ func NewFactory(connection *Connection, logger *zap.Logger) *Factory {
 }
 
 // GetUserRepository returns a new UserRepository instance
-func (f *Factory) GetUserRepository() application.UserRepository {
+func (f *Factory) GetUserRepository() *UserRepository {
 	return NewUserRepository(f.connection, f.logger)
 }
 
 // GetLoanRepository returns a new LoanRepository instance
-func (f *Factory) GetLoanRepository() application.LoanRepository {
+func (f *Factory) GetLoanRepository() *LoanRepository {
 	return NewLoanRepository(f.connection, f.logger)
 }
 

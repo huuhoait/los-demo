@@ -12,10 +12,10 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"loan-worker/infrastructure/database/postgres"
-	"loan-worker/infrastructure/workflow"
-	"loan-worker/pkg/config"
-	"loan-worker/pkg/i18n"
+	"github.com/lendingplatform/los/services/loan-worker/infrastructure/database/postgres"
+	"github.com/lendingplatform/los/services/loan-worker/infrastructure/workflow"
+	"github.com/lendingplatform/los/services/loan-worker/pkg/config"
+	"github.com/lendingplatform/los/services/loan-worker/pkg/i18n"
 )
 
 func main() {
@@ -96,7 +96,7 @@ func main() {
 	logger.Info("Shutting down worker...")
 
 	// Graceful shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	_, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	// Stop the task worker gracefully
