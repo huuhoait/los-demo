@@ -12,7 +12,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"underwriting-worker/pkg/config"
+	"underwriting_worker/pkg/config"
 )
 
 // HTTPConductorClient implements a simple HTTP client for Conductor

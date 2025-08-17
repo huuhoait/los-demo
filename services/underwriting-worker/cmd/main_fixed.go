@@ -11,8 +11,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"underwriting-worker/infrastructure/workflow/tasks"
-	"underwriting-worker/pkg/config"
+	"underwriting_worker/infrastructure/workflow/tasks"
+	"underwriting_worker/pkg/config"
 )
 
 func main() {

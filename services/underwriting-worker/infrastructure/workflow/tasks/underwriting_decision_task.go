@@ -8,8 +8,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"underwriting-worker/application/usecases"
-	"underwriting-worker/domain"
+	"underwriting_worker/application/usecases"
+	"underwriting_worker/domain"
 )
 
 // UnderwritingDecisionTaskHandler handles final underwriting decision tasks

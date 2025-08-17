@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"underwriting-worker/domain"
+	"underwriting_worker/domain"
 )
 
 // UpdateApplicationStateTaskHandler handles application state update tasks

@@ -7,8 +7,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"underwriting-worker/application/usecases"
-	"underwriting-worker/domain"
+	"underwriting_worker/application/usecases"
+	"underwriting_worker/domain"
 )
 
 // IncomeVerificationTaskHandler handles income verification tasks

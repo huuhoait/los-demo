@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"underwriting-worker/pkg/config"
+	"underwriting_worker/pkg/config"
 )
 
 // UnderwritingTaskWorker handles all underwriting-related workflow tasks
@@ -385,11 +385,11 @@ func (w *UnderwritingTaskWorker) GetWorkflowStatus(workflowID string) (map[strin
 	}
 
 	return map[string]interface{}{
-		"workflowId": workflow.WorkflowId,
-		"status":     workflow.Status,
-		"startTime":  workflow.StartTime,
-		"endTime":    workflow.EndTime,
-		"output":     workflow.Output,
+		"workflowId": workflow["workflowId"],
+		"status":     workflow["status"],
+		"startTime":  workflow["startTime"],
+		"endTime":    workflow["endTime"],
+		"output":     workflow["output"],
 	}, nil
 }
 

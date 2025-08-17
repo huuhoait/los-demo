@@ -7,9 +7,9 @@ import (
 
 	"go.uber.org/zap"
 
-	"underwriting-worker/application/services"
-	"underwriting-worker/application/usecases"
-	"underwriting-worker/domain"
+	"underwriting_worker/application/services"
+	"underwriting_worker/application/usecases"
+	"underwriting_worker/domain"
 )
 
 // CreditCheckTaskHandler handles credit check tasks

@@ -1,8 +1,8 @@
-go 1.21
+go 1.23.3
 
 use (
 		./loan
 	./loan-api
 	./loan-worker
-	
+	./underwriting-worker
 	)

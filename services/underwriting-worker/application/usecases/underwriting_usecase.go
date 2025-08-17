@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"underwriting-worker/domain"
+	"underwriting_worker/domain"
 )
 
 // UnderwritingUseCase implements the main underwriting business logic

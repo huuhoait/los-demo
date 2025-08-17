@@ -1,4 +1,4 @@
-module github.com/huuhoait/los-demo/services/underwriting-worker
+module underwriting_worker
 
 go 1.23.3
 
