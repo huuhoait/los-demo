@@ -13,7 +13,6 @@ require (
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/zap v1.25.0
 	golang.org/x/text v0.21.0
-	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (

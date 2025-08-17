@@ -1,4 +1,4 @@
-module github.com/huuhoait/los-demo/services/loan-worker
+module github.com/huuhoait/los-demo/services/backups/loan-worker
 
 go 1.21
 
@@ -10,7 +10,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.8
 	go.uber.org/zap v1.25.0
 	golang.org/x/text v0.21.0
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
