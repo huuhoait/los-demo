@@ -47,15 +47,7 @@ CREATE TRIGGER update_users_updated_at
     BEFORE UPDATE ON users 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Add user_id foreign key constraint to loan_applications if it doesn't exist
-DO $$ 
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.table_constraints 
-        WHERE constraint_name = 'fk_loan_applications_user_id'
-    ) THEN
-        ALTER TABLE loan_applications 
-        ADD CONSTRAINT fk_loan_applications_user_id 
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
-    END IF;
-END $$;
+-- Add user_id foreign key constraint to loan_applications
+ALTER TABLE loan_applications 
+ADD CONSTRAINT fk_loan_applications_user_id 
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;

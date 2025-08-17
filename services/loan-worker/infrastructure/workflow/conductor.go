@@ -176,22 +176,22 @@ func (o *LoanWorkflowOrchestrator) HandleStateTransition(ctx context.Context, ap
 			string(domain.StateIdentityVerified): "identity_verification_task",
 		},
 		string(domain.StateIdentityVerified): {
-			string(domain.StateApproved):     "approval_task",
-			string(domain.StateDenied):       "denial_task",
-			string(domain.StateManualReview): "manual_review_task",
+			string(domain.StateApproved):     "update_state_to_approved_ref",
+			string(domain.StateDenied):       "update_state_to_denied_ref",
+			string(domain.StateManualReview): "update_state_to_manual_review_ref",
 		},
 		string(domain.StateManualReview): {
-			string(domain.StateApproved): "manual_approval_task",
-			string(domain.StateDenied):   "manual_denial_task",
+			string(domain.StateApproved): "update_state_manual_approved_ref",
+			string(domain.StateDenied):   "update_state_manual_denied_ref",
 		},
 		string(domain.StateApproved): {
-			string(domain.StateDocumentsSigned): "document_signing_task",
+			string(domain.StateDocumentsSigned): "document_collection_ref",
 		},
 		string(domain.StateDocumentsSigned): {
-			string(domain.StateFunded): "funding_task",
+			string(domain.StateFunded): "finalize_loan_decision_ref",
 		},
 		string(domain.StateFunded): {
-			string(domain.StateActive): "loan_activation_task",
+			string(domain.StateActive): "finalize_loan_decision_ref",
 		},
 	}
 

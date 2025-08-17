@@ -1,17 +1,9 @@
 -- Migration: 002_fix_user_id_type.sql
 -- Description: Fix user_id type mismatch between loan_applications and users tables
 
--- First, drop the existing foreign key constraint if it exists
-DO $$ 
-BEGIN
-    IF EXISTS (
-        SELECT 1 FROM information_schema.table_constraints 
-        WHERE constraint_name = 'fk_loan_applications_user_id'
-    ) THEN
-        ALTER TABLE loan_applications 
-        DROP CONSTRAINT fk_loan_applications_user_id;
-    END IF;
-END $$;
+-- First, drop the existing foreign key constraint
+ALTER TABLE loan_applications 
+DROP CONSTRAINT IF EXISTS fk_loan_applications_user_id;
 
 -- Update the user_id column in loan_applications to be UUID type
 ALTER TABLE loan_applications 

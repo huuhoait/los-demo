@@ -1,7 +1,6 @@
 go 1.23.3
 
 use (
-		./loan
 	./loan-api
 	./loan-worker
 	./underwriting-worker
