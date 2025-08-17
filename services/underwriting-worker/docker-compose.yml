@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  underwriting-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: underwriting-worker
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=underwriting_db
+      - CONDUCTOR_SERVER_URL=http://conductor:8082
+      - LOG_LEVEL=info
+      - ENCRYPTION_KEY=your-encryption-key-here
+      - JWT_SECRET=your-jwt-secret-here
+    depends_on:
+      - postgres
+      - conductor
+    networks:
+      - underwriting-network
+    volumes:
+      - ./config:/app/config
+      - ./logs:/var/log/underwriting-worker
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ps", "aux", "|", "grep", "underwriting-worker"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: underwriting-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=underwriting_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - underwriting-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d underwriting_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  conductor:
+    image: conductoross/conductor:3.15.0
+    container_name: underwriting-conductor
+    environment:
+      - DB_HOST=conductor-postgres
+      - DB_PORT=5432
+      - DB_USERNAME=conductor
+      - DB_PASSWORD=conductor
+      - DB_NAME=conductor
+    ports:
+      - "8082:8080"
+    depends_on:
+      - conductor-postgres
+      - redis
+    networks:
+      - underwriting-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  conductor-postgres:
+    image: postgres:15-alpine
+    container_name: conductor-postgres
+    environment:
+      - POSTGRES_USER=conductor
+      - POSTGRES_PASSWORD=conductor
+      - POSTGRES_DB=conductor
+    volumes:
+      - conductor_postgres_data:/var/lib/postgresql/data
+    networks:
+      - underwriting-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: underwriting-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - underwriting-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: Add monitoring services
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: underwriting-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - underwriting-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: underwriting-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - underwriting-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  conductor_postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  underwriting-network:
+    driver: bridge

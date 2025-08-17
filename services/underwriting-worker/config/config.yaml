@@ -1,0 +1,61 @@
+application:
+  name: "underwriting-worker"
+  version: "1.0.0"
+  environment: "development"
+  port: 8083
+
+database:
+  host: "localhost"
+  port: 5433
+  username: "postgres"
+  password: "password"
+  database: "underwriting_db"
+  ssl_mode: "disable"
+  max_connections: 25
+  min_connections: 5
+
+conductor:
+  server_url: "http://localhost:8082"
+  worker_pool_size: 10
+  polling_interval_ms: 1000
+  update_retry_time_ms: 3000
+
+services:
+  credit_bureau:
+    provider: "experian"
+    base_url: "https://api.experian.com"
+    api_key: "${CREDIT_BUREAU_API_KEY}"
+    timeout_seconds: 30
+
+  risk_scoring:
+    provider: "internal"
+    base_url: "http://localhost:8084"
+    api_key: "${RISK_SCORING_API_KEY}"
+    model_version: "v2.1"
+    timeout_seconds: 15
+
+  income_verification:
+    provider: "plaid"
+    base_url: "https://api.plaid.com"
+    api_key: "${INCOME_VERIFICATION_API_KEY}"
+    timeout_seconds: 20
+
+  decision_engine:
+    provider: "internal"
+    base_url: "http://localhost:8085"
+    api_key: "${DECISION_ENGINE_API_KEY}"
+    timeout_seconds: 10
+
+  notification:
+    provider: "sendgrid"
+    base_url: "https://api.sendgrid.com"
+    api_key: "${NOTIFICATION_API_KEY}"
+    timeout_seconds: 10
+
+logging:
+  level: "info"
+  format: "json"
+
+security:
+  encryption_key: "${ENCRYPTION_KEY}"
+  jwt_secret: "${JWT_SECRET}"
