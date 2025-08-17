@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.uber.org/zap"
@@ -153,8 +154,6 @@ func (o *LoanWorkflowOrchestrator) StartPreQualificationWorkflow(ctx context.Con
 	return execution, nil
 }
 
-
-
 // HandleStateTransition handles state transitions triggered by workflow events
 func (o *LoanWorkflowOrchestrator) HandleStateTransition(ctx context.Context, applicationID string, fromState, toState domain.ApplicationState) error {
 	logger := o.logger.With(
@@ -217,6 +216,65 @@ func (o *LoanWorkflowOrchestrator) HandleStateTransition(ctx context.Context, ap
 	logger.Info("Workflow action would be triggered",
 		zap.String("action", taskName),
 	)
+
+	return nil
+}
+
+// ValidateWorkflowExecutionOrder validates that the workflow execution follows the correct state sequence
+func (o *LoanWorkflowOrchestrator) ValidateWorkflowExecutionOrder(ctx context.Context, applicationID string, currentState, targetState domain.ApplicationState, taskName string) error {
+	logger := o.logger.With(
+		zap.String("application_id", applicationID),
+		zap.String("current_state", string(currentState)),
+		zap.String("target_state", string(targetState)),
+		zap.String("task_name", taskName),
+		zap.String("operation", "validate_workflow_execution_order"),
+	)
+
+	// Define valid task execution states
+	validTaskStates := map[string][]domain.ApplicationState{
+		"finalize_loan_decision": {
+			domain.StateIdentityVerified,
+			domain.StateApproved,
+			domain.StateDenied,
+			domain.StateManualReview,
+			domain.StateDocumentsSigned,
+			domain.StateFunded,
+			domain.StateActive,
+		},
+		"identity_verification": {
+			domain.StateDocumentsSubmitted,
+		},
+		"document_collection": {
+			domain.StatePreQualified,
+		},
+		"prequalification": {
+			domain.StateInitiated,
+		},
+	}
+
+	// Check if the task can be executed in the current state
+	if validStates, exists := validTaskStates[taskName]; exists {
+		isValidState := false
+		for _, validState := range validStates {
+			if currentState == validState {
+				isValidState = true
+				break
+			}
+		}
+
+		if !isValidState {
+			logger.Error("Invalid workflow execution order",
+				zap.String("task_name", taskName),
+				zap.String("current_state", string(currentState)),
+				zap.String("valid_states", fmt.Sprintf("%v", validStates)))
+			return fmt.Errorf("invalid workflow execution order: task '%s' cannot be executed in state '%s'. Valid states: %v",
+				taskName, currentState, validStates)
+		}
+	}
+
+	logger.Info("Workflow execution order validation passed",
+		zap.String("task_name", taskName),
+		zap.String("current_state", string(currentState)))
 
 	return nil
 }

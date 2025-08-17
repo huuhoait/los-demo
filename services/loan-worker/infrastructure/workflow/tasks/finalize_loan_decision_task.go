@@ -34,6 +34,7 @@ func (h *FinalizeLoanDecisionTaskHandler) Execute(
 	finalState, _ := input["finalState"].(string)
 	decision, _ := input["decision"].(string)
 	interestRate, _ := input["interestRate"].(float64)
+	currentState, _ := input["currentState"].(string)
 
 	// Validate required fields
 	if applicationID == "" {
@@ -46,6 +47,33 @@ func (h *FinalizeLoanDecisionTaskHandler) Execute(
 
 	if decision == "" {
 		return nil, fmt.Errorf("decision is required")
+	}
+
+	// Validate that the task is being called in the correct workflow sequence
+	// This task should only be called after identity verification and underwriting
+	if currentState != "" {
+		validStatesForFinalization := []string{
+			"identity_verified",
+			"approved",
+			"denied",
+			"manual_review",
+		}
+
+		isValidState := false
+		for _, validState := range validStatesForFinalization {
+			if currentState == validState {
+				isValidState = true
+				break
+			}
+		}
+
+		if !isValidState {
+			logger.Error("Invalid application state for loan decision finalization",
+				zap.String("current_state", currentState),
+				zap.String("required_states", fmt.Sprintf("%v", validStatesForFinalization)))
+			return nil, fmt.Errorf("invalid state for loan decision finalization: current state '%s' is not eligible for finalization. Required states: %v",
+				currentState, validStatesForFinalization)
+		}
 	}
 
 	// Simulate finalization process
@@ -75,6 +103,7 @@ func (h *FinalizeLoanDecisionTaskHandler) Execute(
 
 	logger.Info("Loan decision finalized",
 		zap.String("application_id", applicationID),
+		zap.String("current_state", currentState),
 		zap.String("final_state", finalState),
 		zap.String("decision", decision),
 		zap.Float64("interest_rate", interestRate),

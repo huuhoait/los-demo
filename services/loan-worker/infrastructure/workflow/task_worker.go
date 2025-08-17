@@ -431,6 +431,24 @@ func (w *TaskWorker) executeTask(ctx context.Context, task Task) error {
 		zap.String("operation", "execute_task"),
 	)
 
+	// Add detailed logging for workflow debugging
+	logger.Info("Starting task execution",
+		zap.String("workflow_instance_id", task.WorkflowInstanceId),
+		zap.Any("task_input", task.Input))
+
+	// Special logging for finalize_loan_decision task to help debug state transition issues
+	if task.ReferenceTaskName == "finalize_loan_decision_ref" {
+		if currentState, exists := task.Input["currentState"]; exists {
+			logger.Info("Finalize loan decision task input validation",
+				zap.String("current_state", fmt.Sprintf("%v", currentState)),
+				zap.String("final_state", fmt.Sprintf("%v", task.Input["finalState"])),
+				zap.String("decision", fmt.Sprintf("%v", task.Input["decision"])))
+		} else {
+			logger.Warn("Finalize loan decision task missing currentState parameter",
+				zap.Any("available_inputs", task.Input))
+		}
+	}
+
 	// Mark task as IN_PROGRESS since we're executing it directly
 	if task.WorkflowInstanceId == "" {
 		logger.Warn("Workflow instance ID is empty, skipping task status update",

@@ -163,6 +163,7 @@
       "taskReferenceName": "finalize_loan_decision_ref",
       "inputParameters": {
         "applicationId": "${workflow.input.applicationId}",
+        "currentState": "${workflow.input.currentState}",
         "underwritingResult": "${trigger_underwriting_ref.output}",
         "finalState": "${trigger_underwriting_ref.output.finalState}",
         "decision": "${trigger_underwriting_ref.output.decision}",
