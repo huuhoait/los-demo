@@ -10,9 +10,9 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
-	"our-los/services/user/domain"
-	"our-los/services/user/pkg/errors"
-	"our-los/services/user/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/user/domain"
+	"github.com/huuhoait/los-demo/services/user/pkg/errors"
+	"github.com/huuhoait/los-demo/services/user/pkg/i18n"
 )
 
 type UserServiceImpl struct {

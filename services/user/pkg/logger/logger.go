@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 
-	"our-los/services/user/pkg/config"
+	"github.com/huuhoait/los-demo/services/user/pkg/config"
 )
 
 // NewZapLogger creates a new zap logger based on configuration

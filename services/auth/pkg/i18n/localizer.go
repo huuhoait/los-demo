@@ -11,7 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//go:embed ../../i18n/*.toml
+//go:embed locales/*.toml
 var localeFS embed.FS
 
 // Localizer provides internationalization support
@@ -280,4 +280,10 @@ func replaceAll(s, old, new string) string {
 		}
 	}
 	return result
+}
+
+// MustLocalize provides compatibility with old i18n.Localizer interface
+func (l *Localizer) MustLocalize(config *i18n.LocalizeConfig) string {
+	localizer := l.GetLocalizer("en") // Default to English
+	return localizer.MustLocalize(config)
 }

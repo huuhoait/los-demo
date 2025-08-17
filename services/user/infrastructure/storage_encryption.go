@@ -13,7 +13,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"our-los/services/user/domain"
+	"github.com/huuhoait/los-demo/services/user/domain"
 )
 
 // S3DocumentStorageService implements document storage using AWS S3

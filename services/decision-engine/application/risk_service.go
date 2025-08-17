@@ -1,11 +1,10 @@
 package application
 
 import (
-	"context"
 	"fmt"
 	"math"
 
-	"decision-engine/domain"
+	"github.com/huuhoait/los-demo/services/decision-engine/domain"
 	"go.uber.org/zap"
 )
 

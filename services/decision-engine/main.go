@@ -11,9 +11,9 @@ import (
 	"syscall"
 	"time"
 
-	"decision-engine/application"
-	"decision-engine/infrastructure"
-	"decision-engine/interfaces"
+	"github.com/huuhoait/los-demo/services/decision-engine/application"
+	"github.com/huuhoait/los-demo/services/decision-engine/infrastructure"
+	"github.com/huuhoait/los-demo/services/decision-engine/interfaces"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"

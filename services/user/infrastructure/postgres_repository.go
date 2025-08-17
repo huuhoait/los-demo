@@ -9,8 +9,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 
-	"our-los/services/user/domain"
-	"our-los/services/user/pkg/errors"
+	"github.com/huuhoait/los-demo/services/user/domain"
+	"github.com/huuhoait/los-demo/services/user/pkg/errors"
 )
 
 type PostgresUserRepository struct {

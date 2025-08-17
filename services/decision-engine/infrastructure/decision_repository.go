@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"decision-engine/domain"
+	"github.com/huuhoait/los-demo/services/decision-engine/domain"
 	_ "github.com/lib/pq" // PostgreSQL driver
 	"go.uber.org/zap"
 )

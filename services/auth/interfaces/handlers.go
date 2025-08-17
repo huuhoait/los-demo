@@ -250,12 +250,12 @@ func (h *AuthHandler) Health(c *gin.Context) {
 
 // respondWithError sends a standardized localized error response
 func (h *AuthHandler) respondWithError(c *gin.Context, statusCode int, errorCode string, data map[string]interface{}) {
-	middleware.CreateErrorResponse(c, statusCode, errorCode, data)
+	middleware.CreateErrorResponse(c, h.localizer, errorCode, data, nil)
 }
 
 // respondWithSuccess sends a standardized localized success response
 func (h *AuthHandler) respondWithSuccess(c *gin.Context, data interface{}, successKey string, templateData map[string]interface{}) {
-	middleware.CreateSuccessResponse(c, data, successKey, templateData)
+	middleware.CreateSuccessResponse(c, h.localizer, successKey, data, templateData)
 }
 
 // RegisterRoutes registers all authentication routes

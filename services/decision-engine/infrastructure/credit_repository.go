@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"decision-engine/domain"
+	"github.com/huuhoait/los-demo/services/decision-engine/domain"
 	"go.uber.org/zap"
 )
 
@@ -271,7 +271,7 @@ func (r *CreditBureauRepository) generateSampleInquiries(creditScore int) []doma
 
 	for i := 0; i < inquiryCount; i++ {
 		inquiry := domain.CreditInquiry{
-			Date:        time.Now().AddDate(0, -(i+1)*2, 0),
+			InquiryDate: time.Now().AddDate(0, -(i+1)*2, 0),
 			Creditor:    r.getCreditorName(i),
 			InquiryType: "HARD",
 			Purpose:     r.getInquiryPurpose(i),

@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"decision-engine/application"
-	"decision-engine/domain"
+	"github.com/huuhoait/los-demo/services/decision-engine/application"
+	"github.com/huuhoait/los-demo/services/decision-engine/domain"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )

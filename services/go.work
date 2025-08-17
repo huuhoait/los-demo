@@ -1,7 +1,11 @@
 go 1.23.3
 
 use (
-	./loan-api
-	./loan-worker
-	./underwriting-worker
-	)
+        ./auth
+        ./decision-engine
+        ./loan
+        ./loan-api
+        ./loan-worker
+        ./underwriting-worker
+        ./user
+        )

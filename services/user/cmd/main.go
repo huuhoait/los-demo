@@ -18,14 +18,14 @@ import (
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 
-	"our-los/services/user/application"
-	"our-los/services/user/domain"
-	"our-los/services/user/infrastructure"
-	"our-los/services/user/interfaces"
-	"our-los/services/user/interfaces/middleware"
-	"our-los/services/user/pkg/config"
-	"our-los/services/user/pkg/i18n"
-	"our-los/services/user/pkg/logger"
+	"github.com/huuhoait/los-demo/services/user/application"
+	"github.com/huuhoait/los-demo/services/user/domain"
+	"github.com/huuhoait/los-demo/services/user/infrastructure"
+	"github.com/huuhoait/los-demo/services/user/interfaces"
+	"github.com/huuhoait/los-demo/services/user/interfaces/middleware"
+	"github.com/huuhoait/los-demo/services/user/pkg/config"
+	"github.com/huuhoait/los-demo/services/user/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/user/pkg/logger"
 )
 
 func main() {

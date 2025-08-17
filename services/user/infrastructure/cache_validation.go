@@ -12,8 +12,8 @@ import (
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 
-	"our-los/services/user/domain"
-	"our-los/services/user/pkg/errors"
+	"github.com/huuhoait/los-demo/services/user/domain"
+	"github.com/huuhoait/los-demo/services/user/pkg/errors"
 )
 
 // RedisCacheService implements caching using Redis

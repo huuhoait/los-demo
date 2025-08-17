@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"our-los/services/user/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/user/pkg/i18n"
 )
 
 // I18nMiddleware provides internationalization support for HTTP requests
