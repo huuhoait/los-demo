@@ -90,7 +90,7 @@ func (h *UserHandler) UploadDocument(c *gin.Context) {
 
 	// Detect mime type from file extension and content
 	mimeType := h.detectMimeType(fileHeader.Filename, content)
-	
+
 	// Get client IP
 	clientIP := h.getClientIP(c)
 
@@ -110,7 +110,7 @@ func (h *UserHandler) UploadDocument(c *gin.Context) {
 		return
 	}
 
-	logger.Info("Document uploaded successfully", 
+	logger.Info("Document uploaded successfully",
 		zap.String("document_id", document.ID),
 		zap.String("document_type", document.DocumentType),
 		zap.Int64("file_size", document.FileSize),
@@ -190,7 +190,7 @@ func (h *UserHandler) DownloadDocument(c *gin.Context) {
 	// Write file content
 	c.Data(http.StatusOK, documentStream.ContentType, documentStream.Content)
 
-	logger.Info("Document downloaded successfully", 
+	logger.Info("Document downloaded successfully",
 		zap.String("file_name", documentStream.FileName),
 		zap.Int64("file_size", documentStream.Size),
 	)
@@ -243,17 +243,17 @@ func (h *UserHandler) detectMimeType(filename string, content []byte) string {
 		if content[0] == 0x25 && content[1] == 0x50 && content[2] == 0x44 && content[3] == 0x46 {
 			return "application/pdf"
 		}
-		
+
 		// JPEG magic number
 		if content[0] == 0xFF && content[1] == 0xD8 {
 			return "image/jpeg"
 		}
-		
+
 		// PNG magic number
 		if len(content) >= 8 && content[0] == 0x89 && content[1] == 0x50 && content[2] == 0x4E && content[3] == 0x47 {
 			return "image/png"
 		}
-		
+
 		// GIF magic number
 		if len(content) >= 6 && content[0] == 0x47 && content[1] == 0x49 && content[2] == 0x46 {
 			return "image/gif"
@@ -273,15 +273,15 @@ func (h *UserHandler) getClientIP(c *gin.Context) string {
 		}
 		return ip
 	}
-	
+
 	if ip := c.GetHeader("X-Real-IP"); ip != "" {
 		return ip
 	}
-	
+
 	if ip := c.GetHeader("X-Client-IP"); ip != "" {
 		return ip
 	}
-	
+
 	// Fall back to RemoteAddr
 	return c.ClientIP()
 }
@@ -299,7 +299,7 @@ func (h *UserHandler) validateFileUpload(fileHeader *multipart.FileHeader, conte
 	// Check file extension
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	allowedExts := []string{".pdf", ".jpg", ".jpeg", ".png", ".gif", ".tiff", ".tif", ".bmp"}
-	
+
 	isValidExt := false
 	for _, allowedExt := range allowedExts {
 		if ext == allowedExt {
@@ -307,7 +307,7 @@ func (h *UserHandler) validateFileUpload(fileHeader *multipart.FileHeader, conte
 			break
 		}
 	}
-	
+
 	if !isValidExt {
 		return &errors.ServiceError{
 			Code:        domain.USER_017,
@@ -332,7 +332,7 @@ func (h *UserHandler) containsSuspiciousContent(content []byte) bool {
 	// This is a basic check - in production, you'd use a proper antivirus engine
 	// Check for executable signatures
 	suspiciousSignatures := [][]byte{
-		{0x4D, 0x5A}, // DOS/Windows executable
+		{0x4D, 0x5A},             // DOS/Windows executable
 		{0x7F, 0x45, 0x4C, 0x46}, // ELF executable
 		{0xFE, 0xED, 0xFA, 0xCE}, // Mach-O executable (little endian)
 		{0xCE, 0xFA, 0xED, 0xFE}, // Mach-O executable (big endian)

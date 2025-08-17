@@ -23,10 +23,10 @@ import (
 
 // Config holds application configuration
 type Config struct {
-	Port           string
-	DatabaseURL    string
-	LogLevel       string
-	Environment    string
+	Port               string
+	DatabaseURL        string
+	LogLevel           string
+	Environment        string
 	CreditBureauConfig infrastructure.CreditBureauConfig
 }
 
@@ -57,7 +57,7 @@ func getEnv(key, defaultValue string) string {
 // setupLogger creates a configured zap logger
 func setupLogger(logLevel, environment string) (*zap.Logger, error) {
 	var config zap.Config
-	
+
 	if environment == "production" {
 		config = zap.NewProductionConfig()
 	} else {

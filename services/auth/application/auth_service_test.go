@@ -187,7 +187,7 @@ func setupAuthService(t *testing.T) (*AuthService, *MockUserRepository, *MockSes
 	cache := &MockCacheService{}
 	auditLogger := &MockAuditLogger{}
 	logger := zaptest.NewLogger(t)
-	
+
 	bundle := i18n.NewBundle(language.English)
 	localizer := i18n.NewLocalizer(bundle, language.English.String())
 
@@ -222,7 +222,7 @@ func createTestUser() *domain.User {
 func TestAuthService_Login(t *testing.T) {
 	t.Run("successful login", func(t *testing.T) {
 		authService, userRepo, sessionRepo, tokenManager, cache, auditLogger := setupAuthService(t)
-		
+
 		user := createTestUser()
 		ctx := context.Background()
 
@@ -258,7 +258,7 @@ func TestAuthService_Login(t *testing.T) {
 
 	t.Run("invalid password", func(t *testing.T) {
 		authService, userRepo, _, _, cache, auditLogger := setupAuthService(t)
-		
+
 		user := createTestUser()
 		ctx := context.Background()
 
@@ -275,7 +275,7 @@ func TestAuthService_Login(t *testing.T) {
 		// Assert
 		require.Error(t, err)
 		assert.Nil(t, response)
-		
+
 		authErr, ok := err.(*domain.AuthError)
 		require.True(t, ok)
 		assert.Equal(t, domain.AUTH_001, authErr.Code)
@@ -287,7 +287,7 @@ func TestAuthService_Login(t *testing.T) {
 
 	t.Run("user not found", func(t *testing.T) {
 		authService, userRepo, _, _, cache, auditLogger := setupAuthService(t)
-		
+
 		ctx := context.Background()
 
 		// Setup mocks
@@ -301,7 +301,7 @@ func TestAuthService_Login(t *testing.T) {
 		// Assert
 		require.Error(t, err)
 		assert.Nil(t, response)
-		
+
 		authErr, ok := err.(*domain.AuthError)
 		require.True(t, ok)
 		assert.Equal(t, domain.AUTH_001, authErr.Code)
@@ -312,7 +312,7 @@ func TestAuthService_Login(t *testing.T) {
 
 	t.Run("account locked", func(t *testing.T) {
 		authService, _, _, _, cache, auditLogger := setupAuthService(t)
-		
+
 		ctx := context.Background()
 
 		// Setup mocks
@@ -325,7 +325,7 @@ func TestAuthService_Login(t *testing.T) {
 		// Assert
 		require.Error(t, err)
 		assert.Nil(t, response)
-		
+
 		authErr, ok := err.(*domain.AuthError)
 		require.True(t, ok)
 		assert.Equal(t, domain.AUTH_002, authErr.Code)
@@ -338,7 +338,7 @@ func TestAuthService_Login(t *testing.T) {
 func TestAuthService_RefreshToken(t *testing.T) {
 	t.Run("successful token refresh", func(t *testing.T) {
 		authService, userRepo, sessionRepo, tokenManager, _, auditLogger := setupAuthService(t)
-		
+
 		user := createTestUser()
 		session := &domain.Session{
 			ID:           "session_123",
@@ -376,7 +376,7 @@ func TestAuthService_RefreshToken(t *testing.T) {
 
 	t.Run("invalid refresh token", func(t *testing.T) {
 		authService, _, sessionRepo, _, _, _ := setupAuthService(t)
-		
+
 		ctx := context.Background()
 
 		// Setup mocks
@@ -388,7 +388,7 @@ func TestAuthService_RefreshToken(t *testing.T) {
 		// Assert
 		require.Error(t, err)
 		assert.Nil(t, response)
-		
+
 		authErr, ok := err.(*domain.AuthError)
 		require.True(t, ok)
 		assert.Equal(t, domain.AUTH_007, authErr.Code)
@@ -400,7 +400,7 @@ func TestAuthService_RefreshToken(t *testing.T) {
 func TestAuthService_Logout(t *testing.T) {
 	t.Run("successful logout", func(t *testing.T) {
 		authService, _, sessionRepo, _, _, auditLogger := setupAuthService(t)
-		
+
 		ctx := context.Background()
 
 		// Setup mocks
@@ -419,7 +419,7 @@ func TestAuthService_Logout(t *testing.T) {
 
 	t.Run("logout failure", func(t *testing.T) {
 		authService, _, sessionRepo, _, _, _ := setupAuthService(t)
-		
+
 		ctx := context.Background()
 
 		// Setup mocks
@@ -430,7 +430,7 @@ func TestAuthService_Logout(t *testing.T) {
 
 		// Assert
 		require.Error(t, err)
-		
+
 		authErr, ok := err.(*domain.AuthError)
 		require.True(t, ok)
 		assert.Equal(t, domain.AUTH_017, authErr.Code)
@@ -442,7 +442,7 @@ func TestAuthService_Logout(t *testing.T) {
 func TestAuthService_ValidateAccessToken(t *testing.T) {
 	t.Run("valid token", func(t *testing.T) {
 		authService, _, sessionRepo, tokenManager, _, _ := setupAuthService(t)
-		
+
 		claims := &domain.JWTClaims{
 			UserID:    "user_123",
 			Email:     "test@example.com",
@@ -478,7 +478,7 @@ func TestAuthService_ValidateAccessToken(t *testing.T) {
 
 	t.Run("invalid token", func(t *testing.T) {
 		authService, _, _, tokenManager, _, _ := setupAuthService(t)
-		
+
 		ctx := context.Background()
 
 		// Setup mocks
@@ -490,7 +490,7 @@ func TestAuthService_ValidateAccessToken(t *testing.T) {
 		// Assert
 		require.Error(t, err)
 		assert.Nil(t, authContext)
-		
+
 		authErr, ok := err.(*domain.AuthError)
 		require.True(t, ok)
 		assert.Equal(t, domain.AUTH_004, authErr.Code)
@@ -502,7 +502,7 @@ func TestAuthService_ValidateAccessToken(t *testing.T) {
 func TestAuthService_CheckRateLimit(t *testing.T) {
 	t.Run("within rate limit", func(t *testing.T) {
 		authService, _, _, _, cache, _ := setupAuthService(t)
-		
+
 		ctx := context.Background()
 
 		// Setup mocks
@@ -519,7 +519,7 @@ func TestAuthService_CheckRateLimit(t *testing.T) {
 
 	t.Run("rate limit exceeded", func(t *testing.T) {
 		authService, _, _, _, cache, _ := setupAuthService(t)
-		
+
 		ctx := context.Background()
 
 		// Setup mocks
@@ -530,7 +530,7 @@ func TestAuthService_CheckRateLimit(t *testing.T) {
 
 		// Assert
 		require.Error(t, err)
-		
+
 		authErr, ok := err.(*domain.AuthError)
 		require.True(t, ok)
 		assert.Equal(t, domain.AUTH_010, authErr.Code)
@@ -542,7 +542,7 @@ func TestAuthService_CheckRateLimit(t *testing.T) {
 // Benchmark tests
 func BenchmarkAuthService_Login(b *testing.B) {
 	authService, userRepo, sessionRepo, tokenManager, cache, auditLogger := setupAuthService(&testing.T{})
-	
+
 	user := createTestUser()
 	ctx := context.Background()
 

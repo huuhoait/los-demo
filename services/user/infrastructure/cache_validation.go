@@ -31,7 +31,7 @@ func NewRedisCacheService(client *redis.Client, logger *zap.Logger) domain.Cache
 
 func (r *RedisCacheService) CacheUser(ctx context.Context, userID string, user *domain.User, ttl int) error {
 	key := fmt.Sprintf("user:%s", userID)
-	
+
 	data, err := json.Marshal(user)
 	if err != nil {
 		r.logger.Error("Failed to marshal user for cache", zap.Error(err))
@@ -50,7 +50,7 @@ func (r *RedisCacheService) CacheUser(ctx context.Context, userID string, user *
 
 func (r *RedisCacheService) GetCachedUser(ctx context.Context, userID string) (*domain.User, error) {
 	key := fmt.Sprintf("user:%s", userID)
-	
+
 	data, err := r.client.Get(ctx, key).Result()
 	if err != nil {
 		if err == redis.Nil {
@@ -72,7 +72,7 @@ func (r *RedisCacheService) GetCachedUser(ctx context.Context, userID string) (*
 
 func (r *RedisCacheService) InvalidateUserCache(ctx context.Context, userID string) error {
 	key := fmt.Sprintf("user:%s", userID)
-	
+
 	err := r.client.Del(ctx, key).Err()
 	if err != nil {
 		r.logger.Error("Failed to invalidate user cache", zap.Error(err), zap.String("user_id", userID))
@@ -85,7 +85,7 @@ func (r *RedisCacheService) InvalidateUserCache(ctx context.Context, userID stri
 
 func (r *RedisCacheService) CacheProfile(ctx context.Context, userID string, profile *domain.UserProfile, ttl int) error {
 	key := fmt.Sprintf("profile:%s", userID)
-	
+
 	data, err := json.Marshal(profile)
 	if err != nil {
 		r.logger.Error("Failed to marshal profile for cache", zap.Error(err))
@@ -104,7 +104,7 @@ func (r *RedisCacheService) CacheProfile(ctx context.Context, userID string, pro
 
 func (r *RedisCacheService) GetCachedProfile(ctx context.Context, userID string) (*domain.UserProfile, error) {
 	key := fmt.Sprintf("profile:%s", userID)
-	
+
 	data, err := r.client.Get(ctx, key).Result()
 	if err != nil {
 		if err == redis.Nil {
@@ -126,7 +126,7 @@ func (r *RedisCacheService) GetCachedProfile(ctx context.Context, userID string)
 
 func (r *RedisCacheService) InvalidateProfileCache(ctx context.Context, userID string) error {
 	key := fmt.Sprintf("profile:%s", userID)
-	
+
 	err := r.client.Del(ctx, key).Err()
 	if err != nil {
 		r.logger.Error("Failed to invalidate profile cache", zap.Error(err), zap.String("user_id", userID))
@@ -139,7 +139,7 @@ func (r *RedisCacheService) InvalidateProfileCache(ctx context.Context, userID s
 
 func (r *RedisCacheService) CacheKYCStatus(ctx context.Context, userID string, status map[string]domain.KYCStatus, ttl int) error {
 	key := fmt.Sprintf("kyc_status:%s", userID)
-	
+
 	data, err := json.Marshal(status)
 	if err != nil {
 		r.logger.Error("Failed to marshal KYC status for cache", zap.Error(err))
@@ -158,7 +158,7 @@ func (r *RedisCacheService) CacheKYCStatus(ctx context.Context, userID string, s
 
 func (r *RedisCacheService) GetCachedKYCStatus(ctx context.Context, userID string) (map[string]domain.KYCStatus, error) {
 	key := fmt.Sprintf("kyc_status:%s", userID)
-	
+
 	data, err := r.client.Get(ctx, key).Result()
 	if err != nil {
 		if err == redis.Nil {
@@ -180,7 +180,7 @@ func (r *RedisCacheService) GetCachedKYCStatus(ctx context.Context, userID strin
 
 func (r *RedisCacheService) InvalidateKYCStatus(ctx context.Context, userID string) error {
 	key := fmt.Sprintf("kyc_status:%s", userID)
-	
+
 	err := r.client.Del(ctx, key).Err()
 	if err != nil {
 		r.logger.Error("Failed to invalidate KYC status cache", zap.Error(err), zap.String("user_id", userID))
@@ -227,12 +227,12 @@ func (v *ValidationService) ValidatePhone(phone string) error {
 
 	// Remove all non-digit characters
 	cleanPhone := regexp.MustCompile(`[^\d]`).ReplaceAllString(phone, "")
-	
+
 	// US phone number validation (10 or 11 digits)
 	if len(cleanPhone) == 11 && cleanPhone[0] == '1' {
 		cleanPhone = cleanPhone[1:] // Remove country code
 	}
-	
+
 	if len(cleanPhone) != 10 {
 		return fmt.Errorf("invalid phone number format")
 	}
@@ -257,7 +257,7 @@ func (v *ValidationService) ValidateSSN(ssn string) error {
 
 	// Remove all non-digit characters
 	cleanSSN := regexp.MustCompile(`[^\d]`).ReplaceAllString(ssn, "")
-	
+
 	if len(cleanSSN) != 9 {
 		return fmt.Errorf("SSN must be 9 digits")
 	}
@@ -302,7 +302,7 @@ func (v *ValidationService) ValidateDateOfBirth(dob time.Time) error {
 	}
 
 	now := time.Now()
-	
+
 	// Check if date is in the future
 	if dob.After(now) {
 		return fmt.Errorf("date of birth cannot be in the future")
@@ -435,7 +435,7 @@ func (v *ValidationService) ValidateMimeType(mimeType string) error {
 	}
 
 	mimeType = strings.ToLower(mimeType)
-	
+
 	for _, allowedType := range allowedTypes {
 		if mimeType == allowedType {
 			return nil

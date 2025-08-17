@@ -343,7 +343,7 @@ func (r *DecisionRepository) GetDecisionStatistics(ctx context.Context, dateFrom
 // InitializeDatabase creates necessary tables
 func (r *DecisionRepository) InitializeDatabase(ctx context.Context) error {
 	logger := r.logger.With(zap.String("operation", "initialize_database"))
-	
+
 	logger.Info("Initializing database tables")
 
 	// Create decision_requests table

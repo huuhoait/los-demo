@@ -12,10 +12,10 @@ import (
 
 // DecisionEngineService implements the core decision making logic
 type DecisionEngineService struct {
-	riskService    domain.RiskAssessmentService
-	rulesService   domain.RulesEngineService
-	decisionRepo   domain.DecisionRepository
-	logger         *zap.Logger
+	riskService  domain.RiskAssessmentService
+	rulesService domain.RulesEngineService
+	decisionRepo domain.DecisionRepository
+	logger       *zap.Logger
 }
 
 // NewDecisionEngineService creates a new decision engine service
@@ -95,41 +95,41 @@ func (s *DecisionEngineService) MakeDecision(ctx context.Context, request *domai
 func (s *DecisionEngineService) ValidateRequest(request *domain.DecisionRequest) error {
 	if request.ApplicationID == "" {
 		return &domain.DecisionError{
-			Code:        domain.ERROR_INVALID_REQUEST,
-			Message:     "Application ID is required",
-			HTTPStatus:  400,
+			Code:       domain.ERROR_INVALID_REQUEST,
+			Message:    "Application ID is required",
+			HTTPStatus: 400,
 		}
 	}
 
 	if request.UserID == "" {
 		return &domain.DecisionError{
-			Code:        domain.ERROR_INVALID_REQUEST,
-			Message:     "User ID is required",
-			HTTPStatus:  400,
+			Code:       domain.ERROR_INVALID_REQUEST,
+			Message:    "User ID is required",
+			HTTPStatus: 400,
 		}
 	}
 
 	if request.LoanAmount <= 0 || request.LoanAmount > 1000000 {
 		return &domain.DecisionError{
-			Code:        domain.ERROR_INVALID_REQUEST,
-			Message:     "Invalid loan amount",
-			HTTPStatus:  400,
+			Code:       domain.ERROR_INVALID_REQUEST,
+			Message:    "Invalid loan amount",
+			HTTPStatus: 400,
 		}
 	}
 
 	if request.AnnualIncome <= 0 {
 		return &domain.DecisionError{
-			Code:        domain.ERROR_INVALID_REQUEST,
-			Message:     "Annual income must be positive",
-			HTTPStatus:  400,
+			Code:       domain.ERROR_INVALID_REQUEST,
+			Message:    "Annual income must be positive",
+			HTTPStatus: 400,
 		}
 	}
 
 	if !request.IsValidCreditScore() {
 		return &domain.DecisionError{
-			Code:        domain.ERROR_INVALID_REQUEST,
-			Message:     "Invalid credit score",
-			HTTPStatus:  400,
+			Code:       domain.ERROR_INVALID_REQUEST,
+			Message:    "Invalid credit score",
+			HTTPStatus: 400,
 		}
 	}
 
@@ -218,7 +218,7 @@ func (s *DecisionEngineService) adjustInterestRate(
 	assessment *domain.RiskAssessment,
 ) {
 	baseRate := s.getBaseInterestRate(request.LoanPurpose)
-	
+
 	// Risk adjustment
 	riskAdjustment := assessment.OverallScore * 0.05 // Up to 5% adjustment
 
@@ -244,7 +244,7 @@ func (s *DecisionEngineService) adjustInterestRate(
 // getBaseInterestRate returns base interest rate by loan purpose
 func (s *DecisionEngineService) getBaseInterestRate(purpose domain.LoanPurpose) float64 {
 	rates := map[domain.LoanPurpose]float64{
-		domain.PurposePersonal:           8.5,
+		domain.PurposePersonal:          8.5,
 		domain.PurposeDebtConsolidation: 7.5,
 		domain.PurposeHomeImprovement:   7.0,
 		domain.PurposeBusiness:          9.0,
@@ -268,11 +268,11 @@ func (s *DecisionEngineService) getCreditScoreAdjustment(creditScore int) float6
 	case creditScore >= 700:
 		return -0.5 // Good credit discount
 	case creditScore >= 650:
-		return 0.0  // No adjustment
+		return 0.0 // No adjustment
 	case creditScore >= 600:
-		return 1.0  // Fair credit premium
+		return 1.0 // Fair credit premium
 	default:
-		return 2.5  // Poor credit premium
+		return 2.5 // Poor credit premium
 	}
 }
 
@@ -282,23 +282,23 @@ func (s *DecisionEngineService) getDTIAdjustment(dtiRatio float64) float64 {
 	case dtiRatio <= 0.20:
 		return -0.5 // Low DTI discount
 	case dtiRatio <= 0.35:
-		return 0.0  // No adjustment
+		return 0.0 // No adjustment
 	case dtiRatio <= 0.40:
-		return 0.5  // Moderate DTI premium
+		return 0.5 // Moderate DTI premium
 	default:
-		return 1.5  // High DTI premium
+		return 1.5 // High DTI premium
 	}
 }
 
 // getEmploymentAdjustment returns interest rate adjustment based on employment type
 func (s *DecisionEngineService) getEmploymentAdjustment(employmentType domain.EmploymentType) float64 {
 	adjustments := map[domain.EmploymentType]float64{
-		domain.EmploymentFullTime:    0.0,  // No adjustment
-		domain.EmploymentPartTime:    0.5,  // Small premium
-		domain.EmploymentContract:    1.0,  // Moderate premium
-		domain.EmploymentSelfEmployed: 1.5, // Higher premium
-		domain.EmploymentRetired:     0.25, // Small premium
-		domain.EmploymentUnemployed:  5.0,  // High premium (should rarely be approved)
+		domain.EmploymentFullTime:     0.0,  // No adjustment
+		domain.EmploymentPartTime:     0.5,  // Small premium
+		domain.EmploymentContract:     1.0,  // Moderate premium
+		domain.EmploymentSelfEmployed: 1.5,  // Higher premium
+		domain.EmploymentRetired:      0.25, // Small premium
+		domain.EmploymentUnemployed:   5.0,  // High premium (should rarely be approved)
 	}
 
 	if adjustment, exists := adjustments[employmentType]; exists {

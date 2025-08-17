@@ -184,10 +184,10 @@ func initializeApplication(
 	cacheService := infrastructure.NewRedisCacheService(redisClient, logger)
 	validationService := infrastructure.NewValidationService(logger)
 	encryptionService := infrastructure.NewAESEncryptionService(cfg.Encryption.MasterKey, logger)
-	
+
 	// Mock services for development (replace with real implementations in production)
 	kycProvider := infrastructure.NewMockKYCProviderService(logger)
-	
+
 	// TODO: Initialize real services
 	var storageService domain.DocumentStorageService
 	var notificationService domain.NotificationService
@@ -239,7 +239,7 @@ func initializeHTTPServer(app *Application, cfg *config.Config, logger *zap.Logg
 	router.Use(requestIDMiddleware())
 	router.Use(loggingMiddleware(logger))
 	router.Use(timestampMiddleware())
-	
+
 	// Add i18n middleware
 	i18nMiddleware := middleware.NewI18nMiddleware(localizer, logger)
 	router.Use(i18nMiddleware.Handler())

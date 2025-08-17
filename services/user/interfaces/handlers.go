@@ -515,7 +515,7 @@ func (h *UserHandler) UpdateKYCStatus(c *gin.Context) {
 func (h *UserHandler) respondSuccess(c *gin.Context, status int, data interface{}) {
 	// Create localized success response
 	lang := middleware.GetLanguageFromGinContext(c)
-	
+
 	response := gin.H{
 		"success":    true,
 		"data":       data,
@@ -532,7 +532,7 @@ func (h *UserHandler) respondSuccessWithMessage(c *gin.Context, status int, mess
 	// Create localized success response with message
 	lang := middleware.GetLanguageFromGinContext(c)
 	message := h.localizer.LocalizeMessage(lang, messageKey, templateData)
-	
+
 	response := gin.H{
 		"success":    true,
 		"message":    message,
@@ -548,12 +548,12 @@ func (h *UserHandler) respondSuccessWithMessage(c *gin.Context, status int, mess
 
 func (h *UserHandler) respondError(c *gin.Context, err error) {
 	lang := middleware.GetLanguageFromGinContext(c)
-	
+
 	// Handle domain errors with localization
 	if domainErr, ok := err.(*domain.UserError); ok {
 		statusCode := h.getHTTPStatusFromErrorCode(domainErr.Code)
 		message := h.localizer.LocalizeError(lang, domainErr.Code, domainErr.TemplateData)
-		
+
 		response := gin.H{
 			"success": false,
 			"error": gin.H{
@@ -577,7 +577,7 @@ func (h *UserHandler) respondError(c *gin.Context, err error) {
 	// Handle generic errors
 	statusCode := http.StatusInternalServerError
 	message := h.localizer.LocalizeError(lang, "USER_033", nil)
-	
+
 	response := gin.H{
 		"success": false,
 		"error": gin.H{
@@ -601,12 +601,12 @@ func (h *UserHandler) respondValidationError(c *gin.Context, validationErrors ma
 func (h *UserHandler) getHTTPStatusFromErrorCode(code string) int {
 	switch {
 	case strings.HasPrefix(code, "USER_001"), strings.HasPrefix(code, "USER_002"),
-		 strings.HasPrefix(code, "USER_003"), strings.HasPrefix(code, "USER_004"),
-		 strings.HasPrefix(code, "USER_005"), strings.HasPrefix(code, "USER_011"),
-		 strings.HasPrefix(code, "USER_012"), strings.HasPrefix(code, "USER_017"):
+		strings.HasPrefix(code, "USER_003"), strings.HasPrefix(code, "USER_004"),
+		strings.HasPrefix(code, "USER_005"), strings.HasPrefix(code, "USER_011"),
+		strings.HasPrefix(code, "USER_012"), strings.HasPrefix(code, "USER_017"):
 		return http.StatusBadRequest
 	case code == domain.USER_006, code == domain.USER_007, code == domain.USER_008,
-		 code == domain.USER_010, code == domain.USER_020:
+		code == domain.USER_010, code == domain.USER_020:
 		return http.StatusConflict
 	case code == domain.USER_030, code == domain.USER_031, code == domain.USER_014:
 		return http.StatusNotFound
@@ -615,8 +615,8 @@ func (h *UserHandler) getHTTPStatusFromErrorCode(code string) int {
 	case code == domain.USER_033:
 		return http.StatusTooManyRequests
 	case strings.HasPrefix(code, "USER_026"), strings.HasPrefix(code, "USER_027"),
-		 strings.HasPrefix(code, "USER_028"), strings.HasPrefix(code, "USER_029"),
-		 strings.HasPrefix(code, "USER_034"), strings.HasPrefix(code, "USER_035"):
+		strings.HasPrefix(code, "USER_028"), strings.HasPrefix(code, "USER_029"),
+		strings.HasPrefix(code, "USER_034"), strings.HasPrefix(code, "USER_035"):
 		return http.StatusInternalServerError
 	case strings.HasPrefix(code, "USER_021"), strings.HasPrefix(code, "USER_025"):
 		return http.StatusBadGateway

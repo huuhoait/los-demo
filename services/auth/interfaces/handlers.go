@@ -51,25 +51,25 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	tokenResponse, err := h.authService.Login(c.Request.Context(), req.Email, req.Password, ipAddress, userAgent)
 	if err != nil {
 		if authErr, ok := err.(*domain.AuthError); ok {
-			logger.Warn("Login failed", 
+			logger.Warn("Login failed",
 				zap.String("email", req.Email),
 				zap.String("error_code", authErr.Code))
-			
+
 			statusCode := http.StatusUnauthorized
 			if authErr.Code == domain.AUTH_002 || authErr.Code == domain.AUTH_010 {
 				statusCode = http.StatusTooManyRequests
 			}
-			
+
 			h.respondWithError(c, statusCode, authErr.Code, nil)
 			return
 		}
-		
+
 		logger.Error("Unexpected error during login", zap.Error(err))
 		h.respondWithError(c, http.StatusInternalServerError, domain.AUTH_017, nil)
 		return
 	}
 
-	logger.Info("Login successful", 
+	logger.Info("Login successful",
 		zap.String("user_id", tokenResponse.User.ID),
 		zap.String("email", req.Email))
 
@@ -99,18 +99,18 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	tokenResponse, err := h.authService.RefreshToken(c.Request.Context(), req.RefreshToken, ipAddress, userAgent)
 	if err != nil {
 		if authErr, ok := err.(*domain.AuthError); ok {
-			logger.Warn("Token refresh failed", 
+			logger.Warn("Token refresh failed",
 				zap.String("error_code", authErr.Code))
-			
+
 			statusCode := http.StatusUnauthorized
 			if authErr.Code == domain.AUTH_007 || authErr.Code == domain.AUTH_009 {
 				statusCode = http.StatusUnauthorized
 			}
-			
+
 			h.respondWithError(c, statusCode, authErr.Code, nil)
 			return
 		}
-		
+
 		logger.Error("Unexpected error during token refresh", zap.Error(err))
 		h.respondWithError(c, http.StatusInternalServerError, domain.AUTH_017, nil)
 		return
@@ -145,13 +145,13 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	err := h.authService.Logout(c.Request.Context(), userID, sessionID.(string))
 	if err != nil {
 		if authErr, ok := err.(*domain.AuthError); ok {
-			logger.Warn("Logout failed", 
+			logger.Warn("Logout failed",
 				zap.String("user_id", userID),
 				zap.String("error_code", authErr.Code))
 			h.respondWithError(c, http.StatusInternalServerError, authErr.Code, nil)
 			return
 		}
-		
+
 		logger.Error("Unexpected error during logout", zap.Error(err))
 		h.respondWithError(c, http.StatusInternalServerError, domain.AUTH_017, nil)
 		return
@@ -179,13 +179,13 @@ func (h *AuthHandler) LogoutAll(c *gin.Context) {
 	err := h.authService.LogoutAll(c.Request.Context(), userID)
 	if err != nil {
 		if authErr, ok := err.(*domain.AuthError); ok {
-			logger.Warn("Logout all failed", 
+			logger.Warn("Logout all failed",
 				zap.String("user_id", userID),
 				zap.String("error_code", authErr.Code))
 			h.respondWithError(c, http.StatusInternalServerError, authErr.Code, nil)
 			return
 		}
-		
+
 		logger.Error("Unexpected error during logout all", zap.Error(err))
 		h.respondWithError(c, http.StatusInternalServerError, domain.AUTH_017, nil)
 		return
@@ -213,19 +213,19 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 	user, err := h.authService.GetUserByID(c.Request.Context(), userID)
 	if err != nil {
 		if authErr, ok := err.(*domain.AuthError); ok {
-			logger.Warn("Get profile failed", 
+			logger.Warn("Get profile failed",
 				zap.String("user_id", userID),
 				zap.String("error_code", authErr.Code))
-			
+
 			statusCode := http.StatusNotFound
 			if authErr.Code == domain.AUTH_017 {
 				statusCode = http.StatusInternalServerError
 			}
-			
+
 			h.respondWithError(c, statusCode, authErr.Code, nil)
 			return
 		}
-		
+
 		logger.Error("Unexpected error during get profile", zap.Error(err))
 		h.respondWithError(c, http.StatusInternalServerError, domain.AUTH_017, nil)
 		return

@@ -12,26 +12,26 @@ type AuthService interface {
 	RefreshToken(ctx context.Context, refreshToken string, ipAddress, userAgent string) (*TokenResponse, error)
 	Logout(ctx context.Context, userID, sessionID string) error
 	LogoutAll(ctx context.Context, userID string) error
-	
+
 	// Token validation
 	ValidateAccessToken(ctx context.Context, token string) (*AuthContext, error)
 	ValidateRefreshToken(ctx context.Context, token string) (*Session, error)
-	
+
 	// HTTP Signature validation
 	ValidateHTTPSignature(ctx context.Context, signature, keyID string, request []byte) error
-	
+
 	// User management
 	GetUserByID(ctx context.Context, userID string) (*User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	UpdateLastLogin(ctx context.Context, userID string) error
-	
+
 	// Session management
 	CreateSession(ctx context.Context, userID, ipAddress, userAgent string) (*Session, error)
 	GetSession(ctx context.Context, sessionID string) (*Session, error)
 	InvalidateSession(ctx context.Context, sessionID string) error
 	InvalidateUserSessions(ctx context.Context, userID string) error
 	CleanExpiredSessions(ctx context.Context) error
-	
+
 	// Security
 	CheckRateLimit(ctx context.Context, identifier string) error
 	LogSecurityEvent(ctx context.Context, event *SecurityEvent) error
@@ -100,15 +100,15 @@ type AuthEvent struct {
 
 // SecurityEvent represents a security-related audit event
 type SecurityEvent struct {
-	ID           string                 `json:"id"`
-	EventType    string                 `json:"event_type"` // "suspicious_login", "rate_limit_exceeded", "invalid_signature"
-	UserID       string                 `json:"user_id,omitempty"`
-	IPAddress    string                 `json:"ip_address"`
-	UserAgent    string                 `json:"user_agent,omitempty"`
-	Severity     string                 `json:"severity"` // "low", "medium", "high", "critical"
-	Description  string                 `json:"description"`
-	Metadata     map[string]interface{} `json:"metadata,omitempty"`
-	Timestamp    time.Time              `json:"timestamp"`
+	ID          string                 `json:"id"`
+	EventType   string                 `json:"event_type"` // "suspicious_login", "rate_limit_exceeded", "invalid_signature"
+	UserID      string                 `json:"user_id,omitempty"`
+	IPAddress   string                 `json:"ip_address"`
+	UserAgent   string                 `json:"user_agent,omitempty"`
+	Severity    string                 `json:"severity"` // "low", "medium", "high", "critical"
+	Description string                 `json:"description"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	Timestamp   time.Time              `json:"timestamp"`
 }
 
 // AuthError represents authentication-specific errors

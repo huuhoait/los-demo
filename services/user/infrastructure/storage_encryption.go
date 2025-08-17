@@ -18,10 +18,10 @@ import (
 
 // S3DocumentStorageService implements document storage using AWS S3
 type S3DocumentStorageService struct {
-	s3Client  S3Client
-	bucket    string
-	kmsKeyID  string
-	logger    *zap.Logger
+	s3Client S3Client
+	bucket   string
+	kmsKeyID string
+	logger   *zap.Logger
 }
 
 // S3Client interface for AWS S3 operations
@@ -35,10 +35,10 @@ type S3Client interface {
 
 func NewS3DocumentStorageService(s3Client S3Client, bucket, kmsKeyID string, logger *zap.Logger) domain.DocumentStorageService {
 	return &S3DocumentStorageService{
-		s3Client:  s3Client,
-		bucket:    bucket,
-		kmsKeyID:  kmsKeyID,
-		logger:    logger,
+		s3Client: s3Client,
+		bucket:   bucket,
+		kmsKeyID: kmsKeyID,
+		logger:   logger,
 	}
 }
 
@@ -445,8 +445,8 @@ func (m *MockKYCProviderService) GetVerificationStatus(ctx context.Context, prov
 		Status:            domain.KYCStatusVerified,
 		ProviderReference: providerReference,
 		VerificationData: map[string]interface{}{
-			"confidence_score": 0.95,
-			"verified_fields":  []string{"name", "date_of_birth", "address"},
+			"confidence_score":  0.95,
+			"verified_fields":   []string{"name", "date_of_birth", "address"},
 			"verification_time": time.Now(),
 		},
 		CreatedAt: time.Now(),
@@ -466,10 +466,10 @@ func (m *MockKYCProviderService) VerifyDocument(ctx context.Context, documentTyp
 
 	// Mock document verification
 	verification := &domain.KYCVerification{
-		ID:                fmt.Sprintf("doc_verify_%d", time.Now().Unix()),
-		VerificationType:  "document",
-		Provider:          m.providerName,
-		Status:            domain.KYCStatusVerified,
+		ID:               fmt.Sprintf("doc_verify_%d", time.Now().Unix()),
+		VerificationType: "document",
+		Provider:         m.providerName,
+		Status:           domain.KYCStatusVerified,
 		VerificationData: map[string]interface{}{
 			"document_type":    documentType,
 			"authenticity":     "verified",
@@ -496,10 +496,10 @@ func (m *MockKYCProviderService) VerifyAddress(ctx context.Context, address *dom
 
 	// Mock address verification
 	verification := &domain.KYCVerification{
-		ID:                fmt.Sprintf("addr_verify_%d", time.Now().Unix()),
-		VerificationType:  "address",
-		Provider:          m.providerName,
-		Status:            domain.KYCStatusVerified,
+		ID:               fmt.Sprintf("addr_verify_%d", time.Now().Unix()),
+		VerificationType: "address",
+		Provider:         m.providerName,
+		Status:           domain.KYCStatusVerified,
 		VerificationData: map[string]interface{}{
 			"address_match":    "exact",
 			"deliverable":      true,

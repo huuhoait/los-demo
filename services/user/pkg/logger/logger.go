@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
-	
+
 	"our-los/services/user/pkg/config"
 )
 
@@ -65,9 +65,9 @@ func NewZapLogger(cfg *config.Config) (*zap.Logger, error) {
 		// Create rotating file writer
 		fileWriter := &lumberjack.Logger{
 			Filename:   cfg.Logging.FilePath,
-			MaxSize:    cfg.Logging.MaxSize,    // MB
+			MaxSize:    cfg.Logging.MaxSize, // MB
 			MaxBackups: cfg.Logging.MaxBackups,
-			MaxAge:     cfg.Logging.MaxAge,     // days
+			MaxAge:     cfg.Logging.MaxAge, // days
 			Compress:   true,
 		}
 		writeSyncer = zapcore.AddSync(fileWriter)

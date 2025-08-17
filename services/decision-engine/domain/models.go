@@ -6,67 +6,67 @@ import (
 
 // DecisionRequest represents a loan decision request
 type DecisionRequest struct {
-	ApplicationID    string                 `json:"application_id" validate:"required"`
-	UserID          string                 `json:"user_id" validate:"required"`
-	LoanAmount      float64                `json:"loan_amount" validate:"required,min=1000,max=1000000"`
-	AnnualIncome    float64                `json:"annual_income" validate:"required,min=0"`
-	MonthlyIncome   float64                `json:"monthly_income" validate:"required,min=0"`
-	MonthlyDebt     float64                `json:"monthly_debt" validate:"min=0"`
-	CreditScore     int                    `json:"credit_score" validate:"required,min=300,max=850"`
-	EmploymentType  EmploymentType         `json:"employment_type" validate:"required"`
-	RequestedTerm   int                    `json:"requested_term" validate:"required,min=12,max=84"`
-	LoanPurpose     LoanPurpose            `json:"loan_purpose" validate:"required"`
-	AdditionalData  map[string]interface{} `json:"additional_data,omitempty"`
-	RequestedAt     time.Time              `json:"requested_at"`
+	ApplicationID  string                 `json:"application_id" validate:"required"`
+	UserID         string                 `json:"user_id" validate:"required"`
+	LoanAmount     float64                `json:"loan_amount" validate:"required,min=1000,max=1000000"`
+	AnnualIncome   float64                `json:"annual_income" validate:"required,min=0"`
+	MonthlyIncome  float64                `json:"monthly_income" validate:"required,min=0"`
+	MonthlyDebt    float64                `json:"monthly_debt" validate:"min=0"`
+	CreditScore    int                    `json:"credit_score" validate:"required,min=300,max=850"`
+	EmploymentType EmploymentType         `json:"employment_type" validate:"required"`
+	RequestedTerm  int                    `json:"requested_term" validate:"required,min=12,max=84"`
+	LoanPurpose    LoanPurpose            `json:"loan_purpose" validate:"required"`
+	AdditionalData map[string]interface{} `json:"additional_data,omitempty"`
+	RequestedAt    time.Time              `json:"requested_at"`
 }
 
 // DecisionResponse represents the decision engine response
 type DecisionResponse struct {
-	ApplicationID   string          `json:"application_id"`
-	Decision        DecisionType    `json:"decision"`
-	RiskScore       float64         `json:"risk_score"`
-	RiskCategory    RiskCategory    `json:"risk_category"`
-	InterestRate    float64         `json:"interest_rate"`
-	ApprovedAmount  float64         `json:"approved_amount,omitempty"`
-	DecisionReason  string          `json:"decision_reason"`
-	RiskFactors     []RiskFactor    `json:"risk_factors"`
-	Conditions      []string        `json:"conditions,omitempty"`
-	RequiredDocs    []string        `json:"required_documents,omitempty"`
-	DecisionDate    time.Time       `json:"decision_date"`
-	ExpiresAt       *time.Time      `json:"expires_at,omitempty"`
-	ReviewRequired  bool            `json:"review_required"`
-	ReviewerNotes   string          `json:"reviewer_notes,omitempty"`
+	ApplicationID  string       `json:"application_id"`
+	Decision       DecisionType `json:"decision"`
+	RiskScore      float64      `json:"risk_score"`
+	RiskCategory   RiskCategory `json:"risk_category"`
+	InterestRate   float64      `json:"interest_rate"`
+	ApprovedAmount float64      `json:"approved_amount,omitempty"`
+	DecisionReason string       `json:"decision_reason"`
+	RiskFactors    []RiskFactor `json:"risk_factors"`
+	Conditions     []string     `json:"conditions,omitempty"`
+	RequiredDocs   []string     `json:"required_documents,omitempty"`
+	DecisionDate   time.Time    `json:"decision_date"`
+	ExpiresAt      *time.Time   `json:"expires_at,omitempty"`
+	ReviewRequired bool         `json:"review_required"`
+	ReviewerNotes  string       `json:"reviewer_notes,omitempty"`
 }
 
 // RiskAssessment contains detailed risk analysis
 type RiskAssessment struct {
-	OverallScore     float64        `json:"overall_score"`
-	CategoryScores   CategoryScores `json:"category_scores"`
-	DTIRatio         float64        `json:"dti_ratio"`
-	LTVRatio         float64        `json:"ltv_ratio,omitempty"`
-	CreditUtilization float64       `json:"credit_utilization,omitempty"`
-	PaymentHistory   PaymentHistory `json:"payment_history"`
-	RiskFactors      []RiskFactor   `json:"risk_factors"`
-	MitigatingFactors []string      `json:"mitigating_factors,omitempty"`
+	OverallScore      float64        `json:"overall_score"`
+	CategoryScores    CategoryScores `json:"category_scores"`
+	DTIRatio          float64        `json:"dti_ratio"`
+	LTVRatio          float64        `json:"ltv_ratio,omitempty"`
+	CreditUtilization float64        `json:"credit_utilization,omitempty"`
+	PaymentHistory    PaymentHistory `json:"payment_history"`
+	RiskFactors       []RiskFactor   `json:"risk_factors"`
+	MitigatingFactors []string       `json:"mitigating_factors,omitempty"`
 }
 
 // CategoryScores represents risk scores by category
 type CategoryScores struct {
-	CreditRisk      float64 `json:"credit_risk"`
-	IncomeRisk      float64 `json:"income_risk"`
-	DebtRisk        float64 `json:"debt_risk"`
-	EmploymentRisk  float64 `json:"employment_risk"`
-	CollateralRisk  float64 `json:"collateral_risk,omitempty"`
+	CreditRisk     float64 `json:"credit_risk"`
+	IncomeRisk     float64 `json:"income_risk"`
+	DebtRisk       float64 `json:"debt_risk"`
+	EmploymentRisk float64 `json:"employment_risk"`
+	CollateralRisk float64 `json:"collateral_risk,omitempty"`
 }
 
 // PaymentHistory represents credit payment history
 type PaymentHistory struct {
-	OnTimePayments   int     `json:"on_time_payments"`
-	LatePayments     int     `json:"late_payments"`
-	Defaults         int     `json:"defaults"`
-	Bankruptcies     int     `json:"bankruptcies"`
-	CreditAge        int     `json:"credit_age_months"`
-	PaymentScore     float64 `json:"payment_score"`
+	OnTimePayments int     `json:"on_time_payments"`
+	LatePayments   int     `json:"late_payments"`
+	Defaults       int     `json:"defaults"`
+	Bankruptcies   int     `json:"bankruptcies"`
+	CreditAge      int     `json:"credit_age_months"`
+	PaymentScore   float64 `json:"payment_score"`
 }
 
 // RiskFactor represents an individual risk factor
@@ -103,55 +103,55 @@ type RuleCondition struct {
 
 // RuleAction represents the action to take when rule conditions are met
 type RuleAction struct {
-	Type        ActionType             `json:"type"`
-	Decision    DecisionType           `json:"decision,omitempty"`
-	Reason      string                 `json:"reason"`
-	Adjustments map[string]interface{} `json:"adjustments,omitempty"`
-	RequireReview bool                 `json:"require_review"`
+	Type          ActionType             `json:"type"`
+	Decision      DecisionType           `json:"decision,omitempty"`
+	Reason        string                 `json:"reason"`
+	Adjustments   map[string]interface{} `json:"adjustments,omitempty"`
+	RequireReview bool                   `json:"require_review"`
 }
 
 // Enums and Constants
 type DecisionType string
 
 const (
-	DecisionApprove       DecisionType = "APPROVE"
-	DecisionDeny          DecisionType = "DENY"
-	DecisionManualReview  DecisionType = "MANUAL_REVIEW"
-	DecisionConditional   DecisionType = "CONDITIONAL"
-	DecisionPending       DecisionType = "PENDING"
+	DecisionApprove      DecisionType = "APPROVE"
+	DecisionDeny         DecisionType = "DENY"
+	DecisionManualReview DecisionType = "MANUAL_REVIEW"
+	DecisionConditional  DecisionType = "CONDITIONAL"
+	DecisionPending      DecisionType = "PENDING"
 )
 
 type RiskCategory string
 
 const (
-	RiskLow       RiskCategory = "LOW"
-	RiskMedium    RiskCategory = "MEDIUM"
-	RiskHigh      RiskCategory = "HIGH"
-	RiskCritical  RiskCategory = "CRITICAL"
+	RiskLow      RiskCategory = "LOW"
+	RiskMedium   RiskCategory = "MEDIUM"
+	RiskHigh     RiskCategory = "HIGH"
+	RiskCritical RiskCategory = "CRITICAL"
 )
 
 type EmploymentType string
 
 const (
-	EmploymentFullTime   EmploymentType = "full_time"
-	EmploymentPartTime   EmploymentType = "part_time"
-	EmploymentContract   EmploymentType = "contract"
+	EmploymentFullTime     EmploymentType = "full_time"
+	EmploymentPartTime     EmploymentType = "part_time"
+	EmploymentContract     EmploymentType = "contract"
 	EmploymentSelfEmployed EmploymentType = "self_employed"
-	EmploymentUnemployed EmploymentType = "unemployed"
-	EmploymentRetired    EmploymentType = "retired"
+	EmploymentUnemployed   EmploymentType = "unemployed"
+	EmploymentRetired      EmploymentType = "retired"
 )
 
 type LoanPurpose string
 
 const (
-	PurposePersonal      LoanPurpose = "personal"
+	PurposePersonal          LoanPurpose = "personal"
 	PurposeDebtConsolidation LoanPurpose = "debt_consolidation"
-	PurposeHomeImprovement LoanPurpose = "home_improvement"
-	PurposeBusiness      LoanPurpose = "business"
-	PurposeEducation     LoanPurpose = "education"
-	PurposeMedical       LoanPurpose = "medical"
-	PurposeVacation      LoanPurpose = "vacation"
-	PurposeOther         LoanPurpose = "other"
+	PurposeHomeImprovement   LoanPurpose = "home_improvement"
+	PurposeBusiness          LoanPurpose = "business"
+	PurposeEducation         LoanPurpose = "education"
+	PurposeMedical           LoanPurpose = "medical"
+	PurposeVacation          LoanPurpose = "vacation"
+	PurposeOther             LoanPurpose = "other"
 )
 
 type RuleCategory string
@@ -167,10 +167,10 @@ const (
 type ActionType string
 
 const (
-	ActionDecision       ActionType = "DECISION"
-	ActionAdjustment     ActionType = "ADJUSTMENT"
-	ActionRequirement    ActionType = "REQUIREMENT"
-	ActionFlag           ActionType = "FLAG"
+	ActionDecision    ActionType = "DECISION"
+	ActionAdjustment  ActionType = "ADJUSTMENT"
+	ActionRequirement ActionType = "REQUIREMENT"
+	ActionFlag        ActionType = "FLAG"
 )
 
 // Domain Services Interfaces
@@ -231,17 +231,17 @@ type DTIThresholds struct {
 
 // Business Rules Constants
 var (
-	MinCreditScore    = 600
-	MaxDTIRatio      = 0.45
-	MinAnnualIncome  = 25000.0
-	
+	MinCreditScore  = 600
+	MaxDTIRatio     = 0.45
+	MinAnnualIncome = 25000.0
+
 	CreditScoreRanges = map[RiskCategory]CreditScoreRange{
 		RiskLow:      {740, 850},
 		RiskMedium:   {670, 739},
 		RiskHigh:     {600, 669},
 		RiskCritical: {300, 599},
 	}
-	
+
 	DefaultDTIThresholds = DTIThresholds{
 		Excellent: 0.20,
 		Good:      0.35,
@@ -282,11 +282,11 @@ func (e *DecisionError) Error() string {
 }
 
 const (
-	ERROR_INVALID_REQUEST      = "DECISION_001"
-	ERROR_INSUFFICIENT_DATA    = "DECISION_002"
-	ERROR_RULE_EVALUATION      = "DECISION_003"
-	ERROR_RISK_ASSESSMENT      = "DECISION_004"
-	ERROR_DATABASE_ERROR       = "DECISION_005"
-	ERROR_EXTERNAL_SERVICE     = "DECISION_006"
-	ERROR_BUSINESS_RULE        = "DECISION_007"
+	ERROR_INVALID_REQUEST   = "DECISION_001"
+	ERROR_INSUFFICIENT_DATA = "DECISION_002"
+	ERROR_RULE_EVALUATION   = "DECISION_003"
+	ERROR_RISK_ASSESSMENT   = "DECISION_004"
+	ERROR_DATABASE_ERROR    = "DECISION_005"
+	ERROR_EXTERNAL_SERVICE  = "DECISION_006"
+	ERROR_BUSINESS_RULE     = "DECISION_007"
 )

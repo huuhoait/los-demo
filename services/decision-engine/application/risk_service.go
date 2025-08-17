@@ -72,10 +72,10 @@ func (s *RiskAssessmentService) calculateCategoryScores(request *domain.Decision
 // calculateCreditRisk calculates credit-based risk score (0-1, higher is riskier)
 func (s *RiskAssessmentService) calculateCreditRisk(request *domain.DecisionRequest) float64 {
 	creditScore := float64(request.CreditScore)
-	
+
 	// Normalize credit score to risk score (invert so higher credit = lower risk)
 	normalizedScore := (850 - creditScore) / (850 - 300)
-	
+
 	// Apply additional penalties for very low scores
 	if creditScore < 600 {
 		normalizedScore += 0.2
@@ -90,9 +90,9 @@ func (s *RiskAssessmentService) calculateCreditRisk(request *domain.DecisionRequ
 func (s *RiskAssessmentService) calculateIncomeRisk(request *domain.DecisionRequest) float64 {
 	// Loan-to-income ratio risk
 	ltiRatio := request.GetLoanToIncomeRatio()
-	
+
 	var riskScore float64
-	
+
 	switch {
 	case ltiRatio <= 0.5:
 		riskScore = 0.1 // Very low risk
@@ -116,7 +116,7 @@ func (s *RiskAssessmentService) calculateIncomeRisk(request *domain.DecisionRequ
 	// Verify monthly vs annual income consistency
 	expectedMonthly := request.AnnualIncome / 12
 	actualMonthly := request.MonthlyIncome
-	
+
 	if math.Abs(expectedMonthly-actualMonthly)/expectedMonthly > 0.2 {
 		riskScore += 0.15 // Inconsistent income data
 	}
@@ -127,7 +127,7 @@ func (s *RiskAssessmentService) calculateIncomeRisk(request *domain.DecisionRequ
 // calculateDebtRisk calculates debt-based risk score
 func (s *RiskAssessmentService) calculateDebtRisk(request *domain.DecisionRequest) float64 {
 	dtiRatio := request.CalculateDTI()
-	
+
 	switch {
 	case dtiRatio <= 0.20:
 		return 0.1 // Excellent
@@ -145,12 +145,12 @@ func (s *RiskAssessmentService) calculateDebtRisk(request *domain.DecisionReques
 // calculateEmploymentRisk calculates employment-based risk score
 func (s *RiskAssessmentService) calculateEmploymentRisk(request *domain.DecisionRequest) float64 {
 	riskScores := map[domain.EmploymentType]float64{
-		domain.EmploymentFullTime:    0.1,
-		domain.EmploymentPartTime:    0.4,
-		domain.EmploymentContract:    0.5,
+		domain.EmploymentFullTime:     0.1,
+		domain.EmploymentPartTime:     0.4,
+		domain.EmploymentContract:     0.5,
 		domain.EmploymentSelfEmployed: 0.7,
-		domain.EmploymentRetired:     0.3,
-		domain.EmploymentUnemployed:  1.0,
+		domain.EmploymentRetired:      0.3,
+		domain.EmploymentUnemployed:   1.0,
 	}
 
 	if score, exists := riskScores[request.EmploymentType]; exists {
@@ -163,9 +163,9 @@ func (s *RiskAssessmentService) calculateEmploymentRisk(request *domain.Decision
 func (s *RiskAssessmentService) assessPaymentHistory(creditScore int) domain.PaymentHistory {
 	// In real implementation, this would come from credit bureau data
 	// This is a simulation based on credit score
-	
+
 	var history domain.PaymentHistory
-	
+
 	switch {
 	case creditScore >= 750:
 		history = domain.PaymentHistory{

@@ -22,27 +22,27 @@ type User struct {
 
 // UserProfile represents the extended user profile information
 type UserProfile struct {
-	ID              string           `json:"id" db:"id"`
-	UserID          string           `json:"user_id" db:"user_id"`
-	FirstName       string           `json:"first_name" db:"first_name"`
-	LastName        string           `json:"last_name" db:"last_name"`
-	DateOfBirth     time.Time        `json:"date_of_birth" db:"date_of_birth"`
-	SSNEncrypted    string           `json:"-" db:"ssn_encrypted"`
-	Phone           string           `json:"phone" db:"phone"`
-	Address         Address          `json:"address" db:"address"`
-	EmploymentInfo  EmploymentInfo   `json:"employment_info" db:"employment_info"`
-	FinancialInfo   FinancialInfo    `json:"financial_info" db:"financial_info"`
-	CreatedAt       time.Time        `json:"created_at" db:"created_at"`
-	UpdatedAt       time.Time        `json:"updated_at" db:"updated_at"`
+	ID             string         `json:"id" db:"id"`
+	UserID         string         `json:"user_id" db:"user_id"`
+	FirstName      string         `json:"first_name" db:"first_name"`
+	LastName       string         `json:"last_name" db:"last_name"`
+	DateOfBirth    time.Time      `json:"date_of_birth" db:"date_of_birth"`
+	SSNEncrypted   string         `json:"-" db:"ssn_encrypted"`
+	Phone          string         `json:"phone" db:"phone"`
+	Address        Address        `json:"address" db:"address"`
+	EmploymentInfo EmploymentInfo `json:"employment_info" db:"employment_info"`
+	FinancialInfo  FinancialInfo  `json:"financial_info" db:"financial_info"`
+	CreatedAt      time.Time      `json:"created_at" db:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at" db:"updated_at"`
 }
 
 // Address represents a physical address
 type Address struct {
-	Street     string `json:"street"`
-	City       string `json:"city"`
-	State      string `json:"state"`
-	ZipCode    string `json:"zip_code"`
-	Country    string `json:"country"`
+	Street  string `json:"street"`
+	City    string `json:"city"`
+	State   string `json:"state"`
+	ZipCode string `json:"zip_code"`
+	Country string `json:"country"`
 }
 
 // Value implements the driver.Valuer interface for database storage
@@ -55,24 +55,24 @@ func (a *Address) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	
+
 	bytes, ok := value.([]byte)
 	if !ok {
 		return fmt.Errorf("cannot scan %T into Address", value)
 	}
-	
+
 	return json.Unmarshal(bytes, a)
 }
 
 // EmploymentInfo represents employment details
 type EmploymentInfo struct {
-	EmployerName    string  `json:"employer_name"`
-	JobTitle        string  `json:"job_title"`
-	EmploymentType  string  `json:"employment_type"`
+	EmployerName    string     `json:"employer_name"`
+	JobTitle        string     `json:"job_title"`
+	EmploymentType  string     `json:"employment_type"`
 	StartDate       *time.Time `json:"start_date"`
-	MonthlyIncome   float64 `json:"monthly_income"`
-	EmployerPhone   string  `json:"employer_phone"`
-	EmployerAddress Address `json:"employer_address"`
+	MonthlyIncome   float64    `json:"monthly_income"`
+	EmployerPhone   string     `json:"employer_phone"`
+	EmployerAddress Address    `json:"employer_address"`
 }
 
 // Value implements the driver.Valuer interface for database storage
@@ -85,24 +85,24 @@ func (e *EmploymentInfo) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	
+
 	bytes, ok := value.([]byte)
 	if !ok {
 		return fmt.Errorf("cannot scan %T into EmploymentInfo", value)
 	}
-	
+
 	return json.Unmarshal(bytes, e)
 }
 
 // FinancialInfo represents financial details
 type FinancialInfo struct {
-	AnnualIncome       float64 `json:"annual_income"`
-	MonthlyIncome      float64 `json:"monthly_income"`
-	OtherIncome        float64 `json:"other_income"`
+	AnnualIncome        float64 `json:"annual_income"`
+	MonthlyIncome       float64 `json:"monthly_income"`
+	OtherIncome         float64 `json:"other_income"`
 	MonthlyDebtPayments float64 `json:"monthly_debt_payments"`
-	MonthlyRent        float64 `json:"monthly_rent"`
-	SavingsAmount      float64 `json:"savings_amount"`
-	CheckingAmount     float64 `json:"checking_amount"`
+	MonthlyRent         float64 `json:"monthly_rent"`
+	SavingsAmount       float64 `json:"savings_amount"`
+	CheckingAmount      float64 `json:"checking_amount"`
 }
 
 // Value implements the driver.Valuer interface for database storage
@@ -115,26 +115,26 @@ func (f *FinancialInfo) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	
+
 	bytes, ok := value.([]byte)
 	if !ok {
 		return fmt.Errorf("cannot scan %T into FinancialInfo", value)
 	}
-	
+
 	return json.Unmarshal(bytes, f)
 }
 
 // KYCVerification represents KYC verification data
 type KYCVerification struct {
-	ID                  string                 `json:"id" db:"id"`
-	UserID              string                 `json:"user_id" db:"user_id"`
-	VerificationType    string                 `json:"verification_type" db:"verification_type"`
-	Provider            string                 `json:"provider" db:"provider"`
-	Status              KYCStatus              `json:"status" db:"status"`
-	ProviderReference   string                 `json:"provider_reference" db:"provider_reference"`
-	VerificationData    map[string]interface{} `json:"verification_data" db:"verification_data"`
-	CreatedAt           time.Time              `json:"created_at" db:"created_at"`
-	UpdatedAt           time.Time              `json:"updated_at" db:"updated_at"`
+	ID                string                 `json:"id" db:"id"`
+	UserID            string                 `json:"user_id" db:"user_id"`
+	VerificationType  string                 `json:"verification_type" db:"verification_type"`
+	Provider          string                 `json:"provider" db:"provider"`
+	Status            KYCStatus              `json:"status" db:"status"`
+	ProviderReference string                 `json:"provider_reference" db:"provider_reference"`
+	VerificationData  map[string]interface{} `json:"verification_data" db:"verification_data"`
+	CreatedAt         time.Time              `json:"created_at" db:"created_at"`
+	UpdatedAt         time.Time              `json:"updated_at" db:"updated_at"`
 }
 
 // KYCStatus represents the status of KYC verification
@@ -225,8 +225,6 @@ type DocumentStream struct {
 	Size        int64  `json:"size"`
 }
 
-
-
 // GetFullName returns the user's full name
 func (u *UserProfile) GetFullName() string {
 	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
@@ -241,12 +239,12 @@ func (u *UserProfile) IsAdult() bool {
 func (u *UserProfile) CalculateAge() int {
 	now := time.Now()
 	years := now.Year() - u.DateOfBirth.Year()
-	
+
 	// Adjust if birthday hasn't occurred this year
 	if now.YearDay() < u.DateOfBirth.YearDay() {
 		years--
 	}
-	
+
 	return years
 }
 

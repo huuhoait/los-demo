@@ -36,7 +36,7 @@ func (m *I18nMiddleware) Handler() gin.HandlerFunc {
 
 		// Add language to context
 		ctx := i18n.SetLanguageInContext(c.Request.Context(), lang)
-		
+
 		// Get localizer for this language
 		localizer := m.localizer.GetLocalizer(lang)
 		ctx = i18n.SetLocalizerInContext(ctx, localizer)
@@ -147,7 +147,7 @@ type ErrorResponse struct {
 func CreateErrorResponse(c *gin.Context, localizer *i18n.Localizer, errorCode string, details interface{}, templateData map[string]interface{}) ErrorResponse {
 	lang := GetLanguageFromGinContext(c)
 	message := localizer.LocalizeError(lang, errorCode, templateData)
-	
+
 	return ErrorResponse{
 		Code:      errorCode,
 		Message:   message,
@@ -169,7 +169,7 @@ type SuccessResponse struct {
 func CreateSuccessResponse(c *gin.Context, localizer *i18n.Localizer, messageKey string, data interface{}, templateData map[string]interface{}) SuccessResponse {
 	lang := GetLanguageFromGinContext(c)
 	message := localizer.LocalizeMessage(lang, messageKey, templateData)
-	
+
 	return SuccessResponse{
 		Message:   message,
 		Data:      data,
@@ -180,25 +180,25 @@ func CreateSuccessResponse(c *gin.Context, localizer *i18n.Localizer, messageKey
 
 // ValidationErrorResponse represents localized validation errors
 type ValidationErrorResponse struct {
-	Code      string                 `json:"code"`
-	Message   string                 `json:"message"`
-	Errors    map[string]string      `json:"errors"`
-	Language  string                 `json:"language"`
-	Timestamp string                 `json:"timestamp"`
+	Code      string            `json:"code"`
+	Message   string            `json:"message"`
+	Errors    map[string]string `json:"errors"`
+	Language  string            `json:"language"`
+	Timestamp string            `json:"timestamp"`
 }
 
 // CreateValidationErrorResponse creates a localized validation error response
 func CreateValidationErrorResponse(c *gin.Context, localizer *i18n.Localizer, validationErrors map[string]string) ValidationErrorResponse {
 	lang := GetLanguageFromGinContext(c)
-	
+
 	// Localize validation errors
 	localizedErrors := make(map[string]string)
 	for field, errorKey := range validationErrors {
 		localizedErrors[field] = localizer.LocalizeValidation(lang, errorKey, nil)
 	}
-	
+
 	message := localizer.LocalizeMessage(lang, "validation_failed", nil)
-	
+
 	return ValidationErrorResponse{
 		Code:      "VALIDATION_ERROR",
 		Message:   message,

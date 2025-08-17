@@ -1,8 +1,8 @@
 package domain
 
 import (
-	"time"
 	"github.com/golang-jwt/jwt/v5"
+	"time"
 )
 
 // User represents the user domain model
@@ -88,25 +88,25 @@ type Permission string
 
 const (
 	// User permissions
-	PermissionViewProfile   Permission = "user:view_profile"
-	PermissionEditProfile   Permission = "user:edit_profile"
-	PermissionUploadDocs    Permission = "user:upload_documents"
-	
+	PermissionViewProfile Permission = "user:view_profile"
+	PermissionEditProfile Permission = "user:edit_profile"
+	PermissionUploadDocs  Permission = "user:upload_documents"
+
 	// Application permissions
-	PermissionCreateApp     Permission = "application:create"
-	PermissionViewApp       Permission = "application:view"
-	PermissionEditApp       Permission = "application:edit"
-	PermissionSubmitApp     Permission = "application:submit"
-	
+	PermissionCreateApp Permission = "application:create"
+	PermissionViewApp   Permission = "application:view"
+	PermissionEditApp   Permission = "application:edit"
+	PermissionSubmitApp Permission = "application:submit"
+
 	// Decision permissions
 	PermissionViewDecisions Permission = "decision:view"
 	PermissionMakeDecision  Permission = "decision:make"
 	PermissionViewQueue     Permission = "decision:view_queue"
-	
+
 	// Admin permissions
-	PermissionManageUsers   Permission = "admin:manage_users"
-	PermissionViewAudit     Permission = "admin:view_audit"
-	PermissionManageRules   Permission = "admin:manage_rules"
+	PermissionManageUsers Permission = "admin:manage_users"
+	PermissionViewAudit   Permission = "admin:view_audit"
+	PermissionManageRules Permission = "admin:manage_rules"
 )
 
 // UserRole represents user role types

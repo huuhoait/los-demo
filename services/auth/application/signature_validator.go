@@ -129,7 +129,7 @@ func (h *HTTPSignatureValidator) ValidateHTTPSignature(ctx context.Context, sign
 // parseSignatureHeader parses the Signature header into components
 func (h *HTTPSignatureValidator) parseSignatureHeader(header string) (map[string]string, error) {
 	params := make(map[string]string)
-	
+
 	// Split by comma and parse key=value pairs
 	pairs := strings.Split(header, ",")
 	for _, pair := range pairs {
@@ -137,24 +137,24 @@ func (h *HTTPSignatureValidator) parseSignatureHeader(header string) (map[string
 		if pair == "" {
 			continue
 		}
-		
+
 		// Find the first = sign
 		eqIndex := strings.Index(pair, "=")
 		if eqIndex == -1 {
 			return nil, fmt.Errorf("invalid parameter format: %s", pair)
 		}
-		
+
 		key := strings.TrimSpace(pair[:eqIndex])
 		value := strings.TrimSpace(pair[eqIndex+1:])
-		
+
 		// Remove quotes if present
 		if len(value) >= 2 && value[0] == '"' && value[len(value)-1] == '"' {
 			value = value[1 : len(value)-1]
 		}
-		
+
 		params[key] = value
 	}
-	
+
 	return params, nil
 }
 
@@ -195,10 +195,10 @@ func (h *HTTPSignatureValidator) validateClockSkew(dateHeader string) error {
 func (h *HTTPSignatureValidator) buildSignatureString(headers, method, path, date string, body []byte) (string, error) {
 	var parts []string
 	headerList := strings.Split(headers, " ")
-	
+
 	for _, header := range headerList {
 		header = strings.ToLower(strings.TrimSpace(header))
-		
+
 		switch header {
 		case "request-line":
 			requestLine := fmt.Sprintf("%s %s HTTP/1.1", strings.ToUpper(method), path)
@@ -219,7 +219,7 @@ func (h *HTTPSignatureValidator) buildSignatureString(headers, method, path, dat
 			h.logger.Debug("Skipping unknown header in signature", zap.String("header", header))
 		}
 	}
-	
+
 	return strings.Join(parts, "\n"), nil
 }
 
@@ -235,12 +235,12 @@ func (h *HTTPSignatureValidator) verifySignature(algorithm string, key []byte, m
 		mac := hmac.New(sha256.New, key)
 		mac.Write([]byte(message))
 		computedSig := mac.Sum(nil)
-		
+
 		if subtle.ConstantTimeCompare(expectedSig, computedSig) != 1 {
 			return fmt.Errorf("signature mismatch")
 		}
 		return nil
-		
+
 	default:
 		return fmt.Errorf("unsupported algorithm: %s", algorithm)
 	}
@@ -251,21 +251,21 @@ func (h *HTTPSignatureValidator) verifySignature(algorithm string, key []byte, m
 // CheckRateLimit checks if the request should be rate limited
 func (s *AuthService) CheckRateLimit(ctx context.Context, identifier string) error {
 	key := "rate_limit:auth:" + identifier
-	
+
 	// Get current count
 	count, err := s.cache.Get(ctx, key)
 	if err != nil && err.Error() != "key not found" {
 		s.logger.Error("Failed to get rate limit count", zap.Error(err))
 		return nil // Allow request if cache is unavailable
 	}
-	
+
 	currentCount := int64(0)
 	if count != nil {
 		if c, ok := count.(int64); ok {
 			currentCount = c
 		}
 	}
-	
+
 	// Check limit (100 requests per hour)
 	limit := int64(100)
 	if currentCount >= limit {
@@ -273,17 +273,17 @@ func (s *AuthService) CheckRateLimit(ctx context.Context, identifier string) err
 			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.rate_limit_exceeded"}),
 			"Too many authentication requests. Please try again later.")
 	}
-	
+
 	// Increment counter
 	if _, err := s.cache.Increment(ctx, key); err != nil {
 		s.logger.Error("Failed to increment rate limit counter", zap.Error(err))
 	}
-	
+
 	// Set expiration for new counter
 	if currentCount == 0 {
 		s.cache.SetExpiration(ctx, key, time.Hour)
 	}
-	
+
 	return nil
 }
 

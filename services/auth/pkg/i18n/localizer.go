@@ -72,7 +72,7 @@ func (l *Localizer) GetLocalizerFromContext(ctx context.Context) *i18n.Localizer
 // Localize translates a message with the given parameters
 func (l *Localizer) Localize(lang, messageID string, templateData map[string]interface{}) string {
 	localizer := l.GetLocalizer(lang)
-	
+
 	msg, err := localizer.Localize(&i18n.LocalizeConfig{
 		MessageID:    messageID,
 		TemplateData: templateData,
@@ -81,7 +81,7 @@ func (l *Localizer) Localize(lang, messageID string, templateData map[string]int
 		// Return the message ID if translation fails
 		return messageID
 	}
-	
+
 	return msg
 }
 
@@ -195,9 +195,9 @@ func DetectLanguageFromHeader(acceptLang string) string {
 
 // Helper function to check if string contains substring
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && s[:len(substr)] == substr || 
-		   (len(s) > len(substr) && s[len(s)-len(substr):] == substr) ||
-		   (len(s) > 2*len(substr) && s[len(substr):len(s)-len(substr)] == substr)
+	return len(s) >= len(substr) && s[:len(substr)] == substr ||
+		(len(s) > len(substr) && s[len(s)-len(substr):] == substr) ||
+		(len(s) > 2*len(substr) && s[len(substr):len(s)-len(substr)] == substr)
 }
 
 // LocalizedError represents an error with localized message

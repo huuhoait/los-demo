@@ -82,7 +82,7 @@ func (h *DecisionHandler) MakeDecision(c *gin.Context) {
 // GetDecision handles GET /api/v1/decisions/:applicationId
 func (h *DecisionHandler) GetDecision(c *gin.Context) {
 	applicationID := c.Param("applicationId")
-	
+
 	logger := h.logger.With(
 		zap.String("endpoint", "get_decision"),
 		zap.String("method", "GET"),

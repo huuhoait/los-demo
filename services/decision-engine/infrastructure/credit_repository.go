@@ -18,11 +18,11 @@ type CreditBureauRepository struct {
 
 // CreditBureauConfig holds configuration for credit bureau services
 type CreditBureauConfig struct {
-	ExperianEndpoint string
-	EquifaxEndpoint  string
+	ExperianEndpoint   string
+	EquifaxEndpoint    string
 	TransUnionEndpoint string
-	APITimeout       time.Duration
-	RetryAttempts    int
+	APITimeout         time.Duration
+	RetryAttempts      int
 }
 
 // NewCreditBureauRepository creates a new credit bureau repository
@@ -77,7 +77,7 @@ func (r *CreditBureauRepository) GetDetailedCreditReport(ctx context.Context, re
 // simulateCreditBureauResponse simulates credit bureau API response
 func (r *CreditBureauRepository) simulateCreditBureauResponse(request *domain.CreditScoreRequest) *domain.CreditScoreResponse {
 	// This is simulation logic - in production, replace with actual API calls
-	
+
 	// Use last 4 digits of SSN to generate consistent but varied scores
 	lastFour := request.SSN[len(request.SSN)-4:]
 	seed := 0
@@ -86,12 +86,12 @@ func (r *CreditBureauRepository) simulateCreditBureauResponse(request *domain.Cr
 	}
 
 	// Generate score between 300-850 based on seed
-	baseScore := 300 + (seed%551)
-	
+	baseScore := 300 + (seed % 551)
+
 	// Adjust based on name length (arbitrary simulation factor)
 	nameAdjustment := len(request.FirstName) + len(request.LastName)
 	adjustedScore := baseScore + (nameAdjustment % 100)
-	
+
 	// Ensure score is in valid range
 	if adjustedScore > 850 {
 		adjustedScore = 850
@@ -101,13 +101,13 @@ func (r *CreditBureauRepository) simulateCreditBureauResponse(request *domain.Cr
 	}
 
 	return &domain.CreditScoreResponse{
-		CreditScore:   adjustedScore,
-		ScoreType:     "FICO",
-		ScoreRange:    "300-850",
-		Bureau:        "EXPERIAN",
-		ReportDate:    time.Now(),
-		FactorCodes:   r.generateFactorCodes(adjustedScore),
-		RiskLevel:     r.categorizeRiskLevel(adjustedScore),
+		CreditScore: adjustedScore,
+		ScoreType:   "FICO",
+		ScoreRange:  "300-850",
+		Bureau:      "EXPERIAN",
+		ReportDate:  time.Now(),
+		FactorCodes: r.generateFactorCodes(adjustedScore),
+		RiskLevel:   r.categorizeRiskLevel(adjustedScore),
 	}
 }
 
@@ -134,10 +134,10 @@ func (r *CreditBureauRepository) simulateDetailedCreditReport(request *domain.Cr
 
 	// Generate sample accounts based on credit score
 	report.Accounts = r.generateSampleAccounts(creditScore.CreditScore)
-	
+
 	// Generate sample inquiries
 	report.Inquiries = r.generateSampleInquiries(creditScore.CreditScore)
-	
+
 	// Generate payment history
 	report.PaymentHistory = r.generatePaymentHistory(creditScore.CreditScore)
 
@@ -194,13 +194,13 @@ func (r *CreditBureauRepository) generateSampleAccounts(creditScore int) []domai
 
 	for i := 0; i < accountCount; i++ {
 		account := domain.CreditAccount{
-			AccountID:     fmt.Sprintf("ACC-%d-%d", creditScore, i+1),
-			AccountType:   r.getAccountType(i),
-			Creditor:      r.getCreditorName(i),
-			OpenDate:      time.Now().AddDate(-2-i, 0, 0),
-			Balance:       r.generateBalance(creditScore, i),
-			CreditLimit:   r.generateCreditLimit(creditScore, i),
-			PaymentStatus: r.getPaymentStatus(creditScore),
+			AccountID:      fmt.Sprintf("ACC-%d-%d", creditScore, i+1),
+			AccountType:    r.getAccountType(i),
+			Creditor:       r.getCreditorName(i),
+			OpenDate:       time.Now().AddDate(-2-i, 0, 0),
+			Balance:        r.generateBalance(creditScore, i),
+			CreditLimit:    r.generateCreditLimit(creditScore, i),
+			PaymentStatus:  r.getPaymentStatus(creditScore),
 			MonthsReviewed: 24,
 		}
 

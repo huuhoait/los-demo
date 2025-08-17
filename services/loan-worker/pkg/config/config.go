@@ -12,22 +12,22 @@ import (
 
 // Config holds the application configuration
 type Config struct {
-	Server     ServerConfig     `yaml:"server"`
-	Database   DatabaseConfig   `yaml:"database"`
-	Conductor  ConductorConfig  `yaml:"conductor"`
-	Logging    LoggingConfig    `yaml:"logging"`
-	Security   SecurityConfig   `yaml:"security"`
+	Server      ServerConfig    `yaml:"server"`
+	Database    DatabaseConfig  `yaml:"database"`
+	Conductor   ConductorConfig `yaml:"conductor"`
+	Logging     LoggingConfig   `yaml:"logging"`
+	Security    SecurityConfig  `yaml:"security"`
 	Application AppConfig       `yaml:"application"`
-	I18n       I18nConfig       `yaml:"i18n"`
+	I18n        I18nConfig      `yaml:"i18n"`
 }
 
 // ServerConfig holds server-related configuration
 type ServerConfig struct {
-	Port                    int           `yaml:"port"`
-	Host                    string        `yaml:"host"`
-	ReadTimeout             int           `yaml:"read_timeout"`
-	WriteTimeout            int           `yaml:"write_timeout"`
-	GracefulShutdownTimeout int           `yaml:"graceful_shutdown_timeout"`
+	Port                    int    `yaml:"port"`
+	Host                    string `yaml:"host"`
+	ReadTimeout             int    `yaml:"read_timeout"`
+	WriteTimeout            int    `yaml:"write_timeout"`
+	GracefulShutdownTimeout int    `yaml:"graceful_shutdown_timeout"`
 }
 
 // DatabaseConfig holds database-related configuration
@@ -45,33 +45,33 @@ type DatabaseConfig struct {
 
 // ConductorConfig holds Netflix Conductor-related configuration
 type ConductorConfig struct {
-	BaseURL      string `yaml:"base_url"`
-	Timeout      int    `yaml:"timeout"`
-	RetryAttempts int   `yaml:"retry_attempts"`
-	RetryDelay   int    `yaml:"retry_delay"`
+	BaseURL       string `yaml:"base_url"`
+	Timeout       int    `yaml:"timeout"`
+	RetryAttempts int    `yaml:"retry_attempts"`
+	RetryDelay    int    `yaml:"retry_delay"`
 }
 
 // LoggingConfig holds logging-related configuration
 type LoggingConfig struct {
-	Level        string `yaml:"level"`
-	Format       string `yaml:"format"`
-	Output       string `yaml:"output"`
-	EnableConsole bool  `yaml:"enable_console"`
-	EnableFile   bool   `yaml:"enable_file"`
-	FilePath     string `yaml:"file_path"`
-	MaxSize      int    `yaml:"max_size"`
-	MaxAge       int    `yaml:"max_age"`
-	MaxBackups   int    `yaml:"max_backups"`
+	Level         string `yaml:"level"`
+	Format        string `yaml:"format"`
+	Output        string `yaml:"output"`
+	EnableConsole bool   `yaml:"enable_console"`
+	EnableFile    bool   `yaml:"enable_file"`
+	FilePath      string `yaml:"file_path"`
+	MaxSize       int    `yaml:"max_size"`
+	MaxAge        int    `yaml:"max_age"`
+	MaxBackups    int    `yaml:"max_backups"`
 }
 
 // SecurityConfig holds security-related configuration
 type SecurityConfig struct {
-	JWTSecret           string   `yaml:"jwt_secret"`
-	JWTExpiration       int      `yaml:"jwt_expiration"`
-	BcryptCost          int      `yaml:"bcrypt_cost"`
-	CORSAllowedOrigins  []string `yaml:"cors_allowed_origins"`
-	CORSAllowedMethods  []string `yaml:"cors_allowed_methods"`
-	CORSAllowedHeaders  []string `yaml:"cors_allowed_headers"`
+	JWTSecret          string   `yaml:"jwt_secret"`
+	JWTExpiration      int      `yaml:"jwt_expiration"`
+	BcryptCost         int      `yaml:"bcrypt_cost"`
+	CORSAllowedOrigins []string `yaml:"cors_allowed_origins"`
+	CORSAllowedMethods []string `yaml:"cors_allowed_methods"`
+	CORSAllowedHeaders []string `yaml:"cors_allowed_headers"`
 }
 
 // AppConfig holds application-specific configuration
@@ -90,16 +90,16 @@ type AppConfig struct {
 
 // I18nConfig holds internationalization configuration
 type I18nConfig struct {
-	DefaultLanguage     string   `yaml:"default_language"`
-	SupportedLanguages  []string `yaml:"supported_languages"`
-	FallbackLanguage    string   `yaml:"fallback_language"`
+	DefaultLanguage    string   `yaml:"default_language"`
+	SupportedLanguages []string `yaml:"supported_languages"`
+	FallbackLanguage   string   `yaml:"fallback_language"`
 }
 
 // LoadConfig loads configuration from file and environment variables
 func LoadConfig(configPath string) (*Config, error) {
 	// Get environment
 	env := getEnvironment()
-	
+
 	// Load YAML file
 	data, err := os.ReadFile(configPath)
 	if err != nil {

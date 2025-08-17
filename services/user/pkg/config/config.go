@@ -12,18 +12,18 @@ import (
 
 // Config holds all configuration for the user service
 type Config struct {
-	Environment string        `yaml:"environment" json:"environment"`
-	Service     ServiceConfig `yaml:"service" json:"service"`
-	Server      ServerConfig  `yaml:"server" json:"server"`
-	Database    DatabaseConfig `yaml:"database" json:"database"`
-	Redis       RedisConfig   `yaml:"redis" json:"redis"`
-	Storage     StorageConfig `yaml:"storage" json:"storage"`
-	Encryption  EncryptionConfig `yaml:"encryption" json:"encryption"`
-	Logging     LoggingConfig `yaml:"logging" json:"logging"`
-	Security    SecurityConfig `yaml:"security" json:"security"`
+	Environment      string                 `yaml:"environment" json:"environment"`
+	Service          ServiceConfig          `yaml:"service" json:"service"`
+	Server           ServerConfig           `yaml:"server" json:"server"`
+	Database         DatabaseConfig         `yaml:"database" json:"database"`
+	Redis            RedisConfig            `yaml:"redis" json:"redis"`
+	Storage          StorageConfig          `yaml:"storage" json:"storage"`
+	Encryption       EncryptionConfig       `yaml:"encryption" json:"encryption"`
+	Logging          LoggingConfig          `yaml:"logging" json:"logging"`
+	Security         SecurityConfig         `yaml:"security" json:"security"`
 	ExternalServices ExternalServicesConfig `yaml:"external_services" json:"external_services"`
-	Features    FeaturesConfig `yaml:"features" json:"features"`
-	I18n        I18nConfig    `yaml:"i18n" json:"i18n"`
+	Features         FeaturesConfig         `yaml:"features" json:"features"`
+	I18n             I18nConfig             `yaml:"i18n" json:"i18n"`
 }
 
 // ServiceConfig holds service-specific configuration
@@ -78,8 +78,8 @@ type StorageConfig struct {
 
 // EncryptionConfig holds encryption configuration
 type EncryptionConfig struct {
-	MasterKey        string `yaml:"master_key" json:"master_key"`
-	KeyRotationDays  int    `yaml:"key_rotation_days" json:"key_rotation_days"`
+	MasterKey       string `yaml:"master_key" json:"master_key"`
+	KeyRotationDays int    `yaml:"key_rotation_days" json:"key_rotation_days"`
 }
 
 // LoggingConfig holds logging configuration
@@ -95,10 +95,10 @@ type LoggingConfig struct {
 
 // SecurityConfig holds security configuration
 type SecurityConfig struct {
-	JWTSecret           string `yaml:"jwt_secret" json:"jwt_secret"`
-	BcryptCost          int    `yaml:"bcrypt_cost" json:"bcrypt_cost"`
-	RateLimitRequests   int    `yaml:"rate_limit_requests" json:"rate_limit_requests"`
-	RateLimitWindow     int    `yaml:"rate_limit_window" json:"rate_limit_window"`
+	JWTSecret         string `yaml:"jwt_secret" json:"jwt_secret"`
+	BcryptCost        int    `yaml:"bcrypt_cost" json:"bcrypt_cost"`
+	RateLimitRequests int    `yaml:"rate_limit_requests" json:"rate_limit_requests"`
+	RateLimitWindow   int    `yaml:"rate_limit_window" json:"rate_limit_window"`
 }
 
 // ExternalServicesConfig holds external service configurations
@@ -117,11 +117,11 @@ type ServiceEndpoint struct {
 
 // FeaturesConfig holds feature flags
 type FeaturesConfig struct {
-	Enable2FA          bool     `yaml:"enable_2fa" json:"enable_2fa"`
-	EnableDocumentOCR  bool     `yaml:"enable_document_ocr" json:"enable_document_ocr"`
-	EnableRealKYC      bool     `yaml:"enable_real_kyc" json:"enable_real_kyc"`
-	MaxFileSize        int64    `yaml:"max_file_size" json:"max_file_size"`
-	AllowedFileTypes   []string `yaml:"allowed_file_types" json:"allowed_file_types"`
+	Enable2FA         bool     `yaml:"enable_2fa" json:"enable_2fa"`
+	EnableDocumentOCR bool     `yaml:"enable_document_ocr" json:"enable_document_ocr"`
+	EnableRealKYC     bool     `yaml:"enable_real_kyc" json:"enable_real_kyc"`
+	MaxFileSize       int64    `yaml:"max_file_size" json:"max_file_size"`
+	AllowedFileTypes  []string `yaml:"allowed_file_types" json:"allowed_file_types"`
 }
 
 // I18nConfig holds internationalization configuration
@@ -256,23 +256,23 @@ func validateConfig(cfg *Config) error {
 	if cfg.Database.Host == "" {
 		return fmt.Errorf("database host is required")
 	}
-	
+
 	if cfg.Database.Name == "" {
 		return fmt.Errorf("database name is required")
 	}
-	
+
 	if cfg.Database.User == "" {
 		return fmt.Errorf("database user is required")
 	}
-	
+
 	if cfg.Encryption.MasterKey == "" && cfg.Environment == "production" {
 		return fmt.Errorf("encryption master key is required in production")
 	}
-	
+
 	if cfg.Security.JWTSecret == "" && cfg.Environment == "production" {
 		return fmt.Errorf("JWT secret is required in production")
 	}
-	
+
 	return nil
 }
 
