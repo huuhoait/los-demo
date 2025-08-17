@@ -1,0 +1,35 @@
+# Vietnamese localization for Decision Engine Service
+
+[messages]
+service_started = "Dịch vụ Decision Engine đã khởi động thành công"
+service_stopped = "Dịch vụ Decision Engine đã dừng"
+database_connected = "Kết nối cơ sở dữ liệu thành công"
+database_error = "Kết nối cơ sở dữ liệu thất bại"
+
+[errors]
+DECISION_001 = "Yêu cầu quyết định không hợp lệ"
+DECISION_002 = "Dữ liệu không đủ để đưa ra quyết định"
+DECISION_003 = "Đánh giá quy tắc thất bại"
+DECISION_004 = "Đánh giá rủi ro thất bại"
+DECISION_005 = "Lỗi cơ sở dữ liệu"
+DECISION_006 = "Lỗi dịch vụ bên ngoài"
+DECISION_007 = "Vi phạm quy tắc kinh doanh"
+
+[decisions]
+APPROVE = "Đơn được phê duyệt"
+DENY = "Đơn bị từ chối"
+MANUAL_REVIEW = "Cần xem xét thủ công"
+CONDITIONAL = "Phê duyệt có điều kiện"
+PENDING = "Đang chờ quyết định"
+
+[risk_levels]
+LOW = "Rủi ro thấp"
+MEDIUM = "Rủi ro trung bình"
+HIGH = "Rủi ro cao"
+CRITICAL = "Rủi ro nghiêm trọng"
+
+[success_messages]
+DECISION_SUCCESS = "Xử lý quyết định thành công"
+STATISTICS_SUCCESS = "Lấy thống kê thành công"
+RULES_SUCCESS = "Lấy quy tắc thành công"
+HISTORY_SUCCESS = "Lấy lịch sử quyết định thành công"

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  decision-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8082
+      - DATABASE_URL=postgres://user:password@postgres:5432/decision_engine?sslmode=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LOG_LEVEL=info
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - .:/app
+    networks:
+      - decision-engine-network
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=decision_engine
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - decision-engine-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - decision-engine-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  decision-engine-network:
+    driver: bridge

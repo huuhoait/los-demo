@@ -1,0 +1,35 @@
+# English localization for Decision Engine Service
+
+[messages]
+service_started = "Decision Engine Service started successfully"
+service_stopped = "Decision Engine Service stopped"
+database_connected = "Database connection established"
+database_error = "Database connection failed"
+
+[errors]
+DECISION_001 = "Invalid decision request"
+DECISION_002 = "Insufficient data for decision"
+DECISION_003 = "Rule evaluation failed"
+DECISION_004 = "Risk assessment failed"
+DECISION_005 = "Database error occurred"
+DECISION_006 = "External service error"
+DECISION_007 = "Business rule violation"
+
+[decisions]
+APPROVE = "Application approved"
+DENY = "Application denied"
+MANUAL_REVIEW = "Manual review required"
+CONDITIONAL = "Conditional approval"
+PENDING = "Decision pending"
+
+[risk_levels]
+LOW = "Low risk"
+MEDIUM = "Medium risk"
+HIGH = "High risk"
+CRITICAL = "Critical risk"
+
+[success_messages]
+DECISION_SUCCESS = "Decision processed successfully"
+STATISTICS_SUCCESS = "Statistics retrieved successfully"
+RULES_SUCCESS = "Rules retrieved successfully"
+HISTORY_SUCCESS = "Decision history retrieved successfully"

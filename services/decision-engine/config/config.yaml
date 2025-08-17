@@ -1,0 +1,84 @@
+# Decision Engine Service Configuration
+
+# Server Configuration
+server:
+  port: "8082"
+  read_timeout: "10s"
+  write_timeout: "10s"
+  idle_timeout: "60s"
+  cors_enabled: true
+  cors_origins: 
+    - "http://localhost:3000"
+    - "http://localhost:8080"
+
+# Database Configuration
+database:
+  url: "postgres://user:password@localhost:5432/decision_engine?sslmode=disable"
+  max_open_conns: 25
+  max_idle_conns: 10
+  conn_max_lifetime: "5m"
+  auto_migrate: true
+
+# Redis Configuration
+redis:
+  host: "localhost"
+  port: "6379"
+  password: ""
+  db: 2
+  pool_size: 10
+
+# Logging Configuration
+logger:
+  level: "info"
+  format: "json"
+  output: "stdout"
+
+# Decision Engine Specific Configuration
+decision_engine:
+  # Risk Assessment Configuration
+  risk_assessment:
+    min_credit_score: 600
+    max_dti_ratio: 0.45
+    min_annual_income: 25000.0
+    
+  # Interest Rate Configuration
+  interest_rates:
+    base_rate: 6.5
+    credit_score_adjustment:
+      excellent: -1.5  # 750+
+      good: -0.5       # 700-749
+      fair: 0.5        # 650-699
+      poor: 2.0        # 600-649
+    
+  # Loan Amount Limits
+  loan_limits:
+    min_amount: 1000
+    max_amount: 100000
+    max_income_ratio: 5.0
+
+# External Services Configuration
+external_services:
+  credit_bureau:
+    base_url: "https://api.creditbureau.com"
+    api_key: "your_api_key_here"
+    timeout: "30s"
+    retry_count: 3
+    
+  notification_service:
+    base_url: "http://localhost:8084"
+    timeout: "10s"
+
+# Business Rules Configuration
+business_rules:
+  auto_approval:
+    min_credit_score: 750
+    max_dti_ratio: 0.25
+    min_annual_income: 50000
+    
+  auto_denial:
+    min_credit_score: 550
+    max_dti_ratio: 0.50
+    
+  manual_review:
+    credit_score_range: [550, 750]
+    dti_ratio_range: [0.25, 0.50]
