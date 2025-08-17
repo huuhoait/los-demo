@@ -1,3 +1,6 @@
+//go:build !conductor && !test_conductor && !test_workflow
+// +build !conductor,!test_conductor,!test_workflow
+
 package main
 
 import (

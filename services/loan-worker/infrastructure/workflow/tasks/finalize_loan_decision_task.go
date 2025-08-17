@@ -66,7 +66,7 @@ func (h *FinalizeLoanDecisionTaskHandler) Execute(
 		}
 	case "manual_review":
 		nextSteps = []string{
-			"Manual underwriting review",
+			"Manual review",
 			"Additional documentation request",
 		}
 	default:

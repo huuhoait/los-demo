@@ -1,3 +1,6 @@
+//go:build test_workflow
+// +build test_workflow
+
 package main
 
 import (

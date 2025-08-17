@@ -47,7 +47,6 @@ const (
 	StatePreQualified       ApplicationState = "pre_qualified"
 	StateDocumentsSubmitted ApplicationState = "documents_submitted"
 	StateIdentityVerified   ApplicationState = "identity_verified"
-	StateUnderwriting       ApplicationState = "underwriting"
 	StateManualReview       ApplicationState = "manual_review"
 	StateApproved           ApplicationState = "approved"
 	StateDenied             ApplicationState = "denied"
@@ -624,8 +623,7 @@ func (app *LoanApplication) CanTransitionTo(newState ApplicationState) bool {
 		StateInitiated:          {StatePreQualified},
 		StatePreQualified:       {StateDocumentsSubmitted},
 		StateDocumentsSubmitted: {StateIdentityVerified},
-		StateIdentityVerified:   {StateUnderwriting},
-		StateUnderwriting:       {StateApproved, StateDenied, StateManualReview},
+		StateIdentityVerified:   {StateApproved, StateDenied, StateManualReview},
 		StateManualReview:       {StateApproved, StateDenied},
 		StateApproved:           {StateDocumentsSigned},
 		StateDocumentsSigned:    {StateFunded},

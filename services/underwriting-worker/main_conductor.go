@@ -452,6 +452,7 @@ type ConductorTask struct {
 
 type ConductorTaskResult struct {
 	TaskID                string                 `json:"taskId"`
+	ReferenceTaskName     string                 `json:"referenceTaskName"`
 	WorkflowInstanceID    string                 `json:"workflowInstanceId"`
 	Status                string                 `json:"status"`
 	OutputData            map[string]interface{} `json:"outputData"`

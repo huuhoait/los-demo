@@ -68,6 +68,7 @@ type ConductorTask struct {
 // ConductorTaskResult represents a task result for Conductor
 type ConductorTaskResult struct {
 	TaskID                string                 `json:"taskId"`
+	ReferenceTaskName     string                 `json:"referenceTaskName"`
 	WorkflowInstanceID    string                 `json:"workflowInstanceId"`
 	Status                string                 `json:"status"`
 	OutputData            map[string]interface{} `json:"outputData"`
@@ -326,6 +327,7 @@ func (c *HTTPConductorClient) executeTask(task *ConductorTask, workerID string, 
 	// Convert result back to Conductor format
 	conductorResult := &ConductorTaskResult{
 		TaskID:             task.TaskID,
+		ReferenceTaskName:  task.TaskType, // Use task type as reference task name
 		WorkflowInstanceID: task.WorkflowInstanceID,
 		WorkerID:           workerID,
 	}
@@ -556,14 +558,22 @@ func (c *HTTPConductorClient) RegisterWorkflowDefinition(workflow *WorkflowDefin
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		body, _ := io.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
+
+	// Accept 200, 201, or 409 (conflict) as success
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusConflict {
 		return fmt.Errorf("register workflow definition failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
-	c.logger.Info("Registered workflow definition",
-		zap.String("workflow_name", workflow.Name),
-		zap.Int("workflow_version", workflow.Version))
+	if resp.StatusCode == http.StatusConflict {
+		c.logger.Info("Workflow definition already exists",
+			zap.String("workflow_name", workflow.Name),
+			zap.Int("workflow_version", workflow.Version))
+	} else {
+		c.logger.Info("Registered workflow definition",
+			zap.String("workflow_name", workflow.Name),
+			zap.Int("workflow_version", workflow.Version))
+	}
 
 	return nil
 }

@@ -1,3 +1,6 @@
+//go:build test_conductor
+// +build test_conductor
+
 package main
 
 import (

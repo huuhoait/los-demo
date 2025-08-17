@@ -153,44 +153,7 @@ func (o *LoanWorkflowOrchestrator) StartPreQualificationWorkflow(ctx context.Con
 	return execution, nil
 }
 
-// StartUnderwritingWorkflow starts the underwriting workflow
-func (o *LoanWorkflowOrchestrator) StartUnderwritingWorkflow(ctx context.Context, application *domain.LoanApplication) (*WorkflowExecution, error) {
-	logger := o.logger.With(
-		zap.String("application_id", application.ID),
-		zap.String("operation", "start_underwriting_workflow"),
-	)
 
-	workflowInput := map[string]interface{}{
-		"applicationId": application.ID,
-		"userId":        application.UserID,
-		"loanAmount":    application.LoanAmount,
-		"annualIncome":  application.AnnualIncome,
-		"monthlyIncome": application.MonthlyIncome,
-		"monthlyDebt":   application.MonthlyDebt,
-		"dtiRatio":      application.CalculateDTI(),
-		"riskScore":     application.RiskScore,
-		"startTime":     time.Now().UTC(),
-	}
-
-	logger.Info("Starting underwriting workflow")
-
-	execution, err := o.conductorClient.StartWorkflow(ctx, "underwriting_workflow", 1, workflowInput)
-	if err != nil {
-		logger.Error("Failed to start underwriting workflow", zap.Error(err))
-		return nil, &domain.LoanError{
-			Code:        domain.LOAN_011,
-			Message:     "Failed to start underwriting workflow",
-			Description: err.Error(),
-			HTTPStatus:  500,
-		}
-	}
-
-	logger.Info("Underwriting workflow started successfully",
-		zap.String("workflow_id", execution.WorkflowID),
-	)
-
-	return execution, nil
-}
 
 // HandleStateTransition handles state transitions triggered by workflow events
 func (o *LoanWorkflowOrchestrator) HandleStateTransition(ctx context.Context, applicationID string, fromState, toState domain.ApplicationState) error {
@@ -213,9 +176,6 @@ func (o *LoanWorkflowOrchestrator) HandleStateTransition(ctx context.Context, ap
 			string(domain.StateIdentityVerified): "identity_verification_task",
 		},
 		string(domain.StateIdentityVerified): {
-			string(domain.StateUnderwriting): "automated_underwriting_task",
-		},
-		string(domain.StateUnderwriting): {
 			string(domain.StateApproved):     "approval_task",
 			string(domain.StateDenied):       "denial_task",
 			string(domain.StateManualReview): "manual_review_task",

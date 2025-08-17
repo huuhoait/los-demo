@@ -76,8 +76,7 @@ This document describes the comprehensive implementation of the `identity_verifi
 
 **Supported State Transitions**:
 - `documents_submitted` → `identity_verified`
-- `identity_verified` → `underwriting`
-- `underwriting` → `approved`/`denied`/`manual_review`
+- `identity_verified` → `approved`/`denied`/`manual_review`
 
 ### ✅ External Service Integration
 

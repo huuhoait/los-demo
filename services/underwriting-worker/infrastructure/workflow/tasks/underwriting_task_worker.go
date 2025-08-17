@@ -286,6 +286,9 @@ func (w *UnderwritingTaskWorker) registerWorkflowDefinitions() error {
 
 	// Register task definitions
 	taskDefs := w.conductorClient.CreateTaskDefinitions()
+	successfulRegistrations := 0
+	totalTasks := len(taskDefs)
+
 	for _, taskDef := range taskDefs {
 		// Convert to HTTP client format
 		httpTaskDef := &TaskDefinition{
@@ -302,10 +305,21 @@ func (w *UnderwritingTaskWorker) registerWorkflowDefinitions() error {
 			w.logger.Error("Failed to register task definition",
 				zap.String("task_name", httpTaskDef.Name),
 				zap.Error(err))
-			// Continue with other tasks
+			// Continue with other tasks but track failures
 		} else {
 			w.logger.Info("Registered task definition", zap.String("task_name", httpTaskDef.Name))
+			successfulRegistrations++
 		}
+	}
+
+	w.logger.Info("Task definition registration summary",
+		zap.Int("successful", successfulRegistrations),
+		zap.Int("total", totalTasks),
+		zap.Int("failed", totalTasks-successfulRegistrations))
+
+	// Ensure at least the core tasks are registered
+	if successfulRegistrations < 3 {
+		w.logger.Warn("Very few task definitions registered successfully, this may cause issues")
 	}
 
 	// Register workflow definition
@@ -317,6 +331,10 @@ func (w *UnderwritingTaskWorker) registerWorkflowDefinitions() error {
 
 	w.logger.Info("Successfully registered workflow definition",
 		zap.String("workflow_name", workflowDef.Name))
+
+	// Add a small delay to ensure definitions are propagated in Conductor
+	w.logger.Info("Waiting for task definitions to propagate in Conductor...")
+	time.Sleep(2 * time.Second)
 
 	return nil
 }
