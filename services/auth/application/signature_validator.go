@@ -14,8 +14,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/huuhoait/los-demo/services/auth/domain"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
 	customI18n "github.com/huuhoait/los-demo/services/auth/pkg/i18n"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 // HTTPSignatureValidator handles HTTP signature validation

@@ -414,14 +414,14 @@ func (r *DecisionRepository) GetDecisionHistoryByUser(userID string) ([]domain.D
 	if err != nil {
 		return nil, err
 	}
-	
+
 	result := make([]domain.DecisionResponse, len(decisions))
 	for i, decision := range decisions {
 		if decision != nil {
 			result[i] = *decision
 		}
 	}
-	
+
 	return result, nil
 }
 

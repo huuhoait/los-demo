@@ -7,44 +7,44 @@ import (
 
 // DecisionRequest represents a loan decision request
 type DecisionRequest struct {
-	ApplicationID    string                 `json:"application_id" validate:"required"`
-	UserID           string                 `json:"user_id" validate:"required"`
-	CustomerID       string                 `json:"customer_id"`
-	LoanAmount       float64                `json:"loan_amount" validate:"required,min=1000,max=1000000"`
-	AnnualIncome     float64                `json:"annual_income" validate:"required,min=0"`
-	MonthlyIncome    float64                `json:"monthly_income" validate:"required,min=0"`
-	MonthlyDebt      float64                `json:"monthly_debt" validate:"min=0"`
-	CreditScore      int                    `json:"credit_score" validate:"required,min=300,max=850"`
-	EmploymentType   EmploymentType         `json:"employment_type" validate:"required"`
-	RequestedTerm    int                    `json:"requested_term" validate:"required,min=12,max=84"`
-	LoanTermMonths   int                    `json:"loan_term_months"`
-	LoanPurpose      LoanPurpose            `json:"loan_purpose" validate:"required"`
-	AdditionalData   map[string]interface{} `json:"additional_data,omitempty"`
-	RequestedAt      time.Time              `json:"requested_at"`
+	ApplicationID  string                 `json:"application_id" validate:"required"`
+	UserID         string                 `json:"user_id" validate:"required"`
+	CustomerID     string                 `json:"customer_id"`
+	LoanAmount     float64                `json:"loan_amount" validate:"required,min=1000,max=1000000"`
+	AnnualIncome   float64                `json:"annual_income" validate:"required,min=0"`
+	MonthlyIncome  float64                `json:"monthly_income" validate:"required,min=0"`
+	MonthlyDebt    float64                `json:"monthly_debt" validate:"min=0"`
+	CreditScore    int                    `json:"credit_score" validate:"required,min=300,max=850"`
+	EmploymentType EmploymentType         `json:"employment_type" validate:"required"`
+	RequestedTerm  int                    `json:"requested_term" validate:"required,min=12,max=84"`
+	LoanTermMonths int                    `json:"loan_term_months"`
+	LoanPurpose    LoanPurpose            `json:"loan_purpose" validate:"required"`
+	AdditionalData map[string]interface{} `json:"additional_data,omitempty"`
+	RequestedAt    time.Time              `json:"requested_at"`
 }
 
 // DecisionResponse represents the decision engine response
 type DecisionResponse struct {
-	ApplicationID     string          `json:"application_id"`
-	Decision          DecisionType    `json:"decision"`
-	RiskScore         float64         `json:"risk_score"`
-	RiskCategory      RiskCategory    `json:"risk_category"`
-	ConfidenceScore   float64         `json:"confidence_score"`
-	InterestRate      float64         `json:"interest_rate"`
-	ApprovedAmount    float64         `json:"approved_amount,omitempty"`
-	MaxAmount         float64         `json:"max_amount"`
-	DecisionReason    string          `json:"decision_reason"`
-	Reason            string          `json:"reason"`
-	RiskFactors       []RiskFactor    `json:"risk_factors"`
-	Conditions        []string        `json:"conditions,omitempty"`
-	RequiredDocs      []string        `json:"required_documents,omitempty"`
-	DecisionDate      time.Time       `json:"decision_date"`
-	ExpiresAt         *time.Time      `json:"expires_at,omitempty"`
-	ReviewRequired    bool            `json:"review_required"`
-	ReviewerNotes     string          `json:"reviewer_notes,omitempty"`
-	RiskAssessment    *RiskAssessment `json:"risk_assessment,omitempty"`
-	AppliedRules      []string        `json:"applied_rules,omitempty"`
-	Recommendations   []string        `json:"recommendations,omitempty"`
+	ApplicationID   string          `json:"application_id"`
+	Decision        DecisionType    `json:"decision"`
+	RiskScore       float64         `json:"risk_score"`
+	RiskCategory    RiskCategory    `json:"risk_category"`
+	ConfidenceScore float64         `json:"confidence_score"`
+	InterestRate    float64         `json:"interest_rate"`
+	ApprovedAmount  float64         `json:"approved_amount,omitempty"`
+	MaxAmount       float64         `json:"max_amount"`
+	DecisionReason  string          `json:"decision_reason"`
+	Reason          string          `json:"reason"`
+	RiskFactors     []RiskFactor    `json:"risk_factors"`
+	Conditions      []string        `json:"conditions,omitempty"`
+	RequiredDocs    []string        `json:"required_documents,omitempty"`
+	DecisionDate    time.Time       `json:"decision_date"`
+	ExpiresAt       *time.Time      `json:"expires_at,omitempty"`
+	ReviewRequired  bool            `json:"review_required"`
+	ReviewerNotes   string          `json:"reviewer_notes,omitempty"`
+	RiskAssessment  *RiskAssessment `json:"risk_assessment,omitempty"`
+	AppliedRules    []string        `json:"applied_rules,omitempty"`
+	Recommendations []string        `json:"recommendations,omitempty"`
 }
 
 // RiskAssessment contains detailed risk analysis
@@ -319,13 +319,13 @@ const (
 
 // Credit-related types for external credit services
 type CreditScoreRequest struct {
-	UserID       string `json:"user_id"`
-	SSN          string `json:"ssn,omitempty"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	DateOfBirth  string `json:"date_of_birth"`
-	Address      string `json:"address,omitempty"`
-	RequestType  string `json:"request_type"`
+	UserID      string `json:"user_id"`
+	SSN         string `json:"ssn,omitempty"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	DateOfBirth string `json:"date_of_birth"`
+	Address     string `json:"address,omitempty"`
+	RequestType string `json:"request_type"`
 }
 
 type CreditScoreResponse struct {
@@ -353,51 +353,51 @@ type CreditReportRequest struct {
 }
 
 type CreditReport struct {
-	UserID           string           `json:"user_id"`
-	PersonalInfo     PersonalInfo     `json:"personal_info"`
-	CreditScore      int              `json:"credit_score"`
-	ScoreModel       string           `json:"score_model"`
-	Bureau           string           `json:"bureau"`
-	Accounts         []CreditAccount  `json:"accounts"`
-	Inquiries        []CreditInquiry  `json:"inquiries"`
-	PublicRecords    []PublicRecord   `json:"public_records,omitempty"`
-	Collections      []Collection     `json:"collections,omitempty"`
-	PaymentHistory   PaymentHistory   `json:"payment_history"`
+	UserID            string          `json:"user_id"`
+	PersonalInfo      PersonalInfo    `json:"personal_info"`
+	CreditScore       int             `json:"credit_score"`
+	ScoreModel        string          `json:"score_model"`
+	Bureau            string          `json:"bureau"`
+	Accounts          []CreditAccount `json:"accounts"`
+	Inquiries         []CreditInquiry `json:"inquiries"`
+	PublicRecords     []PublicRecord  `json:"public_records,omitempty"`
+	Collections       []Collection    `json:"collections,omitempty"`
+	PaymentHistory    PaymentHistory  `json:"payment_history"`
 	CreditUtilization float64         `json:"credit_utilization"`
-	ReportDate       time.Time        `json:"report_date"`
-	IsValid          bool             `json:"is_valid"`
+	ReportDate        time.Time       `json:"report_date"`
+	IsValid           bool            `json:"is_valid"`
 }
 
 type CreditAccount struct {
-	AccountID       string    `json:"account_id"`
-	AccountType     string    `json:"account_type"`
-	Creditor        string    `json:"creditor"`
-	Balance         float64   `json:"balance"`
-	CreditLimit     float64   `json:"credit_limit,omitempty"`
-	PaymentStatus   string    `json:"payment_status"`
-	PaymentHistory  []string  `json:"payment_history,omitempty"`
-	OpenDate        time.Time `json:"open_date"`
-	LastReported    time.Time `json:"last_reported"`
-	MonthsReviewed  int       `json:"months_reviewed"`
-	Utilization     float64   `json:"utilization"`
-	IsActive        bool      `json:"is_active"`
+	AccountID      string    `json:"account_id"`
+	AccountType    string    `json:"account_type"`
+	Creditor       string    `json:"creditor"`
+	Balance        float64   `json:"balance"`
+	CreditLimit    float64   `json:"credit_limit,omitempty"`
+	PaymentStatus  string    `json:"payment_status"`
+	PaymentHistory []string  `json:"payment_history,omitempty"`
+	OpenDate       time.Time `json:"open_date"`
+	LastReported   time.Time `json:"last_reported"`
+	MonthsReviewed int       `json:"months_reviewed"`
+	Utilization    float64   `json:"utilization"`
+	IsActive       bool      `json:"is_active"`
 }
 
 type CreditInquiry struct {
-	InquiryID     string    `json:"inquiry_id"`
-	InquiryType   string    `json:"inquiry_type"` // "hard" or "soft"
-	Creditor      string    `json:"creditor"`
-	InquiryDate   time.Time `json:"inquiry_date"`
-	Purpose       string    `json:"purpose,omitempty"`
+	InquiryID   string    `json:"inquiry_id"`
+	InquiryType string    `json:"inquiry_type"` // "hard" or "soft"
+	Creditor    string    `json:"creditor"`
+	InquiryDate time.Time `json:"inquiry_date"`
+	Purpose     string    `json:"purpose,omitempty"`
 }
 
 type PublicRecord struct {
-	RecordID    string    `json:"record_id"`
-	RecordType  string    `json:"record_type"`
-	CourtName   string    `json:"court_name,omitempty"`
-	FilingDate  time.Time `json:"filing_date"`
-	Amount      float64   `json:"amount,omitempty"`
-	Status      string    `json:"status"`
+	RecordID   string    `json:"record_id"`
+	RecordType string    `json:"record_type"`
+	CourtName  string    `json:"court_name,omitempty"`
+	FilingDate time.Time `json:"filing_date"`
+	Amount     float64   `json:"amount,omitempty"`
+	Status     string    `json:"status"`
 }
 
 type Collection struct {
@@ -421,12 +421,12 @@ type PersonalInfo struct {
 
 // DecisionStatistics represents statistics about decisions
 type DecisionStatistics struct {
-	TotalDecisions         int     `json:"total_decisions"`
-	ApprovedCount          int     `json:"approved_count"`
-	DeclinedCount          int     `json:"declined_count"`
-	ConditionalCount       int     `json:"conditional_count"`
-	ApprovalRate           float64 `json:"approval_rate"`
-	AvgApprovalConfidence  float64 `json:"avg_approval_confidence"`
-	AvgInterestRate        float64 `json:"avg_interest_rate"`
-	AvgApprovedAmount      float64 `json:"avg_approved_amount"`
+	TotalDecisions        int     `json:"total_decisions"`
+	ApprovedCount         int     `json:"approved_count"`
+	DeclinedCount         int     `json:"declined_count"`
+	ConditionalCount      int     `json:"conditional_count"`
+	ApprovalRate          float64 `json:"approval_rate"`
+	AvgApprovalConfidence float64 `json:"avg_approval_confidence"`
+	AvgInterestRate       float64 `json:"avg_interest_rate"`
+	AvgApprovedAmount     float64 `json:"avg_approved_amount"`
 }

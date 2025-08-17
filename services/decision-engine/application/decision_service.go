@@ -390,7 +390,7 @@ func (s *DecisionEngineService) GetDecisionRules(ctx context.Context) ([]domain.
 			Active:      true,
 		},
 		{
-			ID:          "rule_002", 
+			ID:          "rule_002",
 			Name:        "Maximum DTI Ratio",
 			Description: "Reject applications with DTI ratio above 45%",
 			Category:    domain.RuleCategoryDebt,

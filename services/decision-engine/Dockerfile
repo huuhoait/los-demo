@@ -17,7 +17,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/main.go
 
 # Final stage
 FROM alpine:latest
@@ -31,15 +31,16 @@ WORKDIR /root/
 # Copy the binary from builder stage
 COPY --from=builder /app/main .
 
-# Create config directory
-RUN mkdir -p ./config
+# Copy configuration files
+COPY --from=builder /app/config ./config
+COPY --from=builder /app/i18n ./i18n
 
-# Expose port
-EXPOSE 8080
+# Expose port (decision-engine uses 8082)
+EXPOSE 8082
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:8080/health || exit 1
+  CMD curl -f http://localhost:8082/health || exit 1
 
 # Run the application
 CMD ["./main"]

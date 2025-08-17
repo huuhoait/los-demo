@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/huuhoait/los-demo/services/decision-engine/application"
 	"github.com/huuhoait/los-demo/services/decision-engine/domain"
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -365,4 +365,9 @@ func (h *DecisionHandler) SetupRoutes(router *gin.Engine) {
 			customers.GET("/:customerId/decisions", h.GetDecisionHistory)
 		}
 	}
+}
+
+// RegisterRoutes registers all routes with the router
+func (h *DecisionHandler) RegisterRoutes(router *gin.Engine) {
+	h.SetupRoutes(router)
 }
