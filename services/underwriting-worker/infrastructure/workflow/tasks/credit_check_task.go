@@ -44,18 +44,20 @@ func (h *CreditCheckTaskHandler) Execute(ctx context.Context, input map[string]i
 	logger := h.logger.With(zap.String("operation", "credit_check"))
 
 	logger.Info("Starting credit check task")
-
+	logger.Info("*****Starting credit check task1*****")
 	// Extract input parameters
 	applicationID, ok := input["applicationId"].(string)
 	if !ok || applicationID == "" {
 		return nil, fmt.Errorf("application ID is required")
 	}
 
+	logger.Info("*****Starting credit check task22*****")
 	userID, ok := input["userId"].(string)
 	if !ok || userID == "" {
 		return nil, fmt.Errorf("user ID is required")
 	}
 
+	logger.Info("*****Starting credit check task*****")
 	// Get loan application
 	application, err := h.loanApplicationRepo.GetByID(ctx, applicationID)
 	if err != nil {
@@ -75,11 +77,23 @@ func (h *CreditCheckTaskHandler) Execute(ctx context.Context, input map[string]i
 		return h.createFailureResponse(applicationID, err), nil
 	}
 
+	// Check if creditReport is nil
+	if creditReport == nil {
+		logger.Error("Credit report is nil")
+		return h.createFailureResponse(applicationID, fmt.Errorf("credit report is nil")), nil
+	}
+
 	// Analyze credit risk
 	riskAnalysis, err := h.creditService.AnalyzeCreditRisk(ctx, creditReport)
 	if err != nil {
 		logger.Error("Credit risk analysis failed", zap.Error(err))
 		return h.createFailureResponse(applicationID, err), nil
+	}
+
+	// Check if riskAnalysis is nil
+	if riskAnalysis == nil {
+		logger.Error("Risk analysis is nil")
+		return h.createFailureResponse(applicationID, fmt.Errorf("risk analysis is nil")), nil
 	}
 
 	// Determine if credit check passes basic requirements
@@ -148,6 +162,25 @@ func (h *CreditCheckTaskHandler) evaluateCreditDecision(
 	riskAnalysis *services.CreditRiskAnalysis,
 	application *domain.LoanApplication,
 ) CreditDecision {
+	// Add nil checks to prevent panics
+	if creditReport == nil {
+		return CreditDecision{
+			Approved:        false,
+			Reason:          "Credit report is nil",
+			Recommendations: []string{"System error: credit report unavailable"},
+			ManualReview:    true,
+		}
+	}
+
+	if riskAnalysis == nil {
+		return CreditDecision{
+			Approved:        false,
+			Reason:          "Risk analysis is nil",
+			Recommendations: []string{"System error: risk analysis unavailable"},
+			ManualReview:    true,
+		}
+	}
+
 	decision := CreditDecision{
 		Approved:        false,
 		Reason:          "",
