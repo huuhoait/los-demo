@@ -1,3 +1,6 @@
+//go:build conductor
+// +build conductor
+
 package main
 
 import (
@@ -283,6 +286,7 @@ func (w *UnderwritingTaskWorker) registerTaskHandlers() {
 
 func (w *UnderwritingTaskWorker) createTaskHandler(taskType string) TaskHandler {
 	return func(task *MockTask) (*MockTaskResult, error) {
+		startTime := time.Now()
 		w.logger.Info("Processing task",
 			zap.String("task_type", taskType),
 			zap.String("task_id", task.TaskID))
@@ -317,6 +321,48 @@ func (w *UnderwritingTaskWorker) createTaskHandler(taskType string) TaskHandler 
 				"approvedAmount": 25000,
 				"interestRate":   8.5,
 				"apr":            9.0,
+			}
+		case "update_application_state":
+			// Validate required input parameters
+			applicationID, ok := task.InputData["applicationId"].(string)
+			if !ok || applicationID == "" {
+				return &MockTaskResult{
+					TaskID:                task.TaskID,
+					Status:                "FAILED",
+					ReasonForIncompletion: "application ID is required",
+					OutputData: map[string]interface{}{
+						"error": "application ID is required",
+					},
+					WorkerID:      "underwriting-worker",
+					CompletedTime: time.Now(),
+				}, nil
+			}
+
+			newState, ok := task.InputData["newState"].(string)
+			if !ok || newState == "" {
+				// Try to get newState from different possible keys
+				if state, exists := task.InputData["state"].(string); exists && state != "" {
+					newState = state
+				} else if state, exists := task.InputData["status"].(string); exists && state != "" {
+					newState = state
+				} else {
+					// Provide a default state for underwriting workflow
+					newState = "underwriting_completed"
+					w.logger.Warn("No newState provided, using default state: underwriting_completed")
+				}
+			}
+
+			outputData = map[string]interface{}{
+				"success":       true,
+				"applicationId": applicationID,
+				"stateTransition": map[string]interface{}{
+					"previousState": "unknown",
+					"currentState":  newState,
+					"transitionAt":  time.Now().UTC().Format(time.RFC3339),
+				},
+				"mock":           true,
+				"processingTime": time.Since(startTime).String(),
+				"completedAt":    time.Now().UTC().Format(time.RFC3339),
 			}
 		default:
 			outputData = map[string]interface{}{
