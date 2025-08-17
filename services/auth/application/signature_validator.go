@@ -13,7 +13,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/lendingplatform/los/services/auth/domain"
+	"github.com/huuhoait/los-demo/services/auth/domain"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 

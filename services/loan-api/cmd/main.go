@@ -13,14 +13,14 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/lendingplatform/los/services/loan-api/application"
-	"github.com/lendingplatform/los/services/loan-api/domain"
-	"github.com/lendingplatform/los/services/loan-api/infrastructure/database/postgres"
-	"github.com/lendingplatform/los/services/loan-api/infrastructure/workflow"
-	"github.com/lendingplatform/los/services/loan-api/interfaces"
-	"github.com/lendingplatform/los/services/loan-api/interfaces/middleware"
-	"github.com/lendingplatform/los/services/loan-api/pkg/config"
-	"github.com/lendingplatform/los/services/loan-api/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/loan-api/application"
+	"github.com/huuhoait/los-demo/services/loan-api/domain"
+	"github.com/huuhoait/los-demo/services/loan-api/infrastructure/database/postgres"
+	"github.com/huuhoait/los-demo/services/loan-api/infrastructure/workflow"
+	"github.com/huuhoait/los-demo/services/loan-api/interfaces"
+	"github.com/huuhoait/los-demo/services/loan-api/interfaces/middleware"
+	"github.com/huuhoait/los-demo/services/loan-api/pkg/config"
+	"github.com/huuhoait/los-demo/services/loan-api/pkg/i18n"
 )
 
 func main() {

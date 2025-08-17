@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lendingplatform/los/services/auth/domain"
+	"github.com/huuhoait/los-demo/services/auth/domain"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -1,4 +1,4 @@
-module github.com/lendingplatform/los/services/decision-engine
+module github.com/huuhoait/los-demo/services/decision-engine
 
 go 1.21
 

@@ -3,7 +3,7 @@ package postgres
 import (
 	"go.uber.org/zap"
 
-	"loan-service/application"
+	"github.com/huuhoait/los-demo/services/loan/application"
 )
 
 // Factory manages database repositories

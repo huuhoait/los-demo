@@ -7,9 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"github.com/lendingplatform/los/services/auth/domain"
-	"github.com/lendingplatform/los/services/auth/interfaces/middleware"
-	"github.com/lendingplatform/los/services/auth/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/auth/domain"
+	"github.com/huuhoait/los-demo/services/auth/interfaces/middleware"
+	"github.com/huuhoait/los-demo/services/auth/pkg/i18n"
 )
 
 // AuthHandler handles authentication HTTP endpoints

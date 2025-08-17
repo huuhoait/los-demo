@@ -1,4 +1,4 @@
-module github.com/lendingplatform/los/services/loan-api
+module github.com/huuhoait/los-demo/services/loan-api
 
 go 1.23.3
 

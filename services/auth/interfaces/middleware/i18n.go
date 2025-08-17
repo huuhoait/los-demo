@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"github.com/lendingplatform/los/services/auth/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/auth/pkg/i18n"
 )
 
 // I18nMiddleware provides internationalization support for HTTP requests

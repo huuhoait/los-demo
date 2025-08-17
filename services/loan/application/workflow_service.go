@@ -6,9 +6,9 @@ import (
 
 	"go.uber.org/zap"
 
-	"loan-service/domain"
-	"loan-service/infrastructure/workflow"
-	"loan-service/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/loan/domain"
+	"github.com/huuhoait/los-demo/services/loan/infrastructure/workflow"
+	"github.com/huuhoait/los-demo/services/loan/pkg/i18n"
 )
 
 // WorkflowService manages workflow operations for loan applications

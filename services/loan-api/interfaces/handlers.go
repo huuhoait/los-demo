@@ -12,10 +12,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 
-	"github.com/lendingplatform/los/services/loan-api/application"
-	"github.com/lendingplatform/los/services/loan-api/domain"
-	"github.com/lendingplatform/los/services/loan-api/interfaces/middleware"
-	"github.com/lendingplatform/los/services/loan-api/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/loan-api/application"
+	"github.com/huuhoait/los-demo/services/loan-api/domain"
+	"github.com/huuhoait/los-demo/services/loan-api/interfaces/middleware"
+	"github.com/huuhoait/los-demo/services/loan-api/pkg/i18n"
 )
 
 // LoanHandler handles HTTP requests for loan operations

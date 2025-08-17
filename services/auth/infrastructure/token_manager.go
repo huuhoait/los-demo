@@ -10,8 +10,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
 
-	"github.com/lendingplatform/los/services/auth/domain"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/huuhoait/los-demo/services/auth/domain"
+	customI18n "github.com/huuhoait/los-demo/services/auth/pkg/i18n"
 )
 
 // JWTTokenManager implements token management using JWT
@@ -21,7 +21,7 @@ type JWTTokenManager struct {
 	accessTokenTTL time.Duration
 	cache          domain.CacheService
 	logger         *zap.Logger
-	localizer      *i18n.Localizer
+	localizer      *customI18n.Localizer // Use custom i18n Localizer
 }
 
 // NewJWTTokenManager creates a new JWT token manager
@@ -31,7 +31,7 @@ func NewJWTTokenManager(
 	accessTokenTTL time.Duration,
 	cache domain.CacheService,
 	logger *zap.Logger,
-	localizer *i18n.Localizer,
+	localizer *customI18n.Localizer, // Use custom i18n Localizer
 ) *JWTTokenManager {
 	return &JWTTokenManager{
 		signingKey:     signingKey,
@@ -75,7 +75,7 @@ func (j *JWTTokenManager) GenerateAccessToken(ctx context.Context, user *domain.
 	if err != nil {
 		logger.Error("Failed to sign JWT token", zap.Error(err))
 		return "", time.Time{}, domain.NewAuthError(domain.AUTH_019,
-			j.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.token_generation_failed"}),
+			j.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.token_generation_failed", nil),
 			"Failed to generate access token")
 	}
 
@@ -93,7 +93,7 @@ func (j *JWTTokenManager) GenerateRefreshToken(ctx context.Context) (string, err
 	if _, err := rand.Read(bytes); err != nil {
 		j.logger.Error("Failed to generate random bytes for refresh token", zap.Error(err))
 		return "", domain.NewAuthError(domain.AUTH_019,
-			j.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.token_generation_failed"}),
+			j.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.token_generation_failed", nil),
 			"Failed to generate refresh token")
 	}
 
@@ -121,17 +121,17 @@ func (j *JWTTokenManager) ValidateAccessToken(ctx context.Context, tokenString s
 		// Check specific error types - simplified for JWT v5
 		if err.Error() == "token is expired" {
 			return nil, domain.NewAuthError(domain.AUTH_005,
-				j.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.token_expired"}),
+				j.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.token_expired", nil),
 				"Access token has expired")
 		}
 		if err.Error() == "token is not valid yet" {
 			return nil, domain.NewAuthError(domain.AUTH_004,
-				j.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.token_not_valid_yet"}),
+				j.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.token_not_valid_yet", nil),
 				"Access token is not valid yet")
 		}
 
 		return nil, domain.NewAuthError(domain.AUTH_004,
-			j.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.invalid_token"}),
+			j.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.invalid_token", nil),
 			"Invalid access token")
 	}
 
@@ -139,7 +139,7 @@ func (j *JWTTokenManager) ValidateAccessToken(ctx context.Context, tokenString s
 	if !ok || !token.Valid {
 		logger.Warn("Invalid JWT claims")
 		return nil, domain.NewAuthError(domain.AUTH_004,
-			j.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.invalid_token"}),
+			j.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.invalid_token", nil),
 			"Invalid access token claims")
 	}
 
@@ -147,7 +147,7 @@ func (j *JWTTokenManager) ValidateAccessToken(ctx context.Context, tokenString s
 	if claims.UserID == "" {
 		logger.Warn("Missing user ID in token claims")
 		return nil, domain.NewAuthError(domain.AUTH_004,
-			j.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.invalid_token"}),
+			j.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.invalid_token", nil),
 			"Invalid token claims")
 	}
 
@@ -180,7 +180,7 @@ func (j *JWTTokenManager) RevokeToken(ctx context.Context, token string) error {
 		if err := j.cache.Set(ctx, revokeKey, true, ttl); err != nil {
 			logger.Error("Failed to store revoked token", zap.Error(err))
 			return domain.NewAuthError(domain.AUTH_018,
-				j.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.revocation_failed"}),
+				j.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.revocation_failed", nil),
 				"Failed to revoke token")
 		}
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
-	"loan-service/domain"
+	"github.com/huuhoait/los-demo/services/loan/domain"
 )
 
 // UpdateApplicationStateTaskHandler handles application state update tasks

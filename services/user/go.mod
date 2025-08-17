@@ -1,4 +1,4 @@
-module github.com/lendingplatform/los/services/user
+module github.com/huuhoait/los-demo/services/user
 
 go 1.21
 

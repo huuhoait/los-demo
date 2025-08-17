@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
-	"github.com/lendingplatform/los/services/auth/domain"
+	"github.com/huuhoait/los-demo/services/auth/domain"
 )
 
 // RedisCacheService implements CacheService using Redis

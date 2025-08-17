@@ -17,11 +17,11 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/lendingplatform/los/services/auth/application"
-	"github.com/lendingplatform/los/services/auth/infrastructure"
-	"github.com/lendingplatform/los/services/auth/interfaces"
-	"github.com/lendingplatform/los/services/auth/interfaces/middleware"
-	"github.com/lendingplatform/los/services/auth/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/auth/application"
+	"github.com/huuhoait/los-demo/services/auth/infrastructure"
+	"github.com/huuhoait/los-demo/services/auth/interfaces"
+	"github.com/huuhoait/los-demo/services/auth/interfaces/middleware"
+	"github.com/huuhoait/los-demo/services/auth/pkg/i18n"
 )
 
 // Config holds application configuration
@@ -252,11 +252,11 @@ func initI18n(logger *zap.Logger) (*i18n.Localizer, error) {
 		return nil, fmt.Errorf("failed to initialize localizer: %w", err)
 	}
 
-	logger.Info("I18n initialized", 
+	logger.Info("I18n initialized",
 		zap.Strings("supported_languages", localizer.SupportedLanguages()),
 		zap.String("default_language", cfg.DefaultLanguage),
 	)
-	
+
 	return localizer, nil
 }
 
@@ -314,7 +314,7 @@ func initServer(config *Config, authService *application.AuthService, logger *za
 	router.Use(requestIDMiddleware())
 	router.Use(corsMiddleware())
 	router.Use(loggerMiddleware(logger))
-	
+
 	// Add i18n middleware
 	i18nMiddleware := middleware.NewI18nMiddleware(localizer, logger)
 	router.Use(i18nMiddleware.Handler())

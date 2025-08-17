@@ -12,8 +12,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/lendingplatform/los/services/loan-worker/infrastructure/workflow/tasks"
-	"github.com/lendingplatform/los/services/loan-worker/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/loan-worker/infrastructure/workflow/tasks"
+	"github.com/huuhoait/los-demo/services/loan-worker/pkg/i18n"
 )
 
 // TaskWorker polls Netflix Conductor for tasks and executes them

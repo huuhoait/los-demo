@@ -6,8 +6,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/lendingplatform/los/services/loan-api/domain"
-	"github.com/lendingplatform/los/services/loan-api/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/loan-api/domain"
+	"github.com/huuhoait/los-demo/services/loan-api/pkg/i18n"
 )
 
 // ConductorClient interface for Netflix Conductor workflow engine

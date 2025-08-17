@@ -8,7 +8,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/lendingplatform/los/services/loan-api/domain"
+	"github.com/huuhoait/los-demo/services/loan-api/domain"
 )
 
 // UserRepository implements domain.UserRepository interface

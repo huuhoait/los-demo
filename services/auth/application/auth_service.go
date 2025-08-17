@@ -8,8 +8,8 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/lendingplatform/los/services/auth/domain"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/huuhoait/los-demo/services/auth/domain"
+	customI18n "github.com/huuhoait/los-demo/services/auth/pkg/i18n"
 )
 
 // AuthService implements the authentication use cases
@@ -20,7 +20,7 @@ type AuthService struct {
 	cache        domain.CacheService
 	auditLogger  domain.AuditLogger
 	logger       *zap.Logger
-	localizer    *i18n.Localizer
+	localizer    *customI18n.Localizer // Use custom i18n Localizer
 
 	// Configuration
 	maxLoginAttempts int
@@ -37,7 +37,7 @@ func NewAuthService(
 	cache domain.CacheService,
 	auditLogger domain.AuditLogger,
 	logger *zap.Logger,
-	localizer *i18n.Localizer,
+	localizer *customI18n.Localizer, // Use custom i18n Localizer
 ) *AuthService {
 	return &AuthService{
 		userRepo:         userRepo,
@@ -74,7 +74,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string, ipAddre
 		logger.Error("Failed to get user by email", zap.Error(err))
 		s.logFailedLogin(ctx, "", email, ipAddress, userAgent, domain.AUTH_001)
 		return nil, domain.NewAuthError(domain.AUTH_001,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.invalid_credentials"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.invalid_credentials", nil),
 			"Invalid email or password provided")
 	}
 
@@ -91,7 +91,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string, ipAddre
 		s.incrementFailedAttempts(ctx, user.ID)
 		s.logFailedLogin(ctx, user.ID, email, ipAddress, userAgent, domain.AUTH_001)
 		return nil, domain.NewAuthError(domain.AUTH_001,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.invalid_credentials"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.invalid_credentials", nil),
 			"Invalid email or password provided")
 	}
 
@@ -100,7 +100,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string, ipAddre
 		logger.Warn("Account not active", zap.String("user_id", user.ID), zap.String("status", user.Status))
 		s.logFailedLogin(ctx, user.ID, email, ipAddress, userAgent, domain.AUTH_003)
 		return nil, domain.NewAuthError(domain.AUTH_003,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.account_disabled"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.account_disabled", nil),
 			"User account is disabled")
 	}
 
@@ -112,7 +112,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string, ipAddre
 	if err != nil {
 		logger.Error("Failed to create session", zap.Error(err))
 		return nil, domain.NewAuthError(domain.AUTH_017,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.session_creation_failed"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.session_creation_failed", nil),
 			"Failed to create user session")
 	}
 
@@ -121,7 +121,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string, ipAddre
 	if err != nil {
 		logger.Error("Failed to generate access token", zap.Error(err))
 		return nil, domain.NewAuthError(domain.AUTH_019,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.token_generation_failed"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.token_generation_failed", nil),
 			"Failed to generate access token")
 	}
 
@@ -164,7 +164,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string, ipA
 	if err != nil {
 		logger.Error("Failed to get user", zap.Error(err), zap.String("user_id", session.UserID))
 		return nil, domain.NewAuthError(domain.AUTH_016,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.user_not_found"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.user_not_found", nil),
 			"User not found")
 	}
 
@@ -172,7 +172,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string, ipA
 	if user.Status != "active" {
 		logger.Warn("Account not active", zap.String("user_id", user.ID))
 		return nil, domain.NewAuthError(domain.AUTH_003,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.account_disabled"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.account_disabled", nil),
 			"User account is disabled")
 	}
 
@@ -181,7 +181,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string, ipA
 	if err != nil {
 		logger.Error("Failed to generate refresh token", zap.Error(err))
 		return nil, domain.NewAuthError(domain.AUTH_019,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.token_generation_failed"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.token_generation_failed", nil),
 			"Failed to generate refresh token")
 	}
 
@@ -191,7 +191,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string, ipA
 	if err := s.sessionRepo.Update(ctx, session); err != nil {
 		logger.Error("Failed to update session", zap.Error(err))
 		return nil, domain.NewAuthError(domain.AUTH_017,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.session_update_failed"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.session_update_failed", nil),
 			"Failed to update session")
 	}
 
@@ -200,7 +200,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string, ipA
 	if err != nil {
 		logger.Error("Failed to generate access token", zap.Error(err))
 		return nil, domain.NewAuthError(domain.AUTH_019,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.token_generation_failed"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.token_generation_failed", nil),
 			"Failed to generate access token")
 	}
 
@@ -240,7 +240,7 @@ func (s *AuthService) Logout(ctx context.Context, userID, sessionID string) erro
 	if err := s.sessionRepo.Delete(ctx, sessionID); err != nil {
 		logger.Error("Failed to delete session", zap.Error(err))
 		return domain.NewAuthError(domain.AUTH_017,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.logout_failed"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.logout_failed", nil),
 			"Failed to logout user")
 	}
 
@@ -270,7 +270,7 @@ func (s *AuthService) LogoutAll(ctx context.Context, userID string) error {
 	if err != nil {
 		logger.Error("Failed to get user sessions", zap.Error(err))
 		return domain.NewAuthError(domain.AUTH_017,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.logout_failed"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.logout_failed", nil),
 			"Failed to logout user")
 	}
 
@@ -278,7 +278,7 @@ func (s *AuthService) LogoutAll(ctx context.Context, userID string) error {
 	if err := s.sessionRepo.DeleteByUserID(ctx, userID); err != nil {
 		logger.Error("Failed to delete user sessions", zap.Error(err))
 		return domain.NewAuthError(domain.AUTH_017,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.logout_failed"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.logout_failed", nil),
 			"Failed to logout user")
 	}
 
@@ -312,7 +312,7 @@ func (s *AuthService) ValidateAccessToken(ctx context.Context, token string) (*d
 	}
 	if revoked {
 		return nil, domain.NewAuthError(domain.AUTH_006,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.token_revoked"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.token_revoked", nil),
 			"Token has been revoked")
 	}
 
@@ -320,14 +320,14 @@ func (s *AuthService) ValidateAccessToken(ctx context.Context, token string) (*d
 	session, err := s.sessionRepo.GetByID(ctx, claims.SessionID)
 	if err != nil {
 		return nil, domain.NewAuthError(domain.AUTH_008,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.session_not_found"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.session_not_found", nil),
 			"Session not found")
 	}
 
 	// Check session expiration
 	if session.ExpiresAt.Before(time.Now()) {
 		return nil, domain.NewAuthError(domain.AUTH_009,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.session_expired"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.session_expired", nil),
 			"Session has expired")
 	}
 
@@ -344,13 +344,13 @@ func (s *AuthService) ValidateRefreshToken(ctx context.Context, token string) (*
 	session, err := s.sessionRepo.GetByRefreshToken(ctx, token)
 	if err != nil {
 		return nil, domain.NewAuthError(domain.AUTH_007,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.invalid_refresh_token"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.invalid_refresh_token", nil),
 			"Invalid refresh token")
 	}
 
 	if session.ExpiresAt.Before(time.Now()) {
 		return nil, domain.NewAuthError(domain.AUTH_009,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.session_expired"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.session_expired", nil),
 			"Session has expired")
 	}
 
@@ -367,7 +367,7 @@ func (s *AuthService) checkAccountLockout(ctx context.Context, userID string) er
 	}
 	if exists {
 		return domain.NewAuthError(domain.AUTH_002,
-			s.localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "auth.account_locked"}),
+			s.localizer.Localize(customI18n.GetLanguageFromContext(ctx), "auth.account_locked", nil),
 			"Account is temporarily locked due to too many failed login attempts")
 	}
 	return nil

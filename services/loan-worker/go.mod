@@ -1,4 +1,4 @@
-module github.com/lendingplatform/los/services/loan-worker
+module github.com/huuhoait/los-demo/services/loan-worker
 
 go 1.21
 

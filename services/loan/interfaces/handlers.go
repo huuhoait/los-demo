@@ -13,10 +13,11 @@ import (
 	"go.uber.org/zap"
 
 	"errors"
-	"loan-service/application"
-	"loan-service/domain"
-	"loan-service/interfaces/middleware"
-	"loan-service/pkg/i18n"
+
+	"github.com/huuhoait/los-demo/services/loan/application"
+	"github.com/huuhoait/los-demo/services/loan/domain"
+	"github.com/huuhoait/los-demo/services/loan/interfaces/middleware"
+	"github.com/huuhoait/los-demo/services/loan/pkg/i18n"
 )
 
 // LoanHandler handles HTTP requests for loan operations

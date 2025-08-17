@@ -5,9 +5,9 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/lendingplatform/los/services/loan-api/domain"
-	"github.com/lendingplatform/los/services/loan-api/infrastructure/workflow"
-	"github.com/lendingplatform/los/services/loan-api/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/loan-api/domain"
+	"github.com/huuhoait/los-demo/services/loan-api/infrastructure/workflow"
+	"github.com/huuhoait/los-demo/services/loan-api/pkg/i18n"
 )
 
 // PreQualificationWorkflowService manages pre-qualification workflow operations

@@ -8,19 +8,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"github.com/lendingplatform/los/services/auth/domain"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/huuhoait/los-demo/services/auth/domain"
+	customI18n "github.com/huuhoait/los-demo/services/auth/pkg/i18n"
 )
 
 // AuthMiddleware handles JWT authentication for protected routes
 type AuthMiddleware struct {
 	authService domain.AuthService
 	logger      *zap.Logger
-	localizer   *i18n.Localizer
+	localizer   *customI18n.Localizer // Use custom i18n Localizer
 }
 
 // NewAuthMiddleware creates a new authentication middleware
-func NewAuthMiddleware(authService domain.AuthService, logger *zap.Logger, localizer *i18n.Localizer) *AuthMiddleware {
+func NewAuthMiddleware(authService domain.AuthService, logger *zap.Logger, localizer *customI18n.Localizer) *AuthMiddleware {
 	return &AuthMiddleware{
 		authService: authService,
 		logger:      logger,
@@ -76,13 +76,14 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 					statusCode = http.StatusUnauthorized
 				}
 
-				m.respondWithError(c, statusCode, authErr.Code, authErr.Message)
+				m.respondWithError(c, statusCode, authErr.Code,
+					m.localizer.LocalizeError(customI18n.GetLanguageFromContext(c.Request.Context()), authErr.Code, nil))
 				return
 			}
 
 			logger.Error("Unexpected error during token validation", zap.Error(err))
 			m.respondWithError(c, http.StatusInternalServerError, domain.AUTH_017,
-				"Authentication service error")
+				m.localizer.LocalizeError(customI18n.GetLanguageFromContext(c.Request.Context()), domain.AUTH_017, nil))
 			return
 		}
 
@@ -113,7 +114,7 @@ func (m *AuthMiddleware) RequireRole(requiredRole domain.UserRole) gin.HandlerFu
 		if !exists {
 			logger.Error("User role not found in context")
 			m.respondWithError(c, http.StatusInternalServerError, domain.AUTH_017,
-				"Authentication context error")
+				m.localizer.LocalizeError(customI18n.GetLanguageFromContext(c.Request.Context()), domain.AUTH_017, nil))
 			return
 		}
 
@@ -123,7 +124,10 @@ func (m *AuthMiddleware) RequireRole(requiredRole domain.UserRole) gin.HandlerFu
 				zap.String("user_role", string(role)),
 				zap.String("required_role", string(requiredRole)))
 			m.respondWithError(c, http.StatusForbidden, domain.AUTH_015,
-				"Insufficient permissions")
+				m.localizer.LocalizePermission(customI18n.GetLanguageFromContext(c.Request.Context()), "insufficient_role", map[string]interface{}{
+					"required_role": string(requiredRole),
+					"user_role":     string(role),
+				}))
 			return
 		}
 
@@ -144,7 +148,7 @@ func (m *AuthMiddleware) RequirePermission(permission domain.Permission) gin.Han
 		if !exists {
 			logger.Error("User role not found in context")
 			m.respondWithError(c, http.StatusInternalServerError, domain.AUTH_017,
-				"Authentication context error")
+				m.localizer.LocalizeError(customI18n.GetLanguageFromContext(c.Request.Context()), domain.AUTH_017, nil))
 			return
 		}
 
@@ -154,7 +158,10 @@ func (m *AuthMiddleware) RequirePermission(permission domain.Permission) gin.Han
 				zap.String("user_role", string(role)),
 				zap.String("required_permission", string(permission)))
 			m.respondWithError(c, http.StatusForbidden, domain.AUTH_015,
-				"Insufficient permissions")
+				m.localizer.LocalizePermission(customI18n.GetLanguageFromContext(c.Request.Context()), "insufficient_permission", map[string]interface{}{
+					"required_permission": string(permission),
+					"user_role":           string(role),
+				}))
 			return
 		}
 
@@ -203,7 +210,7 @@ func (m *AuthMiddleware) HTTPSignatureAuth() gin.HandlerFunc {
 		if signatureHeader == "" {
 			logger.Warn("Missing signature header")
 			m.respondWithError(c, http.StatusUnauthorized, domain.AUTH_012,
-				"HTTP signature is required")
+				m.localizer.LocalizeSecurity(customI18n.GetLanguageFromContext(c.Request.Context()), "missing_signature_header", nil))
 			return
 		}
 
@@ -212,7 +219,7 @@ func (m *AuthMiddleware) HTTPSignatureAuth() gin.HandlerFunc {
 		if err != nil {
 			logger.Error("Failed to read request body", zap.Error(err))
 			m.respondWithError(c, http.StatusBadRequest, domain.AUTH_020,
-				"Failed to read request body")
+				m.localizer.LocalizeError(customI18n.GetLanguageFromContext(c.Request.Context()), domain.AUTH_020, nil))
 			return
 		}
 
@@ -223,13 +230,14 @@ func (m *AuthMiddleware) HTTPSignatureAuth() gin.HandlerFunc {
 			if authErr, ok := err.(*domain.AuthError); ok {
 				logger.Warn("HTTP signature validation failed",
 					zap.String("error_code", authErr.Code))
-				m.respondWithError(c, http.StatusUnauthorized, authErr.Code, authErr.Message)
+				m.respondWithError(c, http.StatusUnauthorized, authErr.Code,
+					m.localizer.LocalizeSecurity(customI18n.GetLanguageFromContext(c.Request.Context()), "signature_validation_failed", nil))
 				return
 			}
 
 			logger.Error("Unexpected error during signature validation", zap.Error(err))
 			m.respondWithError(c, http.StatusInternalServerError, domain.AUTH_017,
-				"Signature validation error")
+				m.localizer.LocalizeError(customI18n.GetLanguageFromContext(c.Request.Context()), domain.AUTH_017, nil))
 			return
 		}
 
@@ -258,7 +266,8 @@ func (m *AuthMiddleware) RateLimit() gin.HandlerFunc {
 				logger.Warn("Rate limit exceeded",
 					zap.String("identifier", identifier),
 					zap.String("error_code", authErr.Code))
-				m.respondWithError(c, http.StatusTooManyRequests, authErr.Code, authErr.Message)
+				m.respondWithError(c, http.StatusTooManyRequests, authErr.Code,
+					m.localizer.LocalizeSecurity(customI18n.GetLanguageFromContext(c.Request.Context()), "rate_limit_exceeded", nil))
 				return
 			}
 
@@ -302,7 +311,14 @@ func GetUserRole(c *gin.Context) (domain.UserRole, bool) {
 }
 
 // respondWithError sends a standardized error response
-func (m *AuthMiddleware) respondWithError(c *gin.Context, statusCode int, errorCode, message string) {
+func (m *AuthMiddleware) respondWithError(c *gin.Context, statusCode int, errorCode string, message string) {
+	// Use the localizer to get the message if it's an error code
+	localizedMessage := m.localizer.LocalizeError(customI18n.GetLanguageFromContext(c.Request.Context()), errorCode, nil)
+	if localizedMessage == errorCode {
+		// Fallback to provided message if localization fails
+		localizedMessage = message
+	}
+
 	response := gin.H{
 		"success": false,
 		"data":    nil,
@@ -314,8 +330,8 @@ func (m *AuthMiddleware) respondWithError(c *gin.Context, statusCode int, errorC
 		},
 		"error": gin.H{
 			"code":        errorCode,
-			"message":     message,
-			"description": m.getErrorDescription(errorCode),
+			"message":     localizedMessage,
+			"description": m.getErrorDescription(errorCode), // Still use the old description for now
 		},
 	}
 
@@ -326,6 +342,8 @@ func (m *AuthMiddleware) respondWithError(c *gin.Context, statusCode int, errorC
 
 // getErrorDescription returns localized error description
 func (m *AuthMiddleware) getErrorDescription(errorCode string) string {
+	// This function can be removed if all error descriptions are handled by i18n
+	// For now, it provides a fallback or additional context
 	descriptions := map[string]string{
 		domain.AUTH_001: "The provided credentials are invalid",
 		domain.AUTH_002: "Account is temporarily locked",

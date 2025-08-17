@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/lendingplatform/los/services/auth/domain"
+	"github.com/huuhoait/los-demo/services/auth/domain"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )

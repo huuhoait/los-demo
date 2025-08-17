@@ -6,7 +6,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"loan-service/domain"
+	"github.com/huuhoait/los-demo/services/loan/domain"
 )
 
 // LoanRepository interface for task handlers to avoid import cycles

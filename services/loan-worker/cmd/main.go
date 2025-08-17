@@ -12,10 +12,10 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/lendingplatform/los/services/loan-worker/infrastructure/database/postgres"
-	"github.com/lendingplatform/los/services/loan-worker/infrastructure/workflow"
-	"github.com/lendingplatform/los/services/loan-worker/pkg/config"
-	"github.com/lendingplatform/los/services/loan-worker/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/loan-worker/infrastructure/database/postgres"
+	"github.com/huuhoait/los-demo/services/loan-worker/infrastructure/workflow"
+	"github.com/huuhoait/los-demo/services/loan-worker/pkg/config"
+	"github.com/huuhoait/los-demo/services/loan-worker/pkg/i18n"
 )
 
 func main() {
