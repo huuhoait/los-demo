@@ -7,13 +7,13 @@ import (
 
 	"go.uber.org/zap"
 
-	"underwriting_worker/pkg/config"
+	"github.com/huuhoait/los-demo/services/shared/pkg/config"
 )
 
 // UnderwritingTaskWorker handles all underwriting-related workflow tasks
 type UnderwritingTaskWorker struct {
 	logger                        *zap.Logger
-	config                        *config.Config
+	config                        *config.BaseConfig
 	conductorClient               *HTTPConductorClient
 	mockConductorClient           *MockConductorClient
 	useMockConductor              bool
@@ -25,7 +25,7 @@ type UnderwritingTaskWorker struct {
 }
 
 // NewUnderwritingTaskWorker creates a new underwriting task worker
-func NewUnderwritingTaskWorker(logger *zap.Logger, cfg *config.Config) *UnderwritingTaskWorker {
+func NewUnderwritingTaskWorker(logger *zap.Logger, cfg *config.BaseConfig) *UnderwritingTaskWorker {
 	// Try to initialize real HTTP Conductor client first
 	httpConductorClient, err := NewHTTPConductorClient(logger, cfg)
 	var mockConductorClient *MockConductorClient
@@ -114,7 +114,7 @@ func (w *UnderwritingTaskWorker) Start(ctx context.Context) error {
 	}
 
 	w.logger.Info("Starting underwriting task worker",
-		zap.String("conductor_url", w.config.Conductor.ServerURL),
+		zap.String("conductor_url", w.config.Conductor.BaseURL),
 		zap.String("client_type", clientType),
 		zap.Int("worker_pool_size", w.config.Conductor.WorkerPoolSize),
 		zap.Int("polling_interval_ms", w.config.Conductor.PollingInterval))

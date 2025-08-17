@@ -1,61 +1,258 @@
-application:
-  name: "underwriting-worker"
-  version: "1.0.0"
+default:
   environment: "development"
-  port: 8083
+  
+  service:
+    name: "underwriting-worker"
+    version: "1.0.0"
+    port: "8083"
 
-database:
-  host: "localhost"
-  port: 5433
-  username: "postgres"
-  password: "password"
-  database: "underwriting_db"
-  ssl_mode: "disable"
-  max_connections: 25
-  min_connections: 5
+  server:
+    port: 8083
+    host: "0.0.0.0"
+    read_timeout: 30
+    write_timeout: 30
+    graceful_shutdown_timeout: 30
+    idle_timeout: 60
+    cors:
+      enabled: true
+      origins: ["*"]
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+      headers: ["*"]
+      credentials: true
 
-conductor:
-  server_url: "http://localhost:8082"
-  worker_pool_size: 10
-  polling_interval_ms: 1000
-  update_retry_time_ms: 3000
+  database:
+    host: "localhost"
+    port: 5433
+    user: "postgres"
+    password: "password"
+    name: "underwriting_db"
+    ssl_mode: "disable"
+    max_open_conns: 25
+    max_idle_conns: 5
+    conn_max_lifetime: 300
 
-services:
-  credit_bureau:
-    provider: "experian"
-    base_url: "https://api.experian.com"
-    api_key: "${CREDIT_BUREAU_API_KEY}"
-    timeout_seconds: 30
+  redis:
+    host: "localhost"
+    port: "6379"
+    password: ""
+    db: 0
+    pool_size: 10
 
-  risk_scoring:
-    provider: "internal"
-    base_url: "http://localhost:8084"
-    api_key: "${RISK_SCORING_API_KEY}"
-    model_version: "v2.1"
-    timeout_seconds: 15
+  conductor:
+    base_url: "http://localhost:8082"
+    timeout: 30
+    retry_attempts: 3
+    retry_delay: 1000
+    worker_pool_size: 10
+    polling_interval_ms: 1000
+    update_retry_time_ms: 3000
 
-  income_verification:
-    provider: "plaid"
-    base_url: "https://api.plaid.com"
-    api_key: "${INCOME_VERIFICATION_API_KEY}"
-    timeout_seconds: 20
+  services:
+    credit_bureau:
+      provider: "experian"
+      base_url: "https://api.experian.com"
+      api_key: "${CREDIT_BUREAU_API_KEY}"
+      timeout_seconds: 30
 
-  decision_engine:
-    provider: "internal"
-    base_url: "http://localhost:8085"
-    api_key: "${DECISION_ENGINE_API_KEY}"
-    timeout_seconds: 10
+    risk_scoring:
+      provider: "internal"
+      base_url: "http://localhost:8084"
+      api_key: "${RISK_SCORING_API_KEY}"
+      model_version: "v2.1"
+      timeout_seconds: 15
 
-  notification:
-    provider: "sendgrid"
-    base_url: "https://api.sendgrid.com"
-    api_key: "${NOTIFICATION_API_KEY}"
-    timeout_seconds: 10
+    income_verification:
+      provider: "plaid"
+      base_url: "https://api.plaid.com"
+      api_key: "${INCOME_VERIFICATION_API_KEY}"
+      timeout_seconds: 20
 
-logging:
-  level: "info"
-  format: "json"
+    decision_engine:
+      provider: "internal"
+      base_url: "http://localhost:8085"
+      api_key: "${DECISION_ENGINE_API_KEY}"
+      timeout_seconds: 10
 
-security:
-  encryption_key: "${ENCRYPTION_KEY}"
-  jwt_secret: "${JWT_SECRET}"
+    notification:
+      provider: "sendgrid"
+      base_url: "https://api.sendgrid.com"
+      api_key: "${NOTIFICATION_API_KEY}"
+      timeout_seconds: 10
+
+  logging:
+    level: "info"
+    format: "json"
+    output: "stdout"
+    enable_console: true
+    enable_file: false
+    file_path: "./logs/underwriting-worker.log"
+    max_size: 100
+    max_age: 30
+    max_backups: 10
+
+  security:
+    jwt_secret: "${JWT_SECRET}"
+    jwt_expiration: 3600
+    bcrypt_cost: 12
+    cors_allowed_origins: ["*"]
+    cors_allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_allowed_headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+
+  application:
+    name: "underwriting-worker"
+    version: "1.0.0"
+    environment: "development"
+    max_loan_amount: 50000
+    min_loan_amount: 5000
+    max_dti_ratio: 0.43
+    default_interest_rate: 8.5
+    max_interest_rate: 15.0
+    min_interest_rate: 5.0
+    offer_expiration_hours: 168
+
+  i18n:
+    default_language: "en"
+    supported_languages: ["en", "vi"]
+    fallback_language: "en"
+
+development:
+  environment: "development"
+  
+  service:
+    name: "underwriting-worker"
+    version: "1.0.0"
+    port: "8083"
+
+  server:
+    port: 8083
+    host: "0.0.0.0"
+    read_timeout: 30
+    write_timeout: 30
+    graceful_shutdown_timeout: 30
+
+  database:
+    host: "localhost"
+    port: 5433
+    user: "postgres"
+    password: "password"
+    name: "underwriting_db"
+    ssl_mode: "disable"
+    max_open_conns: 25
+    max_idle_conns: 5
+    conn_max_lifetime: 300
+
+  conductor:
+    base_url: "http://localhost:8082"
+    timeout: 30
+    retry_attempts: 3
+    retry_delay: 1000
+    worker_pool_size: 10
+    polling_interval_ms: 1000
+    update_retry_time_ms: 3000
+
+  services:
+    credit_bureau:
+      provider: "experian"
+      base_url: "https://api.experian.com"
+      api_key: "${CREDIT_BUREAU_API_KEY}"
+      timeout_seconds: 30
+
+    risk_scoring:
+      provider: "internal"
+      base_url: "http://localhost:8084"
+      api_key: "${RISK_SCORING_API_KEY}"
+      model_version: "v2.1"
+      timeout_seconds: 15
+
+    income_verification:
+      provider: "plaid"
+      base_url: "https://api.plaid.com"
+      api_key: "${INCOME_VERIFICATION_API_KEY}"
+      timeout_seconds: 20
+
+    decision_engine:
+      provider: "internal"
+      base_url: "http://localhost:8085"
+      api_key: "${DECISION_ENGINE_API_KEY}"
+      timeout_seconds: 10
+
+    notification:
+      provider: "sendgrid"
+      base_url: "https://api.sendgrid.com"
+      api_key: "${NOTIFICATION_API_KEY}"
+      timeout_seconds: 10
+
+  logging:
+    level: "debug"
+    format: "console"
+    output: "stdout"
+    enable_console: true
+    enable_file: false
+
+  security:
+    jwt_secret: "dev-jwt-secret-key"
+    jwt_expiration: 3600
+    bcrypt_cost: 10
+
+  application:
+    name: "underwriting-worker"
+    version: "1.0.0"
+    environment: "development"
+    max_loan_amount: 50000
+    min_loan_amount: 5000
+    max_dti_ratio: 0.43
+    default_interest_rate: 8.5
+    max_interest_rate: 15.0
+    min_interest_rate: 5.0
+    offer_expiration_hours: 168
+
+docker:
+  environment: "docker"
+  
+  service:
+    name: "underwriting-worker"
+    version: "1.0.0"
+    port: "8083"
+
+  server:
+    port: 8083
+    host: "0.0.0.0"
+
+  database:
+    host: "postgres"
+    port: 5432
+    user: "postgres"
+    password: "password"
+    name: "underwriting_db"
+    ssl_mode: "disable"
+
+  conductor:
+    base_url: "http://conductor:8082"
+    timeout: 30
+    worker_pool_size: 10
+    polling_interval_ms: 1000
+
+  services:
+    credit_bureau:
+      provider: "experian"
+      base_url: "https://api.experian.com"
+      timeout_seconds: 30
+
+    risk_scoring:
+      provider: "internal" 
+      base_url: "http://risk-scoring:8084"
+      timeout_seconds: 15
+
+    decision_engine:
+      provider: "internal"
+      base_url: "http://decision-engine:8085" 
+      timeout_seconds: 10
+
+  logging:
+    level: "info"
+    format: "json"
+
+  application:
+    name: "underwriting-worker"
+    version: "1.0.0"
+    environment: "docker"

@@ -12,13 +12,13 @@ import (
 
 	"go.uber.org/zap"
 
-	"underwriting_worker/pkg/config"
+	"github.com/huuhoait/los-demo/services/shared/pkg/config"
 )
 
 // HTTPConductorClient implements a simple HTTP client for Conductor
 type HTTPConductorClient struct {
 	logger     *zap.Logger
-	config     *config.Config
+	config     *config.BaseConfig
 	httpClient *http.Client
 	baseURL    string
 	workers    map[string]TaskHandler
@@ -77,13 +77,13 @@ type ConductorTaskResult struct {
 }
 
 // NewHTTPConductorClient creates a new HTTP-based Conductor client
-func NewHTTPConductorClient(logger *zap.Logger, cfg *config.Config) (*HTTPConductorClient, error) {
+func NewHTTPConductorClient(logger *zap.Logger, cfg *config.BaseConfig) (*HTTPConductorClient, error) {
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 	}
 
 	// Parse and validate the base URL
-	baseURL := cfg.Conductor.ServerURL
+	baseURL := cfg.Conductor.BaseURL
 	if _, err := url.Parse(baseURL); err != nil {
 		return nil, fmt.Errorf("invalid conductor URL: %w", err)
 	}

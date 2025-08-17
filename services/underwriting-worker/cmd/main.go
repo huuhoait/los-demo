@@ -12,7 +12,8 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"underwriting_worker/infrastructure/workflow/tasks"
-	"underwriting_worker/pkg/config"
+
+	"github.com/huuhoait/los-demo/services/shared/pkg/config"
 )
 
 func main() {
@@ -70,7 +71,7 @@ func main() {
 }
 
 // initLogger initializes the zap logger
-func initLogger(cfg *config.Config) (*zap.Logger, error) {
+func initLogger(cfg *config.BaseConfig) (*zap.Logger, error) {
 	var level zapcore.Level
 	switch cfg.Logging.Level {
 	case "debug":
