@@ -1,7 +1,6 @@
 package interfaces
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
@@ -139,7 +138,7 @@ func (h *DecisionHandler) GetDecisionHistory(c *gin.Context) {
 
 	logger.Info("Retrieving decision history", zap.Int("limit", limit))
 
-	decisions, err := h.decisionService.GetDecisionHistory(c.Request.Context(), customerID, limit)
+	decisions, err := h.decisionService.GetDecisionHistory(c.Request.Context(), customerID)
 	if err != nil {
 		logger.Error("Failed to retrieve decision history", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{

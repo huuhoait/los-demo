@@ -130,7 +130,7 @@ func (r *DecisionRepository) GetDecisionByApplicationID(ctx context.Context, app
 			return nil, fmt.Errorf("decision not found for application %s", applicationID)
 		}
 		logger.Error("Failed to retrieve decision", zap.Error(err))
-		return fmt.Errorf("failed to retrieve decision: %w", err)
+		return nil, fmt.Errorf("failed to retrieve decision: %w", err)
 	}
 
 	// Deserialize JSON fields
@@ -401,4 +401,33 @@ func (r *DecisionRepository) InitializeDatabase(ctx context.Context) error {
 
 	logger.Info("Database tables initialized successfully")
 	return nil
+}
+
+// GetDecision implements the domain.DecisionRepository interface
+func (r *DecisionRepository) GetDecision(applicationID string) (*domain.DecisionResponse, error) {
+	return r.GetDecisionByApplicationID(context.Background(), applicationID)
+}
+
+// GetDecisionHistoryByUser implements the domain.DecisionRepository interface
+func (r *DecisionRepository) GetDecisionHistoryByUser(userID string) ([]domain.DecisionResponse, error) {
+	decisions, err := r.GetDecisionHistory(context.Background(), userID, 100)
+	if err != nil {
+		return nil, err
+	}
+	
+	result := make([]domain.DecisionResponse, len(decisions))
+	for i, decision := range decisions {
+		if decision != nil {
+			result[i] = *decision
+		}
+	}
+	
+	return result, nil
+}
+
+// UpdateDecision implements the domain.DecisionRepository interface
+func (r *DecisionRepository) UpdateDecision(response *domain.DecisionResponse) error {
+	// Implementation would update an existing decision
+	// For now, just save it as new
+	return r.SaveDecision(context.Background(), response)
 }

@@ -1,23 +1,26 @@
 package domain
 
 import (
+	"context"
 	"time"
 )
 
 // DecisionRequest represents a loan decision request
 type DecisionRequest struct {
-	ApplicationID  string                 `json:"application_id" validate:"required"`
-	UserID         string                 `json:"user_id" validate:"required"`
-	LoanAmount     float64                `json:"loan_amount" validate:"required,min=1000,max=1000000"`
-	AnnualIncome   float64                `json:"annual_income" validate:"required,min=0"`
-	MonthlyIncome  float64                `json:"monthly_income" validate:"required,min=0"`
-	MonthlyDebt    float64                `json:"monthly_debt" validate:"min=0"`
-	CreditScore    int                    `json:"credit_score" validate:"required,min=300,max=850"`
-	EmploymentType EmploymentType         `json:"employment_type" validate:"required"`
-	RequestedTerm  int                    `json:"requested_term" validate:"required,min=12,max=84"`
-	LoanPurpose    LoanPurpose            `json:"loan_purpose" validate:"required"`
-	AdditionalData map[string]interface{} `json:"additional_data,omitempty"`
-	RequestedAt    time.Time              `json:"requested_at"`
+	ApplicationID    string                 `json:"application_id" validate:"required"`
+	UserID           string                 `json:"user_id" validate:"required"`
+	CustomerID       string                 `json:"customer_id"`
+	LoanAmount       float64                `json:"loan_amount" validate:"required,min=1000,max=1000000"`
+	AnnualIncome     float64                `json:"annual_income" validate:"required,min=0"`
+	MonthlyIncome    float64                `json:"monthly_income" validate:"required,min=0"`
+	MonthlyDebt      float64                `json:"monthly_debt" validate:"min=0"`
+	CreditScore      int                    `json:"credit_score" validate:"required,min=300,max=850"`
+	EmploymentType   EmploymentType         `json:"employment_type" validate:"required"`
+	RequestedTerm    int                    `json:"requested_term" validate:"required,min=12,max=84"`
+	LoanTermMonths   int                    `json:"loan_term_months"`
+	LoanPurpose      LoanPurpose            `json:"loan_purpose" validate:"required"`
+	AdditionalData   map[string]interface{} `json:"additional_data,omitempty"`
+	RequestedAt      time.Time              `json:"requested_at"`
 }
 
 // DecisionResponse represents the decision engine response
@@ -202,9 +205,9 @@ type RulesEngineService interface {
 
 // Repository Interfaces
 type DecisionRepository interface {
-	SaveDecision(response *DecisionResponse) error
+	SaveDecision(ctx context.Context, response *DecisionResponse) error
 	GetDecision(applicationID string) (*DecisionResponse, error)
-	GetDecisionHistory(userID string) ([]DecisionResponse, error)
+	GetDecisionHistoryByUser(userID string) ([]DecisionResponse, error)
 	UpdateDecision(response *DecisionResponse) error
 }
 
@@ -273,6 +276,23 @@ func (dr *DecisionRequest) GetLoanToIncomeRatio() float64 {
 		return 0
 	}
 	return dr.LoanAmount / dr.AnnualIncome
+}
+
+// Validate validates the decision request
+func (dr *DecisionRequest) Validate() error {
+	if dr.ApplicationID == "" {
+		return &DecisionError{Code: ERROR_INVALID_REQUEST, Message: "application_id is required"}
+	}
+	if dr.UserID == "" {
+		return &DecisionError{Code: ERROR_INVALID_REQUEST, Message: "user_id is required"}
+	}
+	if dr.LoanAmount < 1000 || dr.LoanAmount > 1000000 {
+		return &DecisionError{Code: ERROR_INVALID_REQUEST, Message: "loan_amount must be between 1000 and 1000000"}
+	}
+	if !dr.IsValidCreditScore() {
+		return &DecisionError{Code: ERROR_INVALID_REQUEST, Message: "credit_score must be between 300 and 850"}
+	}
+	return nil
 }
 
 // Domain Errors

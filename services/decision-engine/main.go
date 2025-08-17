@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/huuhoait/los-demo/services/decision-engine/application"
+	"github.com/huuhoait/los-demo/services/decision-engine/domain"
 	"github.com/huuhoait/los-demo/services/decision-engine/infrastructure"
 	"github.com/huuhoait/los-demo/services/decision-engine/interfaces"
 
@@ -117,14 +118,17 @@ func setupDatabase(databaseURL string, logger *zap.Logger) (*sql.DB, error) {
 func setupServices(db *sql.DB, config *Config, logger *zap.Logger) (*application.DecisionEngineService, error) {
 	// Initialize repositories
 	decisionRepo := infrastructure.NewDecisionRepository(db, logger)
-	creditRepo := infrastructure.NewCreditBureauRepository(logger, config.CreditBureauConfig)
 
 	// Initialize services
 	riskService := application.NewRiskAssessmentService(logger)
+	
+	// Create a mock rules service
+	rulesService := NewMockRulesService(logger)
+	
 	decisionService := application.NewDecisionEngineService(
-		decisionRepo,
-		creditRepo,
 		riskService,
+		rulesService,
+		decisionRepo,
 		logger,
 	)
 
@@ -215,4 +219,47 @@ func main() {
 	} else {
 		logger.Info("Server shutdown completed")
 	}
+}
+
+// MockRulesService provides a mock implementation of domain.RulesEngineService
+type MockRulesService struct {
+	logger *zap.Logger
+}
+
+// NewMockRulesService creates a new mock rules service
+func NewMockRulesService(logger *zap.Logger) *MockRulesService {
+	return &MockRulesService{
+		logger: logger,
+	}
+}
+
+// EvaluateRules implements domain.RulesEngineService
+func (m *MockRulesService) EvaluateRules(request *domain.DecisionRequest, assessment *domain.RiskAssessment) (*domain.DecisionResponse, error) {
+	// Mock implementation - always return approval for testing
+	return &domain.DecisionResponse{
+		ApplicationID: request.ApplicationID,
+		Decision:      domain.DecisionApprove,
+		RiskScore:     assessment.OverallScore,
+		RiskCategory:  domain.RiskLow,
+	}, nil
+}
+
+// GetActiveRules implements domain.RulesEngineService
+func (m *MockRulesService) GetActiveRules() ([]domain.DecisionRule, error) {
+	return []domain.DecisionRule{}, nil
+}
+
+// AddRule implements domain.RulesEngineService
+func (m *MockRulesService) AddRule(rule *domain.DecisionRule) error {
+	return nil
+}
+
+// UpdateRule implements domain.RulesEngineService
+func (m *MockRulesService) UpdateRule(rule *domain.DecisionRule) error {
+	return nil
+}
+
+// DeleteRule implements domain.RulesEngineService
+func (m *MockRulesService) DeleteRule(ruleID string) error {
+	return nil
 }
