@@ -1,6 +1,12 @@
-package interfaces
+package inter// AuthHandler handles authentication HTTP endpoints
+type AuthHandler struct {
+	authService domain.AuthService
+	logger      *zap.Logger
+	// localizer   *i18n.Localizer // temporarily disabled
+}
 
-import (
+// NewAuthHandler creates a new auth handler
+func NewAuthHandler(authService domain.AuthService, logger *zap.Logger, localizer interface{}) *AuthHandler {port (
 	"net/http"
 	"time"
 
@@ -9,7 +15,6 @@ import (
 
 	"github.com/huuhoait/los-demo/services/auth/domain"
 	"github.com/huuhoait/los-demo/services/auth/interfaces/middleware"
-	"github.com/huuhoait/los-demo/services/auth/pkg/i18n"
 )
 
 // AuthHandler handles authentication HTTP endpoints
@@ -24,7 +29,7 @@ func NewAuthHandler(authService domain.AuthService, logger *zap.Logger, localize
 	return &AuthHandler{
 		authService: authService,
 		logger:      logger,
-		localizer:   localizer,
+		// localizer:   localizer, // temporarily disabled
 	}
 }
 

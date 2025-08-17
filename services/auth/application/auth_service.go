@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/huuhoait/los-demo/services/auth/domain"
-	customI18n "github.com/huuhoait/los-demo/services/auth/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/shared/pkg/i18n"
 )
 
 // AuthService implements the authentication use cases
@@ -20,7 +20,7 @@ type AuthService struct {
 	cache        domain.CacheService
 	auditLogger  domain.AuditLogger
 	logger       *zap.Logger
-	localizer    *customI18n.Localizer // Use custom i18n Localizer
+	localizer    *i18n.Localizer // Use shared i18n Localizer
 
 	// Configuration
 	maxLoginAttempts int

@@ -10,8 +10,8 @@ import (
 
 	"github.com/huuhoait/los-demo/services/user/domain"
 	"github.com/huuhoait/los-demo/services/user/interfaces/middleware"
-	"github.com/huuhoait/los-demo/services/user/pkg/errors"
-	"github.com/huuhoait/los-demo/services/user/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/shared/pkg/errors"
+	"github.com/huuhoait/los-demo/services/shared/pkg/i18n"
 )
 
 type UserHandler struct {

@@ -15,7 +15,7 @@ import (
 	"github.com/huuhoait/los-demo/services/loan-api/application"
 	"github.com/huuhoait/los-demo/services/loan-api/domain"
 	"github.com/huuhoait/los-demo/services/loan-api/interfaces/middleware"
-	"github.com/huuhoait/los-demo/services/loan-api/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/shared/pkg/i18n"
 )
 
 // LoanHandler handles HTTP requests for loan operations

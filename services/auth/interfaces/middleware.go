@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/huuhoait/los-demo/services/auth/domain"
-	customI18n "github.com/huuhoait/los-demo/services/auth/pkg/i18n"
+	customI18n "// github.com/huuhoait/los-demo/services/shared/pkg/i18n // DISABLED"
 )
 
 // AuthMiddleware handles JWT authentication for protected routes

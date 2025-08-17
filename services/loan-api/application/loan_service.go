@@ -12,7 +12,7 @@ import (
 
 	"github.com/huuhoait/los-demo/services/loan-api/domain"
 	"github.com/huuhoait/los-demo/services/loan-api/infrastructure/workflow"
-	"github.com/huuhoait/los-demo/services/loan-api/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/shared/pkg/i18n"
 )
 
 // UserRepository interface for user data persistence

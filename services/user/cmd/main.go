@@ -13,19 +13,19 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
+	"github.com/huuhoait/los-demo/services/shared/pkg/config"
+	"github.com/huuhoait/los-demo/services/shared/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/shared/pkg/logger"
+	sharedMiddleware "github.com/huuhoait/los-demo/services/shared/pkg/middleware"
 	"github.com/huuhoait/los-demo/services/user/application"
 	"github.com/huuhoait/los-demo/services/user/domain"
 	"github.com/huuhoait/los-demo/services/user/infrastructure"
 	"github.com/huuhoait/los-demo/services/user/interfaces"
-	"github.com/huuhoait/los-demo/services/user/interfaces/middleware"
-	"github.com/huuhoait/los-demo/services/user/pkg/config"
-	"github.com/huuhoait/los-demo/services/user/pkg/i18n"
-	"github.com/huuhoait/los-demo/services/user/pkg/logger"
 )
 
 func main() {
@@ -36,14 +36,20 @@ func main() {
 	}
 
 	// Initialize logger
-	zapLogger, err := logger.NewZapLogger(cfg)
+	loggerConfig := logger.Config{
+		Level:       cfg.Logging.Level,
+		Format:      cfg.Logging.Format,
+		Output:      cfg.Logging.Output,
+		Environment: cfg.Environment,
+	}
+
+	appLogger, err := logger.New(loggerConfig)
 	if err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
-	defer zapLogger.Sync()
+	defer appLogger.Sync()
 
-	logger := zapLogger.With(zap.String("service", "user-service"))
-	logger.Info("Starting User Service", zap.String("version", "1.0.0"))
+	appLogger.Info("Starting User Service", zap.String("version", "1.0.0"))
 
 	// Initialize localizer
 	i18nConfig := &i18n.Config{
@@ -53,34 +59,34 @@ func main() {
 	}
 	localizer, err := i18n.NewLocalizer(i18nConfig)
 	if err != nil {
-		logger.Fatal("Failed to initialize localizer", zap.Error(err))
+		appLogger.Fatal("Failed to initialize localizer", zap.Error(err))
 	}
 
 	// Initialize database
-	db, err := initializeDatabase(cfg, logger)
+	db, err := initializeDatabase(cfg, appLogger)
 	if err != nil {
-		logger.Fatal("Failed to initialize database", zap.Error(err))
+		appLogger.Fatal("Failed to initialize database", zap.Error(err))
 	}
 	defer db.Close()
 
 	// Initialize Redis
-	redisClient := initializeRedis(cfg, logger)
+	redisClient := initializeRedis(cfg, appLogger)
 	defer redisClient.Close()
 
 	// Initialize services and repositories
-	app, err := initializeApplication(db, redisClient, cfg, logger, localizer)
+	app, err := initializeApplication(db, redisClient, cfg, appLogger, localizer)
 	if err != nil {
-		logger.Fatal("Failed to initialize application", zap.Error(err))
+		appLogger.Fatal("Failed to initialize application", zap.Error(err))
 	}
 
 	// Initialize HTTP server
-	server := initializeHTTPServer(app, cfg, logger, localizer)
+	server := initializeHTTPServer(app, cfg, appLogger, localizer)
 
 	// Start server in goroutine
 	go func() {
-		logger.Info("Starting HTTP server", zap.String("address", server.Addr))
+		appLogger.Info("Starting HTTP server", zap.String("address", server.Addr))
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatal("Failed to start HTTP server", zap.Error(err))
+			appLogger.Fatal("Failed to start HTTP server", zap.Error(err))
 		}
 	}()
 
@@ -89,20 +95,20 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	logger.Info("Shutting down User Service...")
+	appLogger.Info("Shutting down User Service...")
 
 	// Graceful shutdown with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		logger.Fatal("Server forced to shutdown", zap.Error(err))
+		appLogger.Fatal("Server forced to shutdown", zap.Error(err))
 	}
 
-	logger.Info("User Service shutdown complete")
+	appLogger.Info("User Service shutdown complete")
 }
 
-func initializeDatabase(cfg *config.Config, logger *zap.Logger) (*sqlx.DB, error) {
+func initializeDatabase(cfg *config.Config, appLogger *logger.Logger) (*sqlx.DB, error) {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Database.Host,
 		cfg.Database.Port,
@@ -127,7 +133,7 @@ func initializeDatabase(cfg *config.Config, logger *zap.Logger) (*sqlx.DB, error
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	logger.Info("Database connection established",
+	appLogger.Info("Database connection established",
 		zap.String("host", cfg.Database.Host),
 		zap.Int("port", cfg.Database.Port),
 		zap.String("database", cfg.Database.Name),
@@ -136,7 +142,7 @@ func initializeDatabase(cfg *config.Config, logger *zap.Logger) (*sqlx.DB, error
 	return db, nil
 }
 
-func initializeRedis(cfg *config.Config, logger *zap.Logger) *redis.Client {
+func initializeRedis(cfg *config.Config, appLogger *logger.Logger) *redis.Client {
 	client := redis.NewClient(&redis.Options{
 		Addr:         fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
 		Password:     cfg.Redis.Password,
@@ -151,10 +157,10 @@ func initializeRedis(cfg *config.Config, logger *zap.Logger) *redis.Client {
 	defer cancel()
 
 	if err := client.Ping(ctx).Err(); err != nil {
-		logger.Fatal("Failed to connect to Redis", zap.Error(err))
+		appLogger.Fatal("Failed to connect to Redis", zap.Error(err))
 	}
 
-	logger.Info("Redis connection established",
+	appLogger.Info("Redis connection established",
 		zap.String("host", cfg.Redis.Host),
 		zap.Int("port", cfg.Redis.Port),
 	)
@@ -172,21 +178,21 @@ func initializeApplication(
 	db *sqlx.DB,
 	redisClient *redis.Client,
 	cfg *config.Config,
-	logger *zap.Logger,
+	appLogger *logger.Logger,
 	localizer *i18n.Localizer,
 ) (*Application, error) {
 	// Initialize repositories
-	userRepo := infrastructure.NewPostgresUserRepository(db, logger)
-	kycRepo := infrastructure.NewPostgresKYCRepository(db, logger)
-	documentRepo := infrastructure.NewPostgresDocumentRepository(db, logger)
+	userRepo := infrastructure.NewPostgresUserRepository(db, appLogger.Logger)
+	kycRepo := infrastructure.NewPostgresKYCRepository(db, appLogger.Logger)
+	documentRepo := infrastructure.NewPostgresDocumentRepository(db, appLogger.Logger)
 
 	// Initialize infrastructure services
-	cacheService := infrastructure.NewRedisCacheService(redisClient, logger)
-	validationService := infrastructure.NewValidationService(logger)
-	encryptionService := infrastructure.NewAESEncryptionService(cfg.Encryption.MasterKey, logger)
+	cacheService := infrastructure.NewRedisCacheService(redisClient, appLogger.Logger)
+	validationService := infrastructure.NewValidationService(appLogger.Logger)
+	encryptionService := infrastructure.NewAESEncryptionService(cfg.Encryption.MasterKey, appLogger.Logger)
 
 	// Mock services for development (replace with real implementations in production)
-	kycProvider := infrastructure.NewMockKYCProviderService(logger)
+	kycProvider := infrastructure.NewMockKYCProviderService(appLogger.Logger)
 
 	// TODO: Initialize real services
 	var storageService domain.DocumentStorageService
@@ -194,9 +200,9 @@ func initializeApplication(
 	var auditService domain.AuditService
 
 	// For now, use mock implementations
-	storageService = NewMockStorageService(logger)
-	notificationService = NewMockNotificationService(logger)
-	auditService = NewMockAuditService(logger)
+	storageService = NewMockStorageService(appLogger.Logger)
+	notificationService = NewMockNotificationService(appLogger.Logger)
+	auditService = NewMockAuditService(appLogger.Logger)
 
 	// Initialize user service
 	userService := application.NewUserService(
@@ -210,21 +216,21 @@ func initializeApplication(
 		validationService,
 		auditService,
 		cacheService,
-		logger,
+		appLogger.Logger,
 		localizer,
 	)
 
 	// Initialize handlers
-	userHandler := interfaces.NewUserHandler(userService, logger, localizer)
+	userHandler := interfaces.NewUserHandler(userService, appLogger.Logger, localizer)
 
 	return &Application{
 		UserService: userService,
 		UserHandler: userHandler,
-		Logger:      logger,
+		Logger:      appLogger.Logger,
 	}, nil
 }
 
-func initializeHTTPServer(app *Application, cfg *config.Config, logger *zap.Logger, localizer *i18n.Localizer) *http.Server {
+func initializeHTTPServer(app *Application, cfg *config.Config, appLogger *logger.Logger, localizer *i18n.Localizer) *http.Server {
 	// Set Gin mode
 	if cfg.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -235,13 +241,17 @@ func initializeHTTPServer(app *Application, cfg *config.Config, logger *zap.Logg
 
 	// Add middleware
 	router.Use(gin.Recovery())
-	router.Use(corsMiddleware())
-	router.Use(requestIDMiddleware())
-	router.Use(loggingMiddleware(logger))
+	router.Use(sharedMiddleware.CORSMiddleware())
+	router.Use(sharedMiddleware.RequestIDMiddleware())
+	
+	// Add logger middleware
+	loggerMiddleware := logger.NewLoggerMiddleware(appLogger)
+	router.Use(loggerMiddleware.Handler())
+	
 	router.Use(timestampMiddleware())
 
 	// Add i18n middleware
-	i18nMiddleware := middleware.NewI18nMiddleware(localizer, logger)
+	i18nMiddleware := sharedMiddleware.NewI18nMiddleware(localizer, appLogger.Logger)
 	router.Use(i18nMiddleware.Handler())
 
 	// Health check endpoint
@@ -267,55 +277,11 @@ func initializeHTTPServer(app *Application, cfg *config.Config, logger *zap.Logg
 	}
 }
 
-// Middleware functions
-
-func corsMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Credentials", "true")
-		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Header("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	}
-}
-
-func requestIDMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		requestID := c.GetHeader("X-Request-ID")
-		if requestID == "" {
-			requestID = generateRequestID()
-		}
-		c.Set("request_id", requestID)
-		c.Header("X-Request-ID", requestID)
-		c.Next()
-	}
-}
-
 func timestampMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set("timestamp", time.Now().UTC())
 		c.Next()
 	}
-}
-
-func loggingMiddleware(logger *zap.Logger) gin.HandlerFunc {
-	return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		logger.Info("HTTP Request",
-			zap.String("method", param.Method),
-			zap.String("path", param.Path),
-			zap.Int("status", param.StatusCode),
-			zap.Duration("latency", param.Latency),
-			zap.String("client_ip", param.ClientIP),
-			zap.String("user_agent", param.Request.UserAgent()),
-		)
-		return ""
-	})
 }
 
 func generateRequestID() string {

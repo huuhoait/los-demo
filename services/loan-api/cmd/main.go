@@ -19,8 +19,8 @@ import (
 	"github.com/huuhoait/los-demo/services/loan-api/infrastructure/workflow"
 	"github.com/huuhoait/los-demo/services/loan-api/interfaces"
 	"github.com/huuhoait/los-demo/services/loan-api/interfaces/middleware"
-	"github.com/huuhoait/los-demo/services/loan-api/pkg/config"
-	"github.com/huuhoait/los-demo/services/loan-api/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/shared/pkg/config"
+	"github.com/huuhoait/los-demo/services/shared/pkg/i18n"
 )
 
 func main() {

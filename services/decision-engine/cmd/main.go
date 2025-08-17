@@ -15,8 +15,8 @@ import (
 	"github.com/huuhoait/los-demo/services/decision-engine/domain"
 	"github.com/huuhoait/los-demo/services/decision-engine/infrastructure"
 	"github.com/huuhoait/los-demo/services/decision-engine/interfaces"
-	"github.com/huuhoait/los-demo/services/decision-engine/pkg/config"
-	"github.com/huuhoait/los-demo/services/decision-engine/pkg/logger"
+	"github.com/huuhoait/los-demo/services/shared/pkg/config"
+	"github.com/huuhoait/los-demo/services/shared/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -124,10 +124,10 @@ func setupServices(db *sql.DB, cfg *config.Config, logger *zap.Logger) (*applica
 
 	// Initialize services
 	riskService := application.NewRiskAssessmentService(logger)
-	
+
 	// Create a mock rules service
 	rulesService := NewMockRulesService(logger)
-	
+
 	decisionService := application.NewDecisionEngineService(
 		riskService,
 		rulesService,
@@ -145,14 +145,14 @@ func setupRouter(handler *interfaces.DecisionHandler, cfg *config.Config, logger
 	}
 
 	router := gin.New()
-	
+
 	// Add middleware
 	router.Use(gin.Recovery())
 	router.Use(func(c *gin.Context) {
 		start := time.Now()
 		c.Next()
 		duration := time.Since(start)
-		
+
 		logger.Info("HTTP Request",
 			zap.String("method", c.Request.Method),
 			zap.String("path", c.Request.URL.Path),

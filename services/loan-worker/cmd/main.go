@@ -14,8 +14,8 @@ import (
 
 	"github.com/huuhoait/los-demo/services/loan-worker/infrastructure/database/postgres"
 	"github.com/huuhoait/los-demo/services/loan-worker/infrastructure/workflow"
-	"github.com/huuhoait/los-demo/services/loan-worker/pkg/config"
-	"github.com/huuhoait/los-demo/services/loan-worker/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/shared/pkg/config"
+	"github.com/huuhoait/los-demo/services/shared/pkg/i18n"
 )
 
 func main() {

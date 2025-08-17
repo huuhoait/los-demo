@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/huuhoait/los-demo/services/auth/domain"
-	customI18n "github.com/huuhoait/los-demo/services/auth/pkg/i18n"
+	customI18n "// github.com/huuhoait/los-demo/services/shared/pkg/i18n // DISABLED"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 

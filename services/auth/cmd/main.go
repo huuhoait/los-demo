@@ -15,90 +15,72 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/huuhoait/los-demo/services/auth/application"
 	"github.com/huuhoait/los-demo/services/auth/infrastructure"
 	"github.com/huuhoait/los-demo/services/auth/interfaces"
-	"github.com/huuhoait/los-demo/services/auth/interfaces/middleware"
-	"github.com/huuhoait/los-demo/services/auth/pkg/i18n"
+	"github.com/huuhoait/los-demo/services/shared/pkg/config"
+	"github.com/huuhoait/los-demo/services/shared/pkg/logger"
+	sharedMiddleware "github.com/huuhoait/los-demo/services/shared/pkg/middleware"
 )
 
 // Config holds application configuration
 type Config struct {
-	Server struct {
-		Port         string        `env:"PORT" envDefault:"8080"`
-		ReadTimeout  time.Duration `env:"READ_TIMEOUT" envDefault:"10s"`
-		WriteTimeout time.Duration `env:"WRITE_TIMEOUT" envDefault:"10s"`
-		IdleTimeout  time.Duration `env:"IDLE_TIMEOUT" envDefault:"60s"`
-	}
-	Database struct {
-		Host         string `env:"DB_HOST" envDefault:"localhost"`
-		Port         string `env:"DB_PORT" envDefault:"5432"`
-		Name         string `env:"DB_NAME" envDefault:"los_auth"`
-		User         string `env:"DB_USER" envDefault:"postgres"`
-		Password     string `env:"DB_PASSWORD" envDefault:"password"`
-		MaxOpenConns int    `env:"DB_MAX_OPEN_CONNS" envDefault:"25"`
-		MaxIdleConns int    `env:"DB_MAX_IDLE_CONNS" envDefault:"5"`
-		SSLMode      string `env:"DB_SSL_MODE" envDefault:"disable"`
-	}
-	Redis struct {
-		Host     string `env:"REDIS_HOST" envDefault:"localhost"`
-		Port     string `env:"REDIS_PORT" envDefault:"6379"`
-		Password string `env:"REDIS_PASSWORD" envDefault:""`
-		DB       int    `env:"REDIS_DB" envDefault:"0"`
-	}
+	config.BaseConfig
 	JWT struct {
-		SigningKey string        `env:"JWT_SIGNING_KEY" envDefault:"your-secret-key"`
-		Issuer     string        `env:"JWT_ISSUER" envDefault:"los-auth-service"`
-		TTL        time.Duration `env:"JWT_TTL" envDefault:"15m"`
-	}
-	Logging struct {
-		Level  string `env:"LOG_LEVEL" envDefault:"info"`
-		Format string `env:"LOG_FORMAT" envDefault:"json"`
-	}
+		SigningKey string        `yaml:"signing_key" json:"signing_key"`
+		Issuer     string        `yaml:"issuer" json:"issuer"`
+		TTL        time.Duration `yaml:"ttl" json:"ttl"`
+	} `yaml:"jwt" json:"jwt"`
 }
 
 func main() {
 	// Load configuration
-	config := loadConfig()
+	cfg, err := loadConfig()
+	if err != nil {
+		log.Fatal("Failed to load configuration:", err)
+	}
 
 	// Initialize logger
-	logger := initLogger(config.Logging.Level, config.Logging.Format)
-	defer logger.Sync()
+	loggerConfig := logger.Config{
+		Level:       cfg.Logging.Level,
+		Format:      cfg.Logging.Format,
+		Output:      cfg.Logging.Output,
+		Environment: cfg.Environment,
+	}
 
-	logger.Info("Starting authentication service",
+	appLogger, err := logger.New(loggerConfig)
+	if err != nil {
+		log.Fatal("Failed to initialize logger:", err)
+	}
+	defer appLogger.Sync()
+
+	appLogger.Info("Starting authentication service",
 		zap.String("version", "v1.0.0"),
-		zap.String("port", config.Server.Port))
+		zap.String("port", cfg.Server.Port))
 
 	// Initialize database
-	db, err := initDatabase(config, logger)
+	db, err := initDatabase(cfg, appLogger)
 	if err != nil {
-		logger.Fatal("Failed to initialize database", zap.Error(err))
+		appLogger.Fatal("Failed to initialize database", zap.Error(err))
 	}
 	defer db.Close()
 
 	// Initialize Redis
-	redisClient := initRedis(config, logger)
+	redisClient := initRedis(cfg, appLogger)
 	defer redisClient.Close()
 
-	// Initialize i18n
-	localizer, err := initI18n(logger)
-	if err != nil {
-		logger.Fatal("Failed to initialize i18n", zap.Error(err))
-	}
-
 	// Initialize services
-	authService := initAuthService(db, redisClient, config, logger, localizer)
+	authService := initAuthService(db, redisClient, cfg, appLogger)
 
 	// Initialize HTTP server
-	server := initServer(config, authService, logger, localizer)
+	server := initServer(cfg, authService, appLogger)
 
 	// Start server
 	go func() {
-		logger.Info("Server starting", zap.String("address", ":"+config.Server.Port))
+		appLogger.Info("Server starting", zap.String("address", ":"+cfg.Server.Port))
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatal("Failed to start server", zap.Error(err))
+			appLogger.Fatal("Failed to start server", zap.Error(err))
 		}
 	}()
 
@@ -107,37 +89,66 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	logger.Info("Shutting down server...")
+	appLogger.Info("Shutting down server...")
 
 	// Graceful shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		logger.Error("Server forced to shutdown", zap.Error(err))
+		appLogger.Error("Server forced to shutdown", zap.Error(err))
 	}
 
-	logger.Info("Server exited")
+	appLogger.Info("Server exited")
 }
 
 // loadConfig loads configuration from environment variables
-func loadConfig() *Config {
-	config := &Config{}
+func loadConfig() (*Config, error) {
+	cfg := &Config{}
 
-	// Set defaults (in production, use a proper config library like viper)
-	config.Server.Port = getEnv("PORT", "8080")
-	config.Database.Host = getEnv("DB_HOST", "localhost")
-	config.Database.Port = getEnv("DB_PORT", "5432")
-	config.Database.Name = getEnv("DB_NAME", "los_auth")
-	config.Database.User = getEnv("DB_USER", "postgres")
-	config.Database.Password = getEnv("DB_PASSWORD", "password")
-	config.Redis.Host = getEnv("REDIS_HOST", "localhost")
-	config.Redis.Port = getEnv("REDIS_PORT", "6379")
-	config.JWT.SigningKey = getEnv("JWT_SIGNING_KEY", "your-secret-key")
-	config.JWT.Issuer = getEnv("JWT_ISSUER", "los-auth-service")
-	config.Logging.Level = getEnv("LOG_LEVEL", "info")
+	// Load base configuration with defaults
+	cfg.Environment = getEnv("ENVIRONMENT", "development")
+	cfg.Service.Name = getEnv("SERVICE_NAME", "auth-service")
+	cfg.Service.Version = getEnv("SERVICE_VERSION", "1.0.0")
+	cfg.Server.Port = getEnv("PORT", "8080")
 
-	return config
+	// Database URL or individual fields
+	if dbURL := getEnv("DATABASE_URL", ""); dbURL != "" {
+		cfg.Database.URL = dbURL
+	} else {
+		host := getEnv("DB_HOST", "localhost")
+		port := getEnv("DB_PORT", "5432")
+		user := getEnv("DB_USER", "postgres")
+		password := getEnv("DB_PASSWORD", "password")
+		database := getEnv("DB_NAME", "los_auth")
+		sslMode := getEnv("DB_SSL_MODE", "disable")
+		cfg.Database.URL = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+			host, port, user, password, database, sslMode)
+	}
+
+	// Redis configuration
+	cfg.Redis.Host = getEnv("REDIS_HOST", "localhost")
+	cfg.Redis.Port = getEnv("REDIS_PORT", "6379")
+	cfg.Redis.Password = getEnv("REDIS_PASSWORD", "")
+	cfg.Redis.DB = config.GetInt("REDIS_DB", 0)
+
+	// Logging configuration
+	cfg.Logging.Level = getEnv("LOG_LEVEL", "info")
+	cfg.Logging.Format = getEnv("LOG_FORMAT", "json")
+	cfg.Logging.Output = getEnv("LOG_OUTPUT", "stdout")
+
+	// JWT configuration
+	cfg.JWT.SigningKey = getEnv("JWT_SIGNING_KEY", "your-secret-key")
+	cfg.JWT.Issuer = getEnv("JWT_ISSUER", "los-auth-service")
+	if ttlStr := getEnv("JWT_TTL", "15m"); ttlStr != "" {
+		if ttl, err := time.ParseDuration(ttlStr); err == nil {
+			cfg.JWT.TTL = ttl
+		} else {
+			cfg.JWT.TTL = 15 * time.Minute
+		}
+	}
+
+	return cfg, nil
 }
 
 // getEnv gets environment variable with fallback
@@ -148,57 +159,16 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-// initLogger initializes the zap logger
-func initLogger(level, format string) *zap.Logger {
-	var config zap.Config
-
-	if format == "console" {
-		config = zap.NewDevelopmentConfig()
-	} else {
-		config = zap.NewProductionConfig()
-	}
-
-	// Set log level
-	switch level {
-	case "debug":
-		config.Level = zap.NewAtomicLevelAt(zapcore.DebugLevel)
-	case "info":
-		config.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel)
-	case "warn":
-		config.Level = zap.NewAtomicLevelAt(zapcore.WarnLevel)
-	case "error":
-		config.Level = zap.NewAtomicLevelAt(zapcore.ErrorLevel)
-	default:
-		config.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel)
-	}
-
-	logger, err := config.Build()
-	if err != nil {
-		log.Fatal("Failed to initialize logger:", err)
-	}
-
-	return logger
-}
-
 // initDatabase initializes the PostgreSQL database connection
-func initDatabase(config *Config, logger *zap.Logger) (*sqlx.DB, error) {
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		config.Database.Host,
-		config.Database.Port,
-		config.Database.User,
-		config.Database.Password,
-		config.Database.Name,
-		config.Database.SSLMode,
-	)
-	logger.Info("Database connection string", zap.String("dsn", dsn))
-	db, err := sqlx.Connect("postgres", dsn)
+func initDatabase(config *Config, logger *logger.Logger) (*sqlx.DB, error) {
+	db, err := sqlx.Connect("postgres", config.Database.URL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	// Configure connection pool
-	db.SetMaxOpenConns(config.Database.MaxOpenConns)
-	db.SetMaxIdleConns(config.Database.MaxIdleConns)
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(time.Hour)
 
 	// Test connection
@@ -209,15 +179,13 @@ func initDatabase(config *Config, logger *zap.Logger) (*sqlx.DB, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	logger.Info("Database connection established",
-		zap.String("host", config.Database.Host),
-		zap.String("database", config.Database.Name))
+	logger.Info("Database connection established")
 
 	return db, nil
 }
 
 // initRedis initializes the Redis client
-func initRedis(config *Config, logger *zap.Logger) *redis.Client {
+func initRedis(config *Config, logger *logger.Logger) *redis.Client {
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", config.Redis.Host, config.Redis.Port),
 		Password: config.Redis.Password,
@@ -239,35 +207,14 @@ func initRedis(config *Config, logger *zap.Logger) *redis.Client {
 	return client
 }
 
-// initI18n initializes internationalization with embedded translation files
-func initI18n(logger *zap.Logger) (*i18n.Localizer, error) {
-	cfg := &i18n.Config{
-		DefaultLanguage: "en",
-		SupportedLangs:  []string{"en", "vi"},
-		FallbackLang:    "en",
-	}
-
-	localizer, err := i18n.NewLocalizer(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize localizer: %w", err)
-	}
-
-	logger.Info("I18n initialized",
-		zap.Strings("supported_languages", localizer.SupportedLanguages()),
-		zap.String("default_language", cfg.DefaultLanguage),
-	)
-
-	return localizer, nil
-}
-
 // initAuthService initializes the authentication service with all dependencies
-func initAuthService(db *sqlx.DB, redisClient *redis.Client, config *Config, logger *zap.Logger, localizer *i18n.Localizer) *application.AuthService {
+func initAuthService(db *sqlx.DB, redisClient *redis.Client, config *Config, logger *logger.Logger) *application.AuthService {
 	// Initialize repositories
-	userRepo := infrastructure.NewPostgresUserRepository(db, logger)
-	sessionRepo := infrastructure.NewPostgresSessionRepository(db, logger)
+	userRepo := infrastructure.NewPostgresUserRepository(db, logger.Logger)
+	sessionRepo := infrastructure.NewPostgresSessionRepository(db, logger.Logger)
 
 	// Initialize cache service
-	cacheService := infrastructure.NewRedisCacheService(redisClient, logger)
+	cacheService := infrastructure.NewRedisCacheService(redisClient, logger.Logger)
 
 	// Initialize token manager
 	tokenManager := infrastructure.NewJWTTokenManager(
@@ -275,12 +222,12 @@ func initAuthService(db *sqlx.DB, redisClient *redis.Client, config *Config, log
 		config.JWT.Issuer,
 		config.JWT.TTL,
 		cacheService,
-		logger,
-		localizer,
+		logger.Logger,
+		nil, // temporarily remove localizer
 	)
 
 	// Initialize audit logger (placeholder)
-	auditLogger := infrastructure.NewAuditLogger(logger)
+	auditLogger := infrastructure.NewAuditLogger(logger.Logger)
 
 	// Create auth service
 	authService := application.NewAuthService(
@@ -289,8 +236,8 @@ func initAuthService(db *sqlx.DB, redisClient *redis.Client, config *Config, log
 		tokenManager,
 		cacheService,
 		auditLogger,
-		logger,
-		localizer,
+		logger.Logger,
+		nil, // temporarily remove localizer
 	)
 
 	logger.Info("Authentication service initialized")
@@ -298,7 +245,7 @@ func initAuthService(db *sqlx.DB, redisClient *redis.Client, config *Config, log
 }
 
 // initServer initializes the HTTP server with routes and middleware
-func initServer(config *Config, authService *application.AuthService, logger *zap.Logger, localizer *i18n.Localizer) *http.Server {
+func initServer(config *Config, authService *application.AuthService, appLogger *logger.Logger) *http.Server {
 	// Set Gin mode
 	if config.Logging.Level == "debug" {
 		gin.SetMode(gin.DebugMode)
@@ -311,17 +258,16 @@ func initServer(config *Config, authService *application.AuthService, logger *za
 
 	// Add middleware
 	router.Use(gin.Recovery())
-	router.Use(requestIDMiddleware())
-	router.Use(corsMiddleware())
-	router.Use(loggerMiddleware(logger))
+	router.Use(sharedMiddleware.RequestIDMiddleware())
+	router.Use(sharedMiddleware.CORSMiddleware())
 
-	// Add i18n middleware
-	i18nMiddleware := middleware.NewI18nMiddleware(localizer, logger)
-	router.Use(i18nMiddleware.Handler())
+	// Add logger middleware
+	loggerMiddleware := logger.NewLoggerMiddleware(appLogger)
+	router.Use(loggerMiddleware.Handler())
 
 	// Initialize handlers and middleware
-	authHandler := interfaces.NewAuthHandler(authService, logger, localizer)
-	authMiddleware := interfaces.NewAuthMiddleware(authService, logger, localizer)
+	authHandler := interfaces.NewAuthHandler(authService, appLogger.Logger, nil)
+	authMiddleware := interfaces.NewAuthMiddleware(authService, appLogger.Logger, nil)
 
 	// Register routes
 	v1 := router.Group("/v1")
@@ -343,64 +289,8 @@ func initServer(config *Config, authService *application.AuthService, logger *za
 	return &http.Server{
 		Addr:         ":" + config.Server.Port,
 		Handler:      router,
-		ReadTimeout:  config.Server.ReadTimeout,
-		WriteTimeout: config.Server.WriteTimeout,
-		IdleTimeout:  config.Server.IdleTimeout,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
-}
-
-// Custom middleware
-
-func requestIDMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		requestID := c.GetHeader("X-Request-ID")
-		if requestID == "" {
-			requestID = generateRequestID()
-		}
-		c.Header("X-Request-ID", requestID)
-		c.Set("request_id", requestID)
-		c.Next()
-	}
-}
-
-func corsMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Request-ID")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-
-		c.Next()
-	}
-}
-
-func loggerMiddleware(logger *zap.Logger) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		start := time.Now()
-		path := c.Request.URL.Path
-		method := c.Request.Method
-
-		c.Next()
-
-		duration := time.Since(start)
-		statusCode := c.Writer.Status()
-
-		logger.Info("HTTP request",
-			zap.String("method", method),
-			zap.String("path", path),
-			zap.Int("status", statusCode),
-			zap.Duration("duration", duration),
-			zap.String("ip", c.ClientIP()),
-			zap.String("user_agent", c.GetHeader("User-Agent")),
-		)
-	}
-}
-
-func generateRequestID() string {
-	// Simple implementation - use proper UUID in production
-	return fmt.Sprintf("req_%d", time.Now().UnixNano())
 }
