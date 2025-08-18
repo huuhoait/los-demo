@@ -1,0 +1,128 @@
+environment: "development"
+
+service:
+  name: "underwriting-worker"
+  version: "1.0.0"
+  port: "8083"
+
+server:
+  port: 8083
+  host: "0.0.0.0"
+  read_timeout: 30
+  write_timeout: 30
+  graceful_shutdown_timeout: 30
+  idle_timeout: 60
+  cors:
+    enabled: true
+    origins: ["http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:3000"]
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+    credentials: true
+
+database:
+  host: "localhost"
+  port: 5433
+  user: "postgres"
+  password: "password"
+  name: "underwriting_db_dev"
+  ssl_mode: "disable"
+  max_open_conns: 25
+  max_idle_conns: 5
+  conn_max_lifetime: 300
+
+redis:
+  host: "localhost"
+  port: "6379"
+  password: ""
+  db: 0
+  pool_size: 10
+
+conductor:
+  base_url: "http://localhost:8082"
+  timeout: 30
+  retry_attempts: 3
+  retry_delay: 1000
+  worker_pool_size: 5
+  polling_interval_ms: 2000
+  update_retry_time_ms: 3000
+
+services:
+  credit_bureau:
+    provider: "experian"
+    base_url: "https://api.experian.com"
+    api_key: "${CREDIT_BUREAU_API_KEY}"
+    timeout_seconds: 30
+    mock_enabled: true  # Enable mock for development
+
+  risk_scoring:
+    provider: "internal"
+    base_url: "http://localhost:8084"
+    api_key: "${RISK_SCORING_API_KEY}"
+    model_version: "v2.1"
+    timeout_seconds: 15
+    mock_enabled: true
+
+  income_verification:
+    provider: "plaid"
+    base_url: "https://api.plaid.com"
+    api_key: "${INCOME_VERIFICATION_API_KEY}"
+    timeout_seconds: 20
+    mock_enabled: true
+
+  decision_engine:
+    provider: "internal"
+    base_url: "http://localhost:8085"
+    api_key: "${DECISION_ENGINE_API_KEY}"
+    timeout_seconds: 10
+    mock_enabled: true
+
+  notification:
+    provider: "sendgrid"
+    base_url: "https://api.sendgrid.com"
+    api_key: "${NOTIFICATION_API_KEY}"
+    timeout_seconds: 10
+    mock_enabled: true
+
+logging:
+  level: "debug"
+  format: "console"
+  output: "stdout"
+  enable_console: true
+  enable_file: false
+  file_path: "./logs/underwriting-worker-dev.log"
+  max_size: 100
+  max_age: 7
+  max_backups: 5
+
+security:
+  jwt_secret: "dev-jwt-secret-key-change-in-production"
+  jwt_expiration: 3600
+  bcrypt_cost: 10
+  cors_allowed_origins: ["http://localhost:3000", "http://localhost:8080"]
+  cors_allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  cors_allowed_headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+
+application:
+  name: "underwriting-worker"
+  version: "1.0.0"
+  environment: "development"
+  max_loan_amount: 50000
+  min_loan_amount: 5000
+  max_dti_ratio: 0.43
+  default_interest_rate: 8.5
+  max_interest_rate: 15.0
+  min_interest_rate: 5.0
+  offer_expiration_hours: 168
+  debug_mode: true
+  enable_mock_services: true
+
+i18n:
+  default_language: "en"
+  supported_languages: ["en", "vi"]
+  fallback_language: "en"
+
+monitoring:
+  metrics_enabled: true
+  health_check_enabled: true
+  profiling_enabled: true
+  trace_enabled: false

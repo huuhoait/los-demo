@@ -1,0 +1,159 @@
+environment: "production"
+
+service:
+  name: "underwriting-worker"
+  version: "1.0.0"
+  port: "8083"
+
+server:
+  port: 8083
+  host: "0.0.0.0"
+  read_timeout: 30
+  write_timeout: 30
+  graceful_shutdown_timeout: 30
+  idle_timeout: 60
+  cors:
+    enabled: true
+    origins: ["https://company.com", "https://admin.company.com", "https://api.company.com"]
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+    credentials: true
+
+database:
+  host: "prod-postgres.company.com"
+  port: 5432
+  user: "prod_user"
+  password: "${PROD_DB_PASSWORD}"
+  name: "underwriting_db_prod"
+  ssl_mode: "require"
+  max_open_conns: 100
+  max_idle_conns: 20
+  conn_max_lifetime: 300
+
+redis:
+  host: "prod-redis.company.com"
+  port: "6379"
+  password: "${PROD_REDIS_PASSWORD}"
+  db: 2
+  pool_size: 50
+
+conductor:
+  base_url: "https://prod-conductor.company.com"
+  timeout: 30
+  retry_attempts: 5
+  retry_delay: 2000
+  worker_pool_size: 50
+  polling_interval_ms: 500
+  update_retry_time_ms: 5000
+
+services:
+  credit_bureau:
+    provider: "experian"
+    base_url: "https://api.experian.com"
+    api_key: "${PROD_CREDIT_BUREAU_API_KEY}"
+    timeout_seconds: 30
+    mock_enabled: false
+    rate_limit_per_minute: 1000
+
+  risk_scoring:
+    provider: "internal"
+    base_url: "https://prod-risk-scoring.company.com"
+    api_key: "${PROD_RISK_SCORING_API_KEY}"
+    model_version: "v2.1"
+    timeout_seconds: 15
+    mock_enabled: false
+    cache_ttl: "1h"
+
+  income_verification:
+    provider: "plaid"
+    base_url: "https://api.plaid.com"
+    api_key: "${PROD_INCOME_VERIFICATION_API_KEY}"
+    timeout_seconds: 20
+    mock_enabled: false
+    webhook_enabled: true
+
+  decision_engine:
+    provider: "internal"
+    base_url: "https://prod-decision-engine.company.com"
+    api_key: "${PROD_DECISION_ENGINE_API_KEY}"
+    timeout_seconds: 10
+    mock_enabled: false
+    fallback_enabled: true
+
+  notification:
+    provider: "sendgrid"
+    base_url: "https://api.sendgrid.com"
+    api_key: "${PROD_NOTIFICATION_API_KEY}"
+    timeout_seconds: 10
+    mock_enabled: false
+    retry_enabled: true
+
+logging:
+  level: "warn"
+  format: "json"
+  output: "file"
+  enable_console: false
+  enable_file: true
+  file_path: "/var/log/underwriting-worker/production.log"
+  max_size: 500
+  max_age: 90
+  max_backups: 20
+  compression_enabled: true
+
+security:
+  jwt_secret: "${PROD_JWT_SECRET}"
+  jwt_expiration: 1800
+  bcrypt_cost: 14
+  cors_allowed_origins: ["https://company.com", "https://admin.company.com"]
+  cors_allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  cors_allowed_headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+  rate_limiting_enabled: true
+  max_requests_per_minute: 1000
+
+application:
+  name: "underwriting-worker"
+  version: "1.0.0"
+  environment: "production"
+  max_loan_amount: 1000000
+  min_loan_amount: 5000
+  max_dti_ratio: 0.43
+  default_interest_rate: 8.5
+  max_interest_rate: 15.0
+  min_interest_rate: 5.0
+  offer_expiration_hours: 168
+  debug_mode: false
+  enable_mock_services: false
+  performance_monitoring: true
+
+i18n:
+  default_language: "en"
+  supported_languages: ["en", "vi"]
+  fallback_language: "en"
+
+monitoring:
+  metrics_enabled: true
+  health_check_enabled: true
+  profiling_enabled: false
+  trace_enabled: true
+  prometheus_endpoint: "/metrics"
+  jaeger_endpoint: "https://prod-jaeger.company.com:14268"
+  alerting_enabled: true
+  sla_monitoring: true
+  business_metrics: true
+
+performance:
+  connection_pool_size: 100
+  worker_threads: 50
+  max_concurrent_requests: 1000
+  request_timeout: 30
+  circuit_breaker_enabled: true
+  cache_enabled: true
+  cache_ttl: "1h"
+
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 30
+  storage_type: "s3"
+  s3_bucket: "underwriting-worker-backups"
+  encryption_enabled: true

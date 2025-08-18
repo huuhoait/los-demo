@@ -3,503 +3,319 @@ package config
 import (
 	"fmt"
 	"os"
-	"strconv"
+	"path/filepath"
 	"strings"
-	"time"
 
 	"gopkg.in/yaml.v2"
 )
 
-// UnderwritingConfig holds the underwriting service configuration
-type UnderwritingConfig struct {
-	Server      ServerConfig    `yaml:"server" json:"server"`
-	Database    DatabaseConfig  `yaml:"database" json:"database"`
-	Conductor   ConductorConfig `yaml:"conductor" json:"conductor"`
-	Logging     LoggingConfig   `yaml:"logging" json:"logging"`
-	Security    SecurityConfig  `yaml:"security" json:"security"`
-	Application AppConfig       `yaml:"application" json:"application"`
-	I18n        I18nConfig      `yaml:"i18n" json:"i18n"`
-	Services    ServicesConfig  `yaml:"services" json:"services"`
+// Config represents the application configuration
+type Config struct {
+	Environment string            `yaml:"environment"`
+	Service     ServiceConfig     `yaml:"service"`
+	Server      ServerConfig      `yaml:"server"`
+	Database    DatabaseConfig    `yaml:"database"`
+	Redis       RedisConfig       `yaml:"redis"`
+	Conductor   ConductorConfig   `yaml:"conductor"`
+	Services    ServicesConfig    `yaml:"services"`
+	Logging     LoggingConfig     `yaml:"logging"`
+	Security    SecurityConfig    `yaml:"security"`
+	Application ApplicationConfig `yaml:"application"`
+	I18n        I18nConfig        `yaml:"i18n"`
+	Monitoring  MonitoringConfig  `yaml:"monitoring"`
+	Performance PerformanceConfig `yaml:"performance,omitempty"`
+	Backup      BackupConfig      `yaml:"backup,omitempty"`
 }
 
-// ServerConfig holds server-related configuration
+// ServiceConfig represents service-level configuration
+type ServiceConfig struct {
+	Name    string `yaml:"name"`
+	Version string `yaml:"version"`
+	Port    string `yaml:"port"`
+}
+
+// ServerConfig represents server configuration
 type ServerConfig struct {
-	Port                    int    `yaml:"port" json:"port"`
-	Host                    string `yaml:"host" json:"host"`
-	ReadTimeout             int    `yaml:"read_timeout" json:"read_timeout"`
-	WriteTimeout            int    `yaml:"write_timeout" json:"write_timeout"`
-	GracefulShutdownTimeout int    `yaml:"graceful_shutdown_timeout" json:"graceful_shutdown_timeout"`
+	Port                    int        `yaml:"port"`
+	Host                    string     `yaml:"host"`
+	ReadTimeout             int        `yaml:"read_timeout"`
+	WriteTimeout            int        `yaml:"write_timeout"`
+	GracefulShutdownTimeout int        `yaml:"graceful_shutdown_timeout"`
+	IdleTimeout             int        `yaml:"idle_timeout"`
+	CORS                    CORSConfig `yaml:"cors"`
 }
 
-// DatabaseConfig holds database-related configuration
+// CORSConfig represents CORS configuration
+type CORSConfig struct {
+	Enabled     bool     `yaml:"enabled"`
+	Origins     []string `yaml:"origins"`
+	Methods     []string `yaml:"methods"`
+	Headers     []string `yaml:"headers"`
+	Credentials bool     `yaml:"credentials"`
+}
+
+// DatabaseConfig represents database configuration
 type DatabaseConfig struct {
-	Host            string        `yaml:"host" json:"host"`
-	Port            int           `yaml:"port" json:"port"`
-	User            string        `yaml:"user" json:"user"`
-	Password        string        `yaml:"password" json:"password"`
-	Name            string        `yaml:"name" json:"name"`
-	SSLMode         string        `yaml:"ssl_mode" json:"ssl_mode"`
-	MaxOpenConns    int           `yaml:"max_open_conns" json:"max_open_conns"`
-	MaxIdleConns    int           `yaml:"max_idle_conns" json:"max_idle_conns"`
-	ConnMaxLifetime time.Duration `yaml:"conn_max_lifetime" json:"conn_max_lifetime"`
+	Host            string `yaml:"host"`
+	Port            int    `yaml:"port"`
+	User            string `yaml:"user"`
+	Password        string `yaml:"password"`
+	Name            string `yaml:"name"`
+	SSLMode         string `yaml:"ssl_mode"`
+	MaxOpenConns    int    `yaml:"max_open_conns"`
+	MaxIdleConns    int    `yaml:"max_idle_conns"`
+	ConnMaxLifetime int    `yaml:"conn_max_lifetime"`
 }
 
-// ConductorConfig holds Netflix Conductor-related configuration
+// RedisConfig represents Redis configuration
+type RedisConfig struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
+	PoolSize int    `yaml:"pool_size"`
+}
+
+// ConductorConfig represents Conductor configuration
 type ConductorConfig struct {
-	BaseURL         string `yaml:"base_url" json:"base_url"`
-	Timeout         int    `yaml:"timeout" json:"timeout"`
-	RetryAttempts   int    `yaml:"retry_attempts" json:"retry_attempts"`
-	RetryDelay      int    `yaml:"retry_delay" json:"retry_delay"`
-	WorkerPoolSize  int    `yaml:"worker_pool_size" json:"worker_pool_size"`
-	PollingInterval int    `yaml:"polling_interval_ms" json:"polling_interval_ms"`
-	UpdateRetryTime int    `yaml:"update_retry_time_ms" json:"update_retry_time_ms"`
+	BaseURL           string `yaml:"base_url"`
+	Timeout           int    `yaml:"timeout"`
+	RetryAttempts     int    `yaml:"retry_attempts"`
+	RetryDelay        int    `yaml:"retry_delay"`
+	WorkerPoolSize    int    `yaml:"worker_pool_size"`
+	PollingIntervalMs int    `yaml:"polling_interval_ms"`
+	UpdateRetryTimeMs int    `yaml:"update_retry_time_ms"`
 }
 
-// LoggingConfig holds logging-related configuration
-type LoggingConfig struct {
-	Level         string `yaml:"level" json:"level"`
-	Format        string `yaml:"format" json:"format"`
-	Output        string `yaml:"output" json:"output"`
-	EnableConsole bool   `yaml:"enable_console" json:"enable_console"`
-	EnableFile    bool   `yaml:"enable_file" json:"enable_file"`
-	FilePath      string `yaml:"file_path" json:"file_path"`
-	MaxSize       int    `yaml:"max_size" json:"max_size"`
-	MaxAge        int    `yaml:"max_age" json:"max_age"`
-	MaxBackups    int    `yaml:"max_backups" json:"max_backups"`
-}
-
-// SecurityConfig holds security-related configuration
-type SecurityConfig struct {
-	JWTSecret          string   `yaml:"jwt_secret" json:"jwt_secret"`
-	JWTExpiration      int      `yaml:"jwt_expiration" json:"jwt_expiration"`
-	BcryptCost         int      `yaml:"bcrypt_cost" json:"bcrypt_cost"`
-	CORSAllowedOrigins []string `yaml:"cors_allowed_origins" json:"cors_allowed_origins"`
-	CORSAllowedMethods []string `yaml:"cors_allowed_methods" json:"cors_allowed_methods"`
-	CORSAllowedHeaders []string `yaml:"cors_allowed_headers" json:"cors_allowed_headers"`
-}
-
-// AppConfig holds application-specific configuration
-type AppConfig struct {
-	Name        string `yaml:"name" json:"name"`
-	Version     string `yaml:"version" json:"version"`
-	Environment string `yaml:"environment" json:"environment"`
-}
-
-// I18nConfig holds internationalization configuration
-type I18nConfig struct {
-	DefaultLanguage    string   `yaml:"default_language" json:"default_language"`
-	SupportedLanguages []string `yaml:"supported_languages" json:"supported_languages"`
-	FallbackLanguage   string   `yaml:"fallback_language" json:"fallback_language"`
-}
-
-// ServicesConfig represents external services configuration for underwriting
+// ServicesConfig represents external services configuration
 type ServicesConfig struct {
-	CreditBureau       CreditBureauConfig       `yaml:"credit_bureau" json:"credit_bureau"`
-	RiskScoring        RiskScoringConfig        `yaml:"risk_scoring" json:"risk_scoring"`
-	IncomeVerification IncomeVerificationConfig `yaml:"income_verification" json:"income_verification"`
-	DecisionEngine     DecisionEngineConfig     `yaml:"decision_engine" json:"decision_engine"`
-	Notification       NotificationConfig       `yaml:"notification" json:"notification"`
+	CreditBureau       ServiceEndpointConfig `yaml:"credit_bureau"`
+	RiskScoring        ServiceEndpointConfig `yaml:"risk_scoring"`
+	IncomeVerification ServiceEndpointConfig `yaml:"income_verification"`
+	DecisionEngine     ServiceEndpointConfig `yaml:"decision_engine"`
+	Notification       ServiceEndpointConfig `yaml:"notification"`
 }
 
-// CreditBureauConfig represents credit bureau service configuration
-type CreditBureauConfig struct {
-	Provider string `yaml:"provider" json:"provider"`
-	BaseURL  string `yaml:"base_url" json:"base_url"`
-	APIKey   string `yaml:"api_key" json:"api_key"`
-	Timeout  int    `yaml:"timeout_seconds" json:"timeout_seconds"`
+// ServiceEndpointConfig represents a service endpoint configuration
+type ServiceEndpointConfig struct {
+	Provider           string `yaml:"provider"`
+	BaseURL            string `yaml:"base_url"`
+	APIKey             string `yaml:"api_key"`
+	TimeoutSeconds     int    `yaml:"timeout_seconds"`
+	MockEnabled        bool   `yaml:"mock_enabled,omitempty"`
+	RateLimitPerMinute int    `yaml:"rate_limit_per_minute,omitempty"`
+	CacheTTL           string `yaml:"cache_ttl,omitempty"`
+	WebhookEnabled     bool   `yaml:"webhook_enabled,omitempty"`
+	FallbackEnabled    bool   `yaml:"fallback_enabled,omitempty"`
+	RetryEnabled       bool   `yaml:"retry_enabled,omitempty"`
 }
 
-// RiskScoringConfig represents risk scoring service configuration
-type RiskScoringConfig struct {
-	Provider     string `yaml:"provider" json:"provider"`
-	BaseURL      string `yaml:"base_url" json:"base_url"`
-	APIKey       string `yaml:"api_key" json:"api_key"`
-	ModelVersion string `yaml:"model_version" json:"model_version"`
-	Timeout      int    `yaml:"timeout_seconds" json:"timeout_seconds"`
+// LoggingConfig represents logging configuration
+type LoggingConfig struct {
+	Level              string `yaml:"level"`
+	Format             string `yaml:"format"`
+	Output             string `yaml:"output"`
+	EnableConsole      bool   `yaml:"enable_console"`
+	EnableFile         bool   `yaml:"enable_file"`
+	FilePath           string `yaml:"file_path"`
+	MaxSize            int    `yaml:"max_size"`
+	MaxAge             int    `yaml:"max_age"`
+	MaxBackups         int    `yaml:"max_backups"`
+	CompressionEnabled bool   `yaml:"compression_enabled,omitempty"`
 }
 
-// IncomeVerificationConfig represents income verification service configuration
-type IncomeVerificationConfig struct {
-	Provider string `yaml:"provider" json:"provider"`
-	BaseURL  string `yaml:"base_url" json:"base_url"`
-	APIKey   string `yaml:"api_key" json:"api_key"`
-	Timeout  int    `yaml:"timeout_seconds" json:"timeout_seconds"`
+// SecurityConfig represents security configuration
+type SecurityConfig struct {
+	JWTSecret            string   `yaml:"jwt_secret"`
+	JWTExpiration        int      `yaml:"jwt_expiration"`
+	BcryptCost           int      `yaml:"bcrypt_cost"`
+	CORSAllowedOrigins   []string `yaml:"cors_allowed_origins"`
+	CORSAllowedMethods   []string `yaml:"cors_allowed_methods"`
+	CORSAllowedHeaders   []string `yaml:"cors_allowed_headers"`
+	RateLimitingEnabled  bool     `yaml:"rate_limiting_enabled,omitempty"`
+	MaxRequestsPerMinute int      `yaml:"max_requests_per_minute,omitempty"`
 }
 
-// DecisionEngineConfig represents decision engine service configuration
-type DecisionEngineConfig struct {
-	Provider string `yaml:"provider" json:"provider"`
-	BaseURL  string `yaml:"base_url" json:"base_url"`
-	APIKey   string `yaml:"api_key" json:"api_key"`
-	Timeout  int    `yaml:"timeout_seconds" json:"timeout_seconds"`
+// ApplicationConfig represents application-specific configuration
+type ApplicationConfig struct {
+	Name                  string  `yaml:"name"`
+	Version               string  `yaml:"version"`
+	Environment           string  `yaml:"environment"`
+	MaxLoanAmount         float64 `yaml:"max_loan_amount"`
+	MinLoanAmount         float64 `yaml:"min_loan_amount"`
+	MaxDTIRatio           float64 `yaml:"max_dti_ratio"`
+	DefaultInterestRate   float64 `yaml:"default_interest_rate"`
+	MaxInterestRate       float64 `yaml:"max_interest_rate"`
+	MinInterestRate       float64 `yaml:"min_interest_rate"`
+	OfferExpirationHours  int     `yaml:"offer_expiration_hours"`
+	DebugMode             bool    `yaml:"debug_mode,omitempty"`
+	EnableMockServices    bool    `yaml:"enable_mock_services,omitempty"`
+	PerformanceMonitoring bool    `yaml:"performance_monitoring,omitempty"`
 }
 
-// NotificationConfig represents notification service configuration
-type NotificationConfig struct {
-	Provider string `yaml:"provider" json:"provider"`
-	BaseURL  string `yaml:"base_url" json:"base_url"`
-	APIKey   string `yaml:"api_key" json:"api_key"`
-	Timeout  int    `yaml:"timeout_seconds" json:"timeout_seconds"`
+// I18nConfig represents internationalization configuration
+type I18nConfig struct {
+	DefaultLanguage    string   `yaml:"default_language"`
+	SupportedLanguages []string `yaml:"supported_languages"`
+	FallbackLanguage   string   `yaml:"fallback_language"`
 }
 
-// LoadConfig loads configuration from file and environment variables
-func LoadConfig(configPath string) (*UnderwritingConfig, error) {
-	// Get environment
+// MonitoringConfig represents monitoring configuration
+type MonitoringConfig struct {
+	MetricsEnabled     bool   `yaml:"metrics_enabled"`
+	HealthCheckEnabled bool   `yaml:"health_check_enabled"`
+	ProfilingEnabled   bool   `yaml:"profiling_enabled"`
+	TraceEnabled       bool   `yaml:"trace_enabled"`
+	PrometheusEndpoint string `yaml:"prometheus_endpoint,omitempty"`
+	JaegerEndpoint     string `yaml:"jaeger_endpoint,omitempty"`
+	AlertingEnabled    bool   `yaml:"alerting_enabled,omitempty"`
+	SLAMonitoring      bool   `yaml:"sla_monitoring,omitempty"`
+	BusinessMetrics    bool   `yaml:"business_metrics,omitempty"`
+}
+
+// PerformanceConfig represents performance configuration
+type PerformanceConfig struct {
+	ConnectionPoolSize    int    `yaml:"connection_pool_size,omitempty"`
+	WorkerThreads         int    `yaml:"worker_threads,omitempty"`
+	MaxConcurrentRequests int    `yaml:"max_concurrent_requests,omitempty"`
+	RequestTimeout        int    `yaml:"request_timeout,omitempty"`
+	CircuitBreakerEnabled bool   `yaml:"circuit_breaker_enabled,omitempty"`
+	CacheEnabled          bool   `yaml:"cache_enabled,omitempty"`
+	CacheTTL              string `yaml:"cache_ttl,omitempty"`
+}
+
+// BackupConfig represents backup configuration
+type BackupConfig struct {
+	Enabled           bool   `yaml:"enabled,omitempty"`
+	Schedule          string `yaml:"schedule,omitempty"`
+	RetentionDays     int    `yaml:"retention_days,omitempty"`
+	StorageType       string `yaml:"storage_type,omitempty"`
+	S3Bucket          string `yaml:"s3_bucket,omitempty"`
+	EncryptionEnabled bool   `yaml:"encryption_enabled,omitempty"`
+}
+
+// LoadConfig loads configuration from files and environment variables
+func LoadConfig(configDir string) (*Config, error) {
+	// Determine environment
 	env := getEnvironment()
 
-	// Load YAML file
-	data, err := os.ReadFile(configPath)
+	// Load base configuration
+	baseConfig, err := loadYAMLFile(filepath.Join(configDir, "base.yaml"))
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
+		return nil, fmt.Errorf("failed to load base config: %w", err)
 	}
 
-	// Parse YAML
-	var configMap map[string]UnderwritingConfig
-	if err := yaml.Unmarshal(data, &configMap); err != nil {
-		return nil, fmt.Errorf("failed to parse config file: %w", err)
+	// Load environment-specific configuration
+	envConfig, err := loadYAMLFile(filepath.Join(configDir, env+".yaml"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to load %s config: %w", env, err)
 	}
 
-	// Get environment-specific config
-	config, exists := configMap[env]
-	if !exists {
-		// Fallback to default
-		config, exists = configMap["default"]
-		if !exists {
-			return nil, fmt.Errorf("no configuration found for environment '%s' and no default config", env)
-		}
+	// Merge configurations (environment overrides base)
+	mergedConfig := mergeConfigs(baseConfig, envConfig)
+
+	// Parse into struct
+	var config Config
+	if err := yaml.Unmarshal(mergedConfig, &config); err != nil {
+		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 
-	// Override with environment variables
-	overrideWithEnvVars(&config)
+	// Set environment
+	config.Environment = env
 
-	// Set defaults
-	SetDefaults(&config)
+	// Substitute environment variables
+	substituteEnvVars(&config)
 
 	return &config, nil
 }
 
-// getEnvironment returns the current environment
+// getEnvironment determines the current environment
 func getEnvironment() string {
-	env := os.Getenv("APP_ENV")
+	env := os.Getenv("ENVIRONMENT")
 	if env == "" {
-		env = os.Getenv("ENVIRONMENT")
+		env = os.Getenv("APP_ENV")
 	}
 	if env == "" {
-		env = "development"
+		env = "development" // Default to development
 	}
+	return strings.ToLower(env)
+}
+
+// loadYAMLFile loads a YAML file and returns its content
+func loadYAMLFile(filepath string) ([]byte, error) {
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+// mergeConfigs merges two YAML configurations (env overrides base)
+func mergeConfigs(base, env []byte) []byte {
+	// For simplicity, we'll just return the environment config
+	// In a more sophisticated implementation, you might want to do deep merging
 	return env
 }
 
-// overrideWithEnvVars overrides configuration with environment variables
-func overrideWithEnvVars(config *UnderwritingConfig) {
-	// Server configuration
-	if port := os.Getenv("PORT"); port != "" {
-		if p, err := strconv.Atoi(port); err == nil {
-			config.Server.Port = p
-		}
-	}
-	if host := os.Getenv("HOST"); host != "" {
-		config.Server.Host = host
-	}
-	if timeout := os.Getenv("READ_TIMEOUT"); timeout != "" {
-		if t, err := strconv.Atoi(timeout); err == nil {
-			config.Server.ReadTimeout = t
-		}
-	}
-	if timeout := os.Getenv("WRITE_TIMEOUT"); timeout != "" {
-		if t, err := strconv.Atoi(timeout); err == nil {
-			config.Server.WriteTimeout = t
-		}
+// substituteEnvVars substitutes environment variables in the configuration
+func substituteEnvVars(config *Config) {
+	// This is a simplified version - in practice, you might want to use a library
+	// like github.com/joho/godotenv or implement recursive substitution
+
+	// Example substitutions for database
+	if config.Database.Password == "${DB_PASSWORD}" {
+		config.Database.Password = os.Getenv("DB_PASSWORD")
 	}
 
-	// Database configuration
-	if host := os.Getenv("DB_HOST"); host != "" {
-		config.Database.Host = host
-	}
-	if port := os.Getenv("DB_PORT"); port != "" {
-		if p, err := strconv.Atoi(port); err == nil {
-			config.Database.Port = p
-		}
-	}
-	if user := os.Getenv("DB_USER"); user != "" {
-		config.Database.User = user
-	}
-	if password := os.Getenv("DB_PASSWORD"); password != "" {
-		config.Database.Password = password
-	}
-	if name := os.Getenv("DB_NAME"); name != "" {
-		config.Database.Name = name
-	}
-	if sslMode := os.Getenv("DB_SSLMODE"); sslMode != "" {
-		config.Database.SSLMode = sslMode
+	// Example substitutions for services
+	if config.Services.CreditBureau.APIKey == "${CREDIT_BUREAU_API_KEY}" {
+		config.Services.CreditBureau.APIKey = os.Getenv("CREDIT_BUREAU_API_KEY")
 	}
 
-	// Conductor configuration
-	if baseURL := os.Getenv("CONDUCTOR_BASE_URL"); baseURL != "" {
-		config.Conductor.BaseURL = baseURL
-	}
-	if timeout := os.Getenv("CONDUCTOR_TIMEOUT"); timeout != "" {
-		if t, err := strconv.Atoi(timeout); err == nil {
-			config.Conductor.Timeout = t
-		}
-	}
-	if poolSize := os.Getenv("CONDUCTOR_WORKER_POOL_SIZE"); poolSize != "" {
-		if ps, err := strconv.Atoi(poolSize); err == nil {
-			config.Conductor.WorkerPoolSize = ps
-		}
-	}
-	if pollingInterval := os.Getenv("CONDUCTOR_POLLING_INTERVAL"); pollingInterval != "" {
-		if pi, err := strconv.Atoi(pollingInterval); err == nil {
-			config.Conductor.PollingInterval = pi
-		}
+	if config.Services.RiskScoring.APIKey == "${RISK_SCORING_API_KEY}" {
+		config.Services.RiskScoring.APIKey = os.Getenv("RISK_SCORING_API_KEY")
 	}
 
-	// Security configuration
-	if jwtSecret := os.Getenv("JWT_SECRET"); jwtSecret != "" {
-		config.Security.JWTSecret = jwtSecret
-	}
-	if jwtExp := os.Getenv("JWT_EXPIRATION"); jwtExp != "" {
-		if exp, err := strconv.Atoi(jwtExp); err == nil {
-			config.Security.JWTExpiration = exp
-		}
+	if config.Services.IncomeVerification.APIKey == "${INCOME_VERIFICATION_API_KEY}" {
+		config.Services.IncomeVerification.APIKey = os.Getenv("INCOME_VERIFICATION_API_KEY")
 	}
 
-	// Application configuration
-	if env := os.Getenv("APP_ENV"); env != "" {
-		config.Application.Environment = env
+	if config.Services.DecisionEngine.APIKey == "${DECISION_ENGINE_API_KEY}" {
+		config.Services.DecisionEngine.APIKey = os.Getenv("DECISION_ENGINE_API_KEY")
 	}
 
-	// Services configuration
-	if creditAPIKey := os.Getenv("CREDIT_BUREAU_API_KEY"); creditAPIKey != "" {
-		config.Services.CreditBureau.APIKey = creditAPIKey
+	if config.Services.Notification.APIKey == "${NOTIFICATION_API_KEY}" {
+		config.Services.Notification.APIKey = os.Getenv("NOTIFICATION_API_KEY")
 	}
-	if creditURL := os.Getenv("CREDIT_BUREAU_BASE_URL"); creditURL != "" {
-		config.Services.CreditBureau.BaseURL = creditURL
+
+	// Security substitutions
+	if config.Security.JWTSecret == "${JWT_SECRET}" {
+		config.Security.JWTSecret = os.Getenv("JWT_SECRET")
 	}
-	if riskAPIKey := os.Getenv("RISK_SCORING_API_KEY"); riskAPIKey != "" {
-		config.Services.RiskScoring.APIKey = riskAPIKey
-	}
-	if riskURL := os.Getenv("RISK_SCORING_BASE_URL"); riskURL != "" {
-		config.Services.RiskScoring.BaseURL = riskURL
-	}
-	if incomeAPIKey := os.Getenv("INCOME_VERIFICATION_API_KEY"); incomeAPIKey != "" {
-		config.Services.IncomeVerification.APIKey = incomeAPIKey
-	}
-	if incomeURL := os.Getenv("INCOME_VERIFICATION_BASE_URL"); incomeURL != "" {
-		config.Services.IncomeVerification.BaseURL = incomeURL
-	}
-	if decisionAPIKey := os.Getenv("DECISION_ENGINE_API_KEY"); decisionAPIKey != "" {
-		config.Services.DecisionEngine.APIKey = decisionAPIKey
-	}
-	if decisionURL := os.Getenv("DECISION_ENGINE_BASE_URL"); decisionURL != "" {
-		config.Services.DecisionEngine.BaseURL = decisionURL
-	}
-	if notificationAPIKey := os.Getenv("NOTIFICATION_API_KEY"); notificationAPIKey != "" {
-		config.Services.Notification.APIKey = notificationAPIKey
-	}
-	if notificationURL := os.Getenv("NOTIFICATION_BASE_URL"); notificationURL != "" {
-		config.Services.Notification.BaseURL = notificationURL
+
+	// Redis substitutions
+	if config.Redis.Password == "${REDIS_PASSWORD}" {
+		config.Redis.Password = os.Getenv("REDIS_PASSWORD")
 	}
 }
 
-// SetDefaults sets default values for configuration fields
-func SetDefaults(config *UnderwritingConfig) {
-	// Server defaults
+// ValidateConfig validates the configuration
+func ValidateConfig(config *Config) error {
+	if config.Service.Name == "" {
+		return fmt.Errorf("service name is required")
+	}
+
 	if config.Server.Port == 0 {
-		config.Server.Port = 8081
-	}
-	if config.Server.Host == "" {
-		config.Server.Host = "0.0.0.0"
-	}
-	if config.Server.ReadTimeout == 0 {
-		config.Server.ReadTimeout = 30
-	}
-	if config.Server.WriteTimeout == 0 {
-		config.Server.WriteTimeout = 30
-	}
-	if config.Server.GracefulShutdownTimeout == 0 {
-		config.Server.GracefulShutdownTimeout = 30
+		return fmt.Errorf("server port is required")
 	}
 
-	// Database defaults
-	if config.Database.Port == 0 {
-		config.Database.Port = 5432
-	}
 	if config.Database.Host == "" {
-		config.Database.Host = "localhost"
-	}
-	if config.Database.User == "" {
-		config.Database.User = "postgres"
-	}
-	if config.Database.Name == "" {
-		config.Database.Name = "underwriting_service"
-	}
-	if config.Database.SSLMode == "" {
-		config.Database.SSLMode = "disable"
-	}
-	if config.Database.MaxOpenConns == 0 {
-		config.Database.MaxOpenConns = 25
-	}
-	if config.Database.MaxIdleConns == 0 {
-		config.Database.MaxIdleConns = 10
-	}
-	if config.Database.ConnMaxLifetime == 0 {
-		config.Database.ConnMaxLifetime = 5 * time.Minute
+		return fmt.Errorf("database host is required")
 	}
 
-	// Conductor defaults
 	if config.Conductor.BaseURL == "" {
-		config.Conductor.BaseURL = "http://localhost:8082"
-	}
-	if config.Conductor.Timeout == 0 {
-		config.Conductor.Timeout = 30
-	}
-	if config.Conductor.RetryAttempts == 0 {
-		config.Conductor.RetryAttempts = 3
-	}
-	if config.Conductor.RetryDelay == 0 {
-		config.Conductor.RetryDelay = 1000
-	}
-	if config.Conductor.WorkerPoolSize == 0 {
-		config.Conductor.WorkerPoolSize = 5
-	}
-	if config.Conductor.PollingInterval == 0 {
-		config.Conductor.PollingInterval = 1000
-	}
-	if config.Conductor.UpdateRetryTime == 0 {
-		config.Conductor.UpdateRetryTime = 1000
+		return fmt.Errorf("conductor base URL is required")
 	}
 
-	// Security defaults
-	if config.Security.JWTSecret == "" {
-		config.Security.JWTSecret = "your-secret-key-change-in-production"
-	}
-	if config.Security.JWTExpiration == 0 {
-		config.Security.JWTExpiration = 3600
-	}
-	if config.Security.BcryptCost == 0 {
-		config.Security.BcryptCost = 12
-	}
-	if len(config.Security.CORSAllowedOrigins) == 0 {
-		config.Security.CORSAllowedOrigins = []string{"*"}
-	}
-	if len(config.Security.CORSAllowedMethods) == 0 {
-		config.Security.CORSAllowedMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
-	}
-	if len(config.Security.CORSAllowedHeaders) == 0 {
-		config.Security.CORSAllowedHeaders = []string{"Content-Type", "Authorization", "X-Request-ID", "X-Language"}
-	}
-
-	// Application defaults
-	if config.Application.Name == "" {
-		config.Application.Name = "underwriting-worker"
-	}
-	if config.Application.Version == "" {
-		config.Application.Version = "v1.0.0"
-	}
-	if config.Application.Environment == "" {
-		config.Application.Environment = "development"
-	}
-
-	// Logging defaults
-	if config.Logging.Level == "" {
-		config.Logging.Level = "info"
-	}
-	if config.Logging.Format == "" {
-		config.Logging.Format = "json"
-	}
-	if config.Logging.Output == "" {
-		config.Logging.Output = "stdout"
-	}
-
-	// I18n defaults
-	if config.I18n.DefaultLanguage == "" {
-		config.I18n.DefaultLanguage = "en"
-	}
-	if len(config.I18n.SupportedLanguages) == 0 {
-		config.I18n.SupportedLanguages = []string{"en", "vi"}
-	}
-	if config.I18n.FallbackLanguage == "" {
-		config.I18n.FallbackLanguage = "en"
-	}
-
-	// Services defaults
-	if config.Services.CreditBureau.Provider == "" {
-		config.Services.CreditBureau.Provider = "experian"
-	}
-	if config.Services.CreditBureau.Timeout == 0 {
-		config.Services.CreditBureau.Timeout = 30
-	}
-	if config.Services.RiskScoring.Provider == "" {
-		config.Services.RiskScoring.Provider = "fico"
-	}
-	if config.Services.RiskScoring.Timeout == 0 {
-		config.Services.RiskScoring.Timeout = 30
-	}
-	if config.Services.IncomeVerification.Provider == "" {
-		config.Services.IncomeVerification.Provider = "plaid"
-	}
-	if config.Services.IncomeVerification.Timeout == 0 {
-		config.Services.IncomeVerification.Timeout = 30
-	}
-	if config.Services.DecisionEngine.Provider == "" {
-		config.Services.DecisionEngine.Provider = "internal"
-	}
-	if config.Services.DecisionEngine.Timeout == 0 {
-		config.Services.DecisionEngine.Timeout = 30
-	}
-	if config.Services.Notification.Provider == "" {
-		config.Services.Notification.Provider = "sendgrid"
-	}
-	if config.Services.Notification.Timeout == 0 {
-		config.Services.Notification.Timeout = 30
-	}
-}
-
-// GetDSN returns the database connection string
-func (c *UnderwritingConfig) GetDSN() string {
-	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		c.Database.Host,
-		c.Database.Port,
-		c.Database.User,
-		c.Database.Password,
-		c.Database.Name,
-		c.Database.SSLMode,
-	)
-}
-
-// GetServerAddr returns the server address string
-func (c *UnderwritingConfig) GetServerAddr() string {
-	return fmt.Sprintf("%s:%d", c.Server.Host, c.Server.Port)
-}
-
-// IsDevelopment returns true if running in development mode
-func (c *UnderwritingConfig) IsDevelopment() bool {
-	return strings.ToLower(c.Application.Environment) == "development"
-}
-
-// IsProduction returns true if running in production mode
-func (c *UnderwritingConfig) IsProduction() bool {
-	return strings.ToLower(c.Application.Environment) == "production"
-}
-
-// IsTest returns true if running in test mode
-func (c *UnderwritingConfig) IsTest() bool {
-	return strings.ToLower(c.Application.Environment) == "test"
-}
-
-// IsDocker returns true if running in docker mode
-func (c *UnderwritingConfig) IsDocker() bool {
-	return strings.ToLower(c.Application.Environment) == "docker"
-}
-
-// Validate validates the configuration
-func (c *UnderwritingConfig) Validate() error {
-	if c.Server.Port <= 0 {
-		return fmt.Errorf("invalid server port: %d", c.Server.Port)
-	}
-	if c.Database.Port <= 0 {
-		return fmt.Errorf("invalid database port: %d", c.Database.Port)
-	}
 	return nil
 }

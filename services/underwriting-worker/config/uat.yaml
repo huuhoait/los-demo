@@ -1,0 +1,130 @@
+environment: "uat"
+
+service:
+  name: "underwriting-worker"
+  version: "1.0.0"
+  port: "8083"
+
+server:
+  port: 8083
+  host: "0.0.0.0"
+  read_timeout: 30
+  write_timeout: 30
+  graceful_shutdown_timeout: 30
+  idle_timeout: 60
+  cors:
+    enabled: true
+    origins: ["https://uat.company.com", "https://uat-admin.company.com", "https://uat-api.company.com"]
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+    credentials: true
+
+database:
+  host: "uat-postgres.company.com"
+  port: 5432
+  user: "uat_user"
+  password: "${UAT_DB_PASSWORD}"
+  name: "underwriting_db_uat"
+  ssl_mode: "require"
+  max_open_conns: 50
+  max_idle_conns: 10
+  conn_max_lifetime: 300
+
+redis:
+  host: "uat-redis.company.com"
+  port: "6379"
+  password: "${UAT_REDIS_PASSWORD}"
+  db: 1
+  pool_size: 20
+
+conductor:
+  base_url: "https://uat-conductor.company.com"
+  timeout: 30
+  retry_attempts: 3
+  retry_delay: 1000
+  worker_pool_size: 15
+  polling_interval_ms: 1000
+  update_retry_time_ms: 3000
+
+services:
+  credit_bureau:
+    provider: "experian"
+    base_url: "https://api.experian.com"
+    api_key: "${UAT_CREDIT_BUREAU_API_KEY}"
+    timeout_seconds: 30
+    mock_enabled: false
+
+  risk_scoring:
+    provider: "internal"
+    base_url: "https://uat-risk-scoring.company.com"
+    api_key: "${UAT_RISK_SCORING_API_KEY}"
+    model_version: "v2.1"
+    timeout_seconds: 15
+    mock_enabled: false
+
+  income_verification:
+    provider: "plaid"
+    base_url: "https://api.plaid.com"
+    api_key: "${UAT_INCOME_VERIFICATION_API_KEY}"
+    timeout_seconds: 20
+    mock_enabled: false
+
+  decision_engine:
+    provider: "internal"
+    base_url: "https://uat-decision-engine.company.com"
+    api_key: "${UAT_DECISION_ENGINE_API_KEY}"
+    timeout_seconds: 10
+    mock_enabled: false
+
+  notification:
+    provider: "sendgrid"
+    base_url: "https://api.sendgrid.com"
+    api_key: "${UAT_NOTIFICATION_API_KEY}"
+    timeout_seconds: 10
+    mock_enabled: false
+
+logging:
+  level: "info"
+  format: "json"
+  output: "file"
+  enable_console: false
+  enable_file: true
+  file_path: "/var/log/underwriting-worker/uat.log"
+  max_size: 200
+  max_age: 30
+  max_backups: 10
+
+security:
+  jwt_secret: "${UAT_JWT_SECRET}"
+  jwt_expiration: 3600
+  bcrypt_cost: 12
+  cors_allowed_origins: ["https://uat.company.com", "https://uat-admin.company.com"]
+  cors_allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  cors_allowed_headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+
+application:
+  name: "underwriting-worker"
+  version: "1.0.0"
+  environment: "uat"
+  max_loan_amount: 100000
+  min_loan_amount: 5000
+  max_dti_ratio: 0.43
+  default_interest_rate: 8.5
+  max_interest_rate: 15.0
+  min_interest_rate: 5.0
+  offer_expiration_hours: 168
+  debug_mode: false
+  enable_mock_services: false
+
+i18n:
+  default_language: "en"
+  supported_languages: ["en", "vi"]
+  fallback_language: "en"
+
+monitoring:
+  metrics_enabled: true
+  health_check_enabled: true
+  profiling_enabled: false
+  trace_enabled: true
+  prometheus_endpoint: "/metrics"
+  jaeger_endpoint: "https://uat-jaeger.company.com:14268"
