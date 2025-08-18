@@ -1,0 +1,272 @@
+# Underwriting Worker Configuration
+# This file contains configuration for different environments
+
+# Default configuration (used when no environment is specified)
+default:
+  server:
+    port: 8081
+    host: "0.0.0.0"
+    read_timeout: 30
+    write_timeout: 30
+    graceful_shutdown_timeout: 30
+  
+  database:
+    host: "localhost"
+    port: 5432
+    user: "postgres"
+    password: "password"
+    name: "underwriting_service"
+    ssl_mode: "disable"
+    max_open_conns: 25
+    max_idle_conns: 5
+    conn_max_lifetime: 300
+  
+  conductor:
+    base_url: "http://localhost:8082"
+    timeout: 30
+    retry_attempts: 3
+    retry_delay: 1000
+    worker_pool_size: 5
+    polling_interval_ms: 1000
+    update_retry_time_ms: 1000
+  
+  logging:
+    level: "info"
+    format: "json"
+    output: "stdout"
+    enable_console: true
+    enable_file: false
+    file_path: "./logs/underwriting-worker.log"
+    max_size: 100
+    max_age: 30
+    max_backups: 10
+  
+  security:
+    jwt_secret: "your-secret-key-change-in-production"
+    jwt_expiration: 3600
+    bcrypt_cost: 12
+    cors_allowed_origins: ["*"]
+    cors_allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_allowed_headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+  
+  application:
+    name: "underwriting-worker"
+    version: "v1.0.0"
+    environment: "development"
+  
+  i18n:
+    default_language: "en"
+    supported_languages: ["en", "vi"]
+    fallback_language: "en"
+  
+  services:
+    credit_bureau:
+      provider: "experian"
+      base_url: "https://api.experian.com"
+      api_key: "your-experian-api-key"
+      timeout_seconds: 30
+    
+    risk_scoring:
+      provider: "fico"
+      base_url: "https://api.fico.com"
+      api_key: "your-fico-api-key"
+      model_version: "v2.1"
+      timeout_seconds: 30
+    
+    income_verification:
+      provider: "plaid"
+      base_url: "https://api.plaid.com"
+      api_key: "your-plaid-api-key"
+      timeout_seconds: 30
+    
+    decision_engine:
+      provider: "internal"
+      base_url: "http://localhost:8083"
+      api_key: "internal-decision-engine-key"
+      timeout_seconds: 30
+    
+    notification:
+      provider: "sendgrid"
+      base_url: "https://api.sendgrid.com"
+      api_key: "your-sendgrid-api-key"
+      timeout_seconds: 30
+
+# Development environment
+development:
+  server:
+    port: 8081
+    host: "0.0.0.0"
+    read_timeout: 30
+    write_timeout: 30
+    graceful_shutdown_timeout: 30
+  
+  database:
+    host: "localhost"
+    port: 5432
+    user: "postgres"
+    password: "password"
+    name: "underwriting_service"
+    ssl_mode: "disable"
+    max_open_conns: 25
+    max_idle_conns: 5
+    conn_max_lifetime: 300
+  
+  conductor:
+    base_url: "http://localhost:8082"
+    timeout: 30
+    retry_attempts: 3
+    retry_delay: 1000
+    worker_pool_size: 5
+    polling_interval_ms: 1000
+    update_retry_time_ms: 1000
+  
+  logging:
+    level: "debug"
+    format: "console"
+    output: "stdout"
+    enable_console: true
+    enable_file: false
+    file_path: "./logs/underwriting-worker.log"
+    max_size: 100
+    max_age: 30
+    max_backups: 10
+  
+  security:
+    jwt_secret: "dev-secret-key"
+    jwt_expiration: 3600
+    bcrypt_cost: 12
+    cors_allowed_origins: ["*"]
+    cors_allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_allowed_headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+  
+  application:
+    name: "underwriting-worker"
+    version: "v1.0.0"
+    environment: "development"
+  
+  i18n:
+    default_language: "en"
+    supported_languages: ["en", "vi"]
+    fallback_language: "en"
+  
+  services:
+    credit_bureau:
+      provider: "experian"
+      base_url: "https://sandbox-api.experian.com"
+      api_key: "dev-experian-api-key"
+      timeout_seconds: 30
+    
+    risk_scoring:
+      provider: "fico"
+      base_url: "https://sandbox-api.fico.com"
+      api_key: "dev-fico-api-key"
+      model_version: "v2.1"
+      timeout_seconds: 30
+    
+    income_verification:
+      provider: "plaid"
+      base_url: "https://sandbox.plaid.com"
+      api_key: "dev-plaid-api-key"
+      timeout_seconds: 30
+    
+    decision_engine:
+      provider: "internal"
+      base_url: "http://localhost:8083"
+      api_key: "dev-decision-engine-key"
+      timeout_seconds: 30
+    
+    notification:
+      provider: "sendgrid"
+      base_url: "https://api.sendgrid.com"
+      api_key: "dev-sendgrid-api-key"
+      timeout_seconds: 30
+
+# Production environment
+production:
+  server:
+    port: 8081
+    host: "0.0.0.0"
+    read_timeout: 30
+    write_timeout: 30
+    graceful_shutdown_timeout: 30
+  
+  database:
+    host: "${DB_HOST}"
+    port: 5432
+    user: "${DB_USER}"
+    password: "${DB_PASSWORD}"
+    name: "${DB_NAME}"
+    ssl_mode: "require"
+    max_open_conns: 50
+    max_idle_conns: 10
+    conn_max_lifetime: 300
+  
+  conductor:
+    base_url: "${CONDUCTOR_BASE_URL}"
+    timeout: 30
+    retry_attempts: 5
+    retry_delay: 2000
+    worker_pool_size: 20
+    polling_interval_ms: 500
+    update_retry_time_ms: 500
+  
+  logging:
+    level: "info"
+    format: "json"
+    output: "file"
+    enable_console: false
+    enable_file: true
+    file_path: "/var/log/underwriting-worker/underwriting-worker.log"
+    max_size: 100
+    max_age: 30
+    max_backups: 10
+  
+  security:
+    jwt_secret: "${JWT_SECRET}"
+    jwt_expiration: 3600
+    bcrypt_cost: 12
+    cors_allowed_origins: ["https://yourdomain.com"]
+    cors_allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_allowed_headers: ["Content-Type", "Authorization", "X-Request-ID", "X-Language"]
+  
+  application:
+    name: "underwriting-worker"
+    version: "v1.0.0"
+    environment: "production"
+  
+  i18n:
+    default_language: "en"
+    supported_languages: ["en", "vi"]
+    fallback_language: "en"
+  
+  services:
+    credit_bureau:
+      provider: "experian"
+      base_url: "${CREDIT_BUREAU_BASE_URL}"
+      api_key: "${CREDIT_BUREAU_API_KEY}"
+      timeout_seconds: 30
+    
+    risk_scoring:
+      provider: "fico"
+      base_url: "${RISK_SCORING_BASE_URL}"
+      api_key: "${RISK_SCORING_API_KEY}"
+      model_version: "v2.1"
+      timeout_seconds: 30
+    
+    income_verification:
+      provider: "plaid"
+      base_url: "${INCOME_VERIFICATION_BASE_URL}"
+      api_key: "${INCOME_VERIFICATION_API_KEY}"
+      timeout_seconds: 30
+    
+    decision_engine:
+      provider: "internal"
+      base_url: "${DECISION_ENGINE_BASE_URL}"
+      api_key: "${DECISION_ENGINE_API_KEY}"
+      timeout_seconds: 30
+    
+    notification:
+      provider: "sendgrid"
+      base_url: "${NOTIFICATION_BASE_URL}"
+      api_key: "${NOTIFICATION_API_KEY}"
+      timeout_seconds: 30

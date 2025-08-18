@@ -22,7 +22,6 @@ type BaseConfig struct {
 	Conductor   ConductorConfig `yaml:"conductor" json:"conductor"`
 	Security    SecurityConfig  `yaml:"security" json:"security"`
 	Application AppConfig       `yaml:"application" json:"application"`
-	Services    ServicesConfig  `yaml:"services" json:"services"`
 }
 
 // ServiceConfig holds service-specific configuration
@@ -129,56 +128,6 @@ type I18nConfig struct {
 	DefaultLanguage    string   `yaml:"default_language" json:"default_language"`
 	SupportedLanguages []string `yaml:"supported_languages" json:"supported_languages"`
 	FallbackLanguage   string   `yaml:"fallback_language" json:"fallback_language"`
-}
-
-// ServicesConfig represents external services configuration
-type ServicesConfig struct {
-	CreditBureau       CreditBureauConfig       `yaml:"credit_bureau" json:"credit_bureau"`
-	RiskScoring        RiskScoringConfig        `yaml:"risk_scoring" json:"risk_scoring"`
-	IncomeVerification IncomeVerificationConfig `yaml:"income_verification" json:"income_verification"`
-	DecisionEngine     DecisionEngineConfig     `yaml:"decision_engine" json:"decision_engine"`
-	Notification       NotificationConfig       `yaml:"notification" json:"notification"`
-}
-
-// CreditBureauConfig represents credit bureau service configuration
-type CreditBureauConfig struct {
-	Provider string `yaml:"provider" json:"provider"`
-	BaseURL  string `yaml:"base_url" json:"base_url"`
-	APIKey   string `yaml:"api_key" json:"api_key"`
-	Timeout  int    `yaml:"timeout_seconds" json:"timeout_seconds"`
-}
-
-// RiskScoringConfig represents risk scoring service configuration
-type RiskScoringConfig struct {
-	Provider     string `yaml:"provider" json:"provider"`
-	BaseURL      string `yaml:"base_url" json:"base_url"`
-	APIKey       string `yaml:"api_key" json:"api_key"`
-	ModelVersion string `yaml:"model_version" json:"model_version"`
-	Timeout      int    `yaml:"timeout_seconds" json:"timeout_seconds"`
-}
-
-// IncomeVerificationConfig represents income verification service configuration
-type IncomeVerificationConfig struct {
-	Provider string `yaml:"provider" json:"provider"`
-	BaseURL  string `yaml:"base_url" json:"base_url"`
-	APIKey   string `yaml:"api_key" json:"api_key"`
-	Timeout  int    `yaml:"timeout_seconds" json:"timeout_seconds"`
-}
-
-// DecisionEngineConfig represents decision engine service configuration
-type DecisionEngineConfig struct {
-	Provider string `yaml:"provider" json:"provider"`
-	BaseURL  string `yaml:"base_url" json:"base_url"`
-	APIKey   string `yaml:"api_key" json:"api_key"`
-	Timeout  int    `yaml:"timeout_seconds" json:"timeout_seconds"`
-}
-
-// NotificationConfig represents notification service configuration
-type NotificationConfig struct {
-	Provider string `yaml:"provider" json:"provider"`
-	BaseURL  string `yaml:"base_url" json:"base_url"`
-	APIKey   string `yaml:"api_key" json:"api_key"`
-	Timeout  int    `yaml:"timeout_seconds" json:"timeout_seconds"`
 }
 
 // LoadConfig loads configuration from file and environment variables
@@ -306,37 +255,6 @@ func overrideWithEnvVars(config *BaseConfig) {
 		}
 	}
 
-	// Services configuration
-	if creditAPIKey := os.Getenv("CREDIT_BUREAU_API_KEY"); creditAPIKey != "" {
-		config.Services.CreditBureau.APIKey = creditAPIKey
-	}
-	if creditURL := os.Getenv("CREDIT_BUREAU_BASE_URL"); creditURL != "" {
-		config.Services.CreditBureau.BaseURL = creditURL
-	}
-	if riskAPIKey := os.Getenv("RISK_SCORING_API_KEY"); riskAPIKey != "" {
-		config.Services.RiskScoring.APIKey = riskAPIKey
-	}
-	if riskURL := os.Getenv("RISK_SCORING_BASE_URL"); riskURL != "" {
-		config.Services.RiskScoring.BaseURL = riskURL
-	}
-	if incomeAPIKey := os.Getenv("INCOME_VERIFICATION_API_KEY"); incomeAPIKey != "" {
-		config.Services.IncomeVerification.APIKey = incomeAPIKey
-	}
-	if incomeURL := os.Getenv("INCOME_VERIFICATION_BASE_URL"); incomeURL != "" {
-		config.Services.IncomeVerification.BaseURL = incomeURL
-	}
-	if decisionAPIKey := os.Getenv("DECISION_ENGINE_API_KEY"); decisionAPIKey != "" {
-		config.Services.DecisionEngine.APIKey = decisionAPIKey
-	}
-	if decisionURL := os.Getenv("DECISION_ENGINE_BASE_URL"); decisionURL != "" {
-		config.Services.DecisionEngine.BaseURL = decisionURL
-	}
-	if notificationAPIKey := os.Getenv("NOTIFICATION_API_KEY"); notificationAPIKey != "" {
-		config.Services.Notification.APIKey = notificationAPIKey
-	}
-	if notificationURL := os.Getenv("NOTIFICATION_BASE_URL"); notificationURL != "" {
-		config.Services.Notification.BaseURL = notificationURL
-	}
 }
 
 // getEnvironment returns the current environment
@@ -740,37 +658,6 @@ func SetDefaults(config *BaseConfig) {
 		config.Application.OfferExpirationHours = 168 // 7 days
 	}
 
-	// Set services defaults
-	if config.Services.CreditBureau.Provider == "" {
-		config.Services.CreditBureau.Provider = "experian"
-	}
-	if config.Services.CreditBureau.Timeout == 0 {
-		config.Services.CreditBureau.Timeout = 30
-	}
-	if config.Services.RiskScoring.Provider == "" {
-		config.Services.RiskScoring.Provider = "fico"
-	}
-	if config.Services.RiskScoring.Timeout == 0 {
-		config.Services.RiskScoring.Timeout = 30
-	}
-	if config.Services.IncomeVerification.Provider == "" {
-		config.Services.IncomeVerification.Provider = "plaid"
-	}
-	if config.Services.IncomeVerification.Timeout == 0 {
-		config.Services.IncomeVerification.Timeout = 30
-	}
-	if config.Services.DecisionEngine.Provider == "" {
-		config.Services.DecisionEngine.Provider = "internal"
-	}
-	if config.Services.DecisionEngine.Timeout == 0 {
-		config.Services.DecisionEngine.Timeout = 30
-	}
-	if config.Services.Notification.Provider == "" {
-		config.Services.Notification.Provider = "sendgrid"
-	}
-	if config.Services.Notification.Timeout == 0 {
-		config.Services.Notification.Timeout = 30
-	}
 }
 
 // GetDSN returns the database connection string
