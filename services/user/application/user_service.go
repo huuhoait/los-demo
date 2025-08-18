@@ -11,7 +11,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/huuhoait/los-demo/services/user/domain"
-	"github.com/huuhoait/los-demo/services/shared/pkg/errors"
 	"github.com/huuhoait/los-demo/services/shared/pkg/i18n"
 )
 
@@ -76,21 +75,19 @@ func (s *UserServiceImpl) CreateUser(ctx context.Context, request *domain.Create
 
 	// Check if user already exists
 	existingUser, err := s.userRepo.GetUserByEmail(ctx, request.Email)
-	if err != nil && !errors.IsNotFound(err) {
+	if err != nil && err.Error() != "not found" {
 		logger.Error("Failed to check existing user", zap.Error(err))
-		return nil, &errors.ServiceError{
+		return nil, &domain.UserError{
 			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred while checking existing user",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_026, nil),
 		}
 	}
 
 	if existingUser != nil {
 		logger.Warn("User already exists with email", zap.String("email", request.Email))
-		return nil, &errors.ServiceError{
+		return nil, &domain.UserError{
 			Code:        domain.USER_006,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_006, nil),
-			Description: "A user with this email already exists",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_006, nil),
 			Field:       "email",
 		}
 	}
@@ -99,10 +96,9 @@ func (s *UserServiceImpl) CreateUser(ctx context.Context, request *domain.Create
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
 		logger.Error("Failed to hash password", zap.Error(err))
-		return nil, &errors.ServiceError{
+		return nil, &domain.UserError{
 			Code:        domain.USER_028,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_028, nil),
-			Description: "Failed to process password",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_028, nil),
 		}
 	}
 
@@ -120,10 +116,9 @@ func (s *UserServiceImpl) CreateUser(ctx context.Context, request *domain.Create
 	// Create user in database
 	if err := s.userRepo.CreateUser(ctx, user); err != nil {
 		logger.Error("Failed to create user in database", zap.Error(err))
-		return nil, &errors.ServiceError{
+		return nil, &domain.UserError{
 			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Failed to create user account",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_026, nil),
 		}
 	}
 
@@ -186,18 +181,16 @@ func (s *UserServiceImpl) GetUser(ctx context.Context, userID string) (*domain.U
 	// Get from database
 	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, &errors.ServiceError{
+		if err != nil && err.Error() == "not found" {
+			return nil, &domain.UserError{
 				Code:        domain.USER_030,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_030, nil),
-				Description: "User not found",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_030, nil),
 			}
 		}
 		logger.Error("Failed to get user from database", zap.Error(err))
-		return nil, &errors.ServiceError{
+		return nil, &domain.UserError{
 			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_026, nil),
 		}
 	}
 
@@ -219,18 +212,16 @@ func (s *UserServiceImpl) GetUserByEmail(ctx context.Context, email string) (*do
 
 	user, err := s.userRepo.GetUserByEmail(ctx, email)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, &errors.ServiceError{
+		if err != nil && err.Error() == "not found" {
+			return nil, &domain.UserError{
 				Code:        domain.USER_030,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_030, nil),
-				Description: "User not found",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_030, nil),
 			}
 		}
 		logger.Error("Failed to get user by email", zap.Error(err))
-		return nil, &errors.ServiceError{
+		return nil, &domain.UserError{
 			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_026, nil),
 		}
 	}
 
@@ -253,17 +244,15 @@ func (s *UserServiceImpl) UpdateUser(ctx context.Context, userID string, request
 	// Get existing user
 	existingUser, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, &errors.ServiceError{
+		if err != nil && err.Error() == "not found" {
+			return nil, &domain.UserError{
 				Code:        domain.USER_030,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_030, nil),
-				Description: "User not found",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_030, nil),
 			}
 		}
-		return nil, &errors.ServiceError{
+		return nil, &domain.UserError{
 			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_026, nil),
 		}
 	}
 
@@ -286,10 +275,9 @@ func (s *UserServiceImpl) UpdateUser(ctx context.Context, userID string, request
 	if len(updates) > 1 { // More than just updated_at
 		if err := s.userRepo.UpdateUser(ctx, userID, updates); err != nil {
 			logger.Error("Failed to update user", zap.Error(err))
-			return nil, &errors.ServiceError{
+			return nil, &domain.UserError{
 				Code:        domain.USER_026,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-				Description: "Failed to update user",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_026, nil),
 			}
 		}
 
@@ -319,17 +307,15 @@ func (s *UserServiceImpl) DeleteUser(ctx context.Context, userID string) error {
 	// Check if user exists
 	_, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return &errors.ServiceError{
+		if err != nil && err.Error() == "not found" {
+			return &domain.UserError{
 				Code:        domain.USER_030,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_030, nil),
-				Description: "User not found",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_030, nil),
 			}
 		}
-		return &errors.ServiceError{
+		return &domain.UserError{
 			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_026, nil),
 		}
 	}
 
@@ -341,10 +327,9 @@ func (s *UserServiceImpl) DeleteUser(ctx context.Context, userID string) error {
 
 	if err := s.userRepo.UpdateUser(ctx, userID, updates); err != nil {
 		logger.Error("Failed to delete user", zap.Error(err))
-		return &errors.ServiceError{
+		return &domain.UserError{
 			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Failed to delete user",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_026, nil),
 		}
 	}
 
@@ -372,18 +357,16 @@ func (s *UserServiceImpl) GetProfile(ctx context.Context, userID string) (*domai
 	// Get from database
 	profile, err := s.userRepo.GetProfile(ctx, userID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, &errors.ServiceError{
+		if err != nil && err.Error() == "not found" {
+			return nil, &domain.UserError{
 				Code:        domain.USER_031,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_031, nil),
-				Description: "User profile not found",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_031, nil),
 			}
 		}
 		logger.Error("Failed to get profile from database", zap.Error(err))
-		return nil, &errors.ServiceError{
+		return nil, &domain.UserError{
 			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_026, nil),
 		}
 	}
 
@@ -423,17 +406,15 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, requ
 	// Get existing profile
 	existingProfile, err := s.userRepo.GetProfile(ctx, userID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, &errors.ServiceError{
+		if err != nil && err.Error() == "not found" {
+			return nil, &domain.UserError{
 				Code:        domain.USER_031,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_031, nil),
-				Description: "User profile not found",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_031, nil),
 			}
 		}
-		return nil, &errors.ServiceError{
+		return nil, &domain.UserError{
 			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_026, nil),
 		}
 	}
 
@@ -481,10 +462,9 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, requ
 	if len(updates) > 1 { // More than just updated_at
 		if err := s.userRepo.UpdateProfile(ctx, userID, updates); err != nil {
 			logger.Error("Failed to update profile", zap.Error(err))
-			return nil, &errors.ServiceError{
+			return nil, &domain.UserError{
 				Code:        domain.USER_026,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-				Description: "Failed to update profile",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_026, nil),
 			}
 		}
 
@@ -508,66 +488,59 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, requ
 // Validation methods
 func (s *UserServiceImpl) validateCreateUserRequest(request *domain.CreateUserRequest) error {
 	if request.Email == "" {
-		return &errors.ServiceError{
+		return &domain.UserError{
 			Code:        domain.USER_005,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-			Description: "Email is required",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_005, nil),
 			Field:       "email",
 		}
 	}
 
 	if err := s.validationService.ValidateEmail(request.Email); err != nil {
-		return &errors.ServiceError{
+		return &domain.UserError{
 			Code:        domain.USER_001,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_001, nil),
-			Description: "Invalid email format",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_001, nil),
 			Field:       "email",
 		}
 	}
 
 	if request.Password == "" {
-		return &errors.ServiceError{
+		return &domain.UserError{
 			Code:        domain.USER_005,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-			Description: "Password is required",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_005, nil),
 			Field:       "password",
 		}
 	}
 
 	if len(request.Password) < 8 {
-		return &errors.ServiceError{
+		return &domain.UserError{
 			Code:        domain.USER_005,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-			Description: "Password must be at least 8 characters long",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_005, nil),
 			Field:       "password",
 		}
 	}
 
 	if request.Phone != "" {
 		if err := s.validationService.ValidatePhone(request.Phone); err != nil {
-			return &errors.ServiceError{
+			return &domain.UserError{
 				Code:        domain.USER_002,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_002, nil),
-				Description: "Invalid phone format",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_002, nil),
 				Field:       "phone",
 			}
 		}
 	}
 
 	if request.FirstName == "" {
-		return &errors.ServiceError{
+		return &domain.UserError{
 			Code:        domain.USER_005,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-			Description: "First name is required",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_005, nil),
 			Field:       "first_name",
 		}
 	}
 
 	if request.LastName == "" {
-		return &errors.ServiceError{
+		return &domain.UserError{
 			Code:        domain.USER_005,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-			Description: "Last name is required",
+			Message:     s.localizer.Localize(context.Background(), domain.USER_005, nil),
 			Field:       "last_name",
 		}
 	}
@@ -578,10 +551,9 @@ func (s *UserServiceImpl) validateCreateUserRequest(request *domain.CreateUserRe
 func (s *UserServiceImpl) validateUpdateUserRequest(request *domain.UpdateUserRequest) error {
 	if request.Phone != nil && *request.Phone != "" {
 		if err := s.validationService.ValidatePhone(*request.Phone); err != nil {
-			return &errors.ServiceError{
+			return &domain.UserError{
 				Code:        domain.USER_002,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_002, nil),
-				Description: "Invalid phone format",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_002, nil),
 				Field:       "phone",
 			}
 		}
@@ -593,10 +565,9 @@ func (s *UserServiceImpl) validateUpdateUserRequest(request *domain.UpdateUserRe
 func (s *UserServiceImpl) validateUpdateProfileRequest(request *domain.UpdateProfileRequest) error {
 	if request.DateOfBirth != nil {
 		if err := s.validationService.ValidateDateOfBirth(*request.DateOfBirth); err != nil {
-			return &errors.ServiceError{
+			return &domain.UserError{
 				Code:        domain.USER_004,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_004, nil),
-				Description: "Invalid date of birth",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_004, nil),
 				Field:       "date_of_birth",
 			}
 		}
@@ -604,10 +575,9 @@ func (s *UserServiceImpl) validateUpdateProfileRequest(request *domain.UpdatePro
 
 	if request.Phone != nil && *request.Phone != "" {
 		if err := s.validationService.ValidatePhone(*request.Phone); err != nil {
-			return &errors.ServiceError{
+			return &domain.UserError{
 				Code:        domain.USER_002,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_002, nil),
-				Description: "Invalid phone format",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_002, nil),
 				Field:       "phone",
 			}
 		}
@@ -615,10 +585,9 @@ func (s *UserServiceImpl) validateUpdateProfileRequest(request *domain.UpdatePro
 
 	if request.Address != nil {
 		if err := s.validationService.ValidateAddress(request.Address); err != nil {
-			return &errors.ServiceError{
+			return &domain.UserError{
 				Code:        domain.USER_005,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-				Description: "Invalid address",
+				Message:     s.localizer.Localize(context.Background(), domain.USER_005, nil),
 				Field:       "address",
 			}
 		}

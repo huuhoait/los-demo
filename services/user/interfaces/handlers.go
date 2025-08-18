@@ -10,7 +10,6 @@ import (
 
 	"github.com/huuhoait/los-demo/services/user/domain"
 	"github.com/huuhoait/los-demo/services/user/interfaces/middleware"
-	"github.com/huuhoait/los-demo/services/shared/pkg/errors"
 	"github.com/huuhoait/los-demo/services/shared/pkg/i18n"
 )
 
@@ -121,7 +120,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	var request domain.UpdateUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		logger.Error("Invalid request body", zap.Error(err))
-		h.respondError(c, &errors.ServiceError{
+		h.respondError(c, &domain.UserError{
 			Code:        domain.USER_005,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_005, nil),
 			Description: "Invalid request body",
@@ -215,7 +214,7 @@ func (h *UserHandler) SearchUsers(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		logger.Error("Invalid request body", zap.Error(err))
-		h.respondError(c, &errors.ServiceError{
+		h.respondError(c, &domain.UserError{
 			Code:        domain.USER_005,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_005, nil),
 			Description: "Invalid request body",
@@ -297,7 +296,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	var request domain.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		logger.Error("Invalid request body", zap.Error(err))
-		h.respondError(c, &errors.ServiceError{
+		h.respondError(c, &domain.UserError{
 			Code:        domain.USER_005,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_005, nil),
 			Description: "Invalid request body",
@@ -353,7 +352,7 @@ func (h *UserHandler) VerifyEmail(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		logger.Error("Invalid request body", zap.Error(err))
-		h.respondError(c, &errors.ServiceError{
+		h.respondError(c, &domain.UserError{
 			Code:        domain.USER_005,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_005, nil),
 			Description: "Verification code is required",
@@ -409,7 +408,7 @@ func (h *UserHandler) VerifyPhone(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		logger.Error("Invalid request body", zap.Error(err))
-		h.respondError(c, &errors.ServiceError{
+		h.respondError(c, &domain.UserError{
 			Code:        domain.USER_005,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_005, nil),
 			Description: "Verification code is required",
@@ -489,7 +488,7 @@ func (h *UserHandler) UpdateKYCStatus(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		logger.Error("Invalid request body", zap.Error(err))
-		h.respondError(c, &errors.ServiceError{
+		h.respondError(c, &domain.UserError{
 			Code:        domain.USER_005,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_005, nil),
 			Description: "Invalid request body",

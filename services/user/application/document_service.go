@@ -11,7 +11,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/huuhoait/los-demo/services/user/domain"
-	"github.com/huuhoait/los-demo/services/shared/pkg/errors"
 )
 
 // Document management methods for UserServiceImpl
@@ -34,28 +33,25 @@ func (s *UserServiceImpl) UploadDocument(ctx context.Context, userID string, doc
 	// Check if user exists
 	_, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, &errors.ServiceError{
-				Code:        domain.USER_030,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_030, nil),
-				Description: "User not found",
+		if err.Error() == "not found" {
+			return nil, &domain.UserError{
+				Code:    domain.USER_030,
+				Message: s.localizer.Localize(ctx, domain.USER_030, nil),
 			}
 		}
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
 	// Check for existing document of same type
 	existingDocs, err := s.documentRepo.GetDocumentsByType(ctx, userID, document.Type)
-	if err != nil && !errors.IsNotFound(err) {
+	if err != nil && err.Error() != "not found" {
 		logger.Error("Failed to check existing documents", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -64,10 +60,9 @@ func (s *UserServiceImpl) UploadDocument(ctx context.Context, userID string, doc
 			zap.String("document_type", document.Type),
 			zap.Int("existing_count", len(existingDocs)),
 		)
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_020,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_020, nil),
-			Description: "Document of this type already exists",
+		return nil, &domain.UserError{
+			Code:    domain.USER_020,
+			Message: s.localizer.Localize(ctx, domain.USER_020, nil),
 		}
 	}
 
@@ -75,10 +70,9 @@ func (s *UserServiceImpl) UploadDocument(ctx context.Context, userID string, doc
 	encryptedContent, encryptionKey, err := s.encryptionService.EncryptFile(document.Content)
 	if err != nil {
 		logger.Error("Failed to encrypt document", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_015,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_015, nil),
-			Description: "Failed to encrypt document",
+		return nil, &domain.UserError{
+			Code:    domain.USER_015,
+			Message: s.localizer.Localize(ctx, domain.USER_015, nil),
 		}
 	}
 
@@ -98,10 +92,9 @@ func (s *UserServiceImpl) UploadDocument(ctx context.Context, userID string, doc
 
 	if err := s.storageService.UploadFile(ctx, storageKey, contentReader, document.MimeType, metadata); err != nil {
 		logger.Error("Failed to upload document to storage", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_016,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_016, nil),
-			Description: "Failed to store document",
+		return nil, &domain.UserError{
+			Code:    domain.USER_016,
+			Message: s.localizer.Localize(ctx, domain.USER_016, nil),
 		}
 	}
 
@@ -126,10 +119,9 @@ func (s *UserServiceImpl) UploadDocument(ctx context.Context, userID string, doc
 			logger.Error("Failed to cleanup uploaded file after database error", zap.Error(deleteErr))
 		}
 
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Failed to save document record",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -158,17 +150,15 @@ func (s *UserServiceImpl) GetDocuments(ctx context.Context, userID string) ([]*d
 	// Check if user exists
 	_, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, &errors.ServiceError{
-				Code:        domain.USER_030,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_030, nil),
-				Description: "User not found",
+		if err.Error() == "not found" {
+			return nil, &domain.UserError{
+				Code:    domain.USER_030,
+				Message: s.localizer.Localize(ctx, domain.USER_030, nil),
 			}
 		}
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -176,10 +166,9 @@ func (s *UserServiceImpl) GetDocuments(ctx context.Context, userID string) ([]*d
 	documents, err := s.documentRepo.GetDocumentsByUserID(ctx, userID)
 	if err != nil {
 		logger.Error("Failed to get documents", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -202,18 +191,16 @@ func (s *UserServiceImpl) GetDocument(ctx context.Context, userID, documentID st
 	// Get document
 	document, err := s.documentRepo.GetDocument(ctx, documentID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, &errors.ServiceError{
-				Code:        domain.USER_014,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_014, nil),
-				Description: "Document not found",
+		if err.Error() == "not found" {
+			return nil, &domain.UserError{
+				Code:    domain.USER_014,
+				Message: s.localizer.Localize(ctx, domain.USER_014, nil),
 			}
 		}
 		logger.Error("Failed to get document", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -223,10 +210,9 @@ func (s *UserServiceImpl) GetDocument(ctx context.Context, userID, documentID st
 			zap.String("document_user_id", document.UserID),
 			zap.String("requesting_user_id", userID),
 		)
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_032,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_032, nil),
-			Description: "Unauthorized access to document",
+		return nil, &domain.UserError{
+			Code:    domain.USER_032,
+			Message: s.localizer.Localize(ctx, domain.USER_032, nil),
 		}
 	}
 
@@ -250,18 +236,16 @@ func (s *UserServiceImpl) DownloadDocument(ctx context.Context, userID, document
 	// Get document metadata
 	document, err := s.documentRepo.GetDocument(ctx, documentID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, &errors.ServiceError{
-				Code:        domain.USER_014,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_014, nil),
-				Description: "Document not found",
+		if err.Error() == "not found" {
+			return nil, &domain.UserError{
+				Code:    domain.USER_014,
+				Message: s.localizer.Localize(ctx, domain.USER_014, nil),
 			}
 		}
 		logger.Error("Failed to get document", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -271,10 +255,9 @@ func (s *UserServiceImpl) DownloadDocument(ctx context.Context, userID, document
 			zap.String("document_user_id", document.UserID),
 			zap.String("requesting_user_id", userID),
 		)
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_032,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_032, nil),
-			Description: "Unauthorized access to document",
+		return nil, &domain.UserError{
+			Code:    domain.USER_032,
+			Message: s.localizer.Localize(ctx, domain.USER_032, nil),
 		}
 	}
 
@@ -282,10 +265,9 @@ func (s *UserServiceImpl) DownloadDocument(ctx context.Context, userID, document
 	fileReader, err := s.storageService.DownloadFile(ctx, document.FilePath)
 	if err != nil {
 		logger.Error("Failed to download file from storage", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_014,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_014, nil),
-			Description: "Failed to retrieve document",
+		return nil, &domain.UserError{
+			Code:    domain.USER_014,
+			Message: s.localizer.Localize(ctx, domain.USER_014, nil),
 		}
 	}
 	defer fileReader.Close()
@@ -294,10 +276,9 @@ func (s *UserServiceImpl) DownloadDocument(ctx context.Context, userID, document
 	encryptedContent, err := io.ReadAll(fileReader)
 	if err != nil {
 		logger.Error("Failed to read file content", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_014,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_014, nil),
-			Description: "Failed to read document",
+		return nil, &domain.UserError{
+			Code:    domain.USER_014,
+			Message: s.localizer.Localize(ctx, domain.USER_014, nil),
 		}
 	}
 
@@ -305,10 +286,9 @@ func (s *UserServiceImpl) DownloadDocument(ctx context.Context, userID, document
 	decryptedContent, err := s.encryptionService.DecryptFile(encryptedContent, document.EncryptionKey)
 	if err != nil {
 		logger.Error("Failed to decrypt document", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_015,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_015, nil),
-			Description: "Failed to decrypt document",
+		return nil, &domain.UserError{
+			Code:    domain.USER_015,
+			Message: s.localizer.Localize(ctx, domain.USER_015, nil),
 		}
 	}
 
@@ -347,18 +327,16 @@ func (s *UserServiceImpl) DeleteDocument(ctx context.Context, userID, documentID
 	// Get document
 	document, err := s.documentRepo.GetDocument(ctx, documentID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return &errors.ServiceError{
-				Code:        domain.USER_014,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_014, nil),
-				Description: "Document not found",
+		if err.Error() == "not found" {
+			return &domain.UserError{
+				Code:    domain.USER_014,
+				Message: s.localizer.Localize(ctx, domain.USER_014, nil),
 			}
 		}
 		logger.Error("Failed to get document", zap.Error(err))
-		return &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -368,10 +346,9 @@ func (s *UserServiceImpl) DeleteDocument(ctx context.Context, userID, documentID
 			zap.String("document_user_id", document.UserID),
 			zap.String("requesting_user_id", userID),
 		)
-		return &errors.ServiceError{
-			Code:        domain.USER_032,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_032, nil),
-			Description: "Unauthorized access to document",
+		return &domain.UserError{
+			Code:    domain.USER_032,
+			Message: s.localizer.Localize(ctx, domain.USER_032, nil),
 		}
 	}
 
@@ -384,10 +361,9 @@ func (s *UserServiceImpl) DeleteDocument(ctx context.Context, userID, documentID
 	// Delete from database
 	if err := s.documentRepo.DeleteDocument(ctx, documentID); err != nil {
 		logger.Error("Failed to delete document from database", zap.Error(err))
-		return &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Failed to delete document",
+		return &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -408,47 +384,42 @@ func (s *UserServiceImpl) InitiateKYC(ctx context.Context, userID string) (*doma
 	// Get user profile
 	profile, err := s.userRepo.GetProfile(ctx, userID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, &errors.ServiceError{
-				Code:        domain.USER_031,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_031, nil),
-				Description: "User profile not found",
+		if err.Error() == "not found" {
+			return nil, &domain.UserError{
+				Code:    domain.USER_031,
+				Message: s.localizer.Localize(ctx, domain.USER_031, nil),
 			}
 		}
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
 	// Check if profile is complete enough for KYC
 	if !s.isProfileReadyForKYC(profile) {
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_005,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-			Description: "Profile incomplete. Please fill in all required information before starting KYC",
+		return nil, &domain.UserError{
+			Code:    domain.USER_005,
+			Message: s.localizer.Localize(ctx, domain.USER_005, nil),
 		}
 	}
 
 	// Check if KYC is already completed
 	kycStatus, err := s.kycRepo.GetKYCStatus(ctx, userID)
-	if err != nil && !errors.IsNotFound(err) {
+	if err != nil && err.Error() != "not found" {
 		logger.Error("Failed to get KYC status", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
 	if kycStatus != nil {
 		for _, status := range kycStatus {
 			if status == domain.KYCStatusVerified {
-				return nil, &errors.ServiceError{
-					Code:        domain.USER_010,
-					Message:     s.localizer.GetErrorMessage("en", domain.USER_010, nil),
-					Description: "KYC verification already completed",
+				return nil, &domain.UserError{
+					Code:    domain.USER_010,
+					Message: s.localizer.Localize(ctx, domain.USER_010, nil),
 				}
 			}
 		}
@@ -458,10 +429,9 @@ func (s *UserServiceImpl) InitiateKYC(ctx context.Context, userID string) (*doma
 	session, err := s.kycProvider.InitiateIdentityVerification(ctx, userID, profile)
 	if err != nil {
 		logger.Error("Failed to initiate KYC with provider", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_021,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_021, nil),
-			Description: "KYC service temporarily unavailable",
+		return nil, &domain.UserError{
+			Code:    domain.USER_021,
+			Message: s.localizer.Localize(ctx, domain.USER_021, nil),
 		}
 	}
 
@@ -479,10 +449,9 @@ func (s *UserServiceImpl) InitiateKYC(ctx context.Context, userID string) (*doma
 
 	if err := s.kycRepo.CreateKYCVerification(ctx, verification); err != nil {
 		logger.Error("Failed to create KYC verification record", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Failed to initialize KYC process",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -509,15 +478,14 @@ func (s *UserServiceImpl) GetKYCStatus(ctx context.Context, userID string) (map[
 	// Get from database
 	status, err := s.kycRepo.GetKYCStatus(ctx, userID)
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if err.Error() == "not found" {
 			// Return empty status map if no KYC records found
 			return make(map[string]domain.KYCStatus), nil
 		}
 		logger.Error("Failed to get KYC status", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -540,17 +508,15 @@ func (s *UserServiceImpl) UpdateKYCStatus(ctx context.Context, userID, verificat
 	// Get existing KYC verification
 	existingVerification, err := s.kycRepo.GetKYCVerification(ctx, userID, verificationType)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return &errors.ServiceError{
-				Code:        domain.USER_021,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_021, nil),
-				Description: "KYC verification not found",
+		if err.Error() == "not found" {
+			return &domain.UserError{
+				Code:    domain.USER_021,
+				Message: s.localizer.Localize(ctx, domain.USER_021, nil),
 			}
 		}
-		return &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -565,10 +531,9 @@ func (s *UserServiceImpl) UpdateKYCStatus(ctx context.Context, userID, verificat
 
 	if err := s.kycRepo.UpdateKYCVerification(ctx, existingVerification.ID, updates); err != nil {
 		logger.Error("Failed to update KYC verification", zap.Error(err))
-		return &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Failed to update KYC status",
+		return &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -598,10 +563,9 @@ func (s *UserServiceImpl) SearchUsers(ctx context.Context, criteria map[string]i
 	users, err := s.userRepo.SearchUsers(ctx, criteria)
 	if err != nil {
 		logger.Error("Failed to search users", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -624,10 +588,9 @@ func (s *UserServiceImpl) ListUsers(ctx context.Context, offset, limit int) ([]*
 	users, err := s.userRepo.ListUsers(ctx, offset, limit)
 	if err != nil {
 		logger.Error("Failed to list users", zap.Error(err))
-		return nil, &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return nil, &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -650,25 +613,22 @@ func (s *UserServiceImpl) SendEmailVerification(ctx context.Context, userID stri
 
 	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return &errors.ServiceError{
-				Code:        domain.USER_030,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_030, nil),
-				Description: "User not found",
+		if err.Error() == "not found" {
+			return &domain.UserError{
+				Code:    domain.USER_030,
+				Message: s.localizer.Localize(ctx, domain.USER_030, nil),
 			}
 		}
-		return &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
 	if user.EmailVerified {
-		return &errors.ServiceError{
-			Code:        domain.USER_005,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-			Description: "Email is already verified",
+		return &domain.UserError{
+			Code:    domain.USER_005,
+			Message: s.localizer.Localize(ctx, domain.USER_005, nil),
 		}
 	}
 
@@ -678,10 +638,9 @@ func (s *UserServiceImpl) SendEmailVerification(ctx context.Context, userID stri
 	// Send verification email
 	if err := s.notificationService.SendEmailVerification(ctx, userID, user.Email, verificationCode); err != nil {
 		logger.Error("Failed to send email verification", zap.Error(err))
-		return &errors.ServiceError{
-			Code:        domain.USER_029,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_029, nil),
-			Description: "Failed to send verification email",
+		return &domain.UserError{
+			Code:    domain.USER_029,
+			Message: s.localizer.Localize(ctx, domain.USER_029, nil),
 		}
 	}
 
@@ -706,10 +665,9 @@ func (s *UserServiceImpl) VerifyEmail(ctx context.Context, userID, verificationC
 
 	if err := s.userRepo.UpdateUser(ctx, userID, updates); err != nil {
 		logger.Error("Failed to update email verification status", zap.Error(err))
-		return &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Failed to verify email",
+		return &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -730,33 +688,29 @@ func (s *UserServiceImpl) SendPhoneVerification(ctx context.Context, userID stri
 
 	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return &errors.ServiceError{
-				Code:        domain.USER_030,
-				Message:     s.localizer.GetErrorMessage("en", domain.USER_030, nil),
-				Description: "User not found",
+		if err.Error() == "not found" {
+			return &domain.UserError{
+				Code:    domain.USER_030,
+				Message: s.localizer.Localize(ctx, domain.USER_030, nil),
 			}
 		}
-		return &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Database error occurred",
+		return &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
 	if user.PhoneVerified {
-		return &errors.ServiceError{
-			Code:        domain.USER_005,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-			Description: "Phone is already verified",
+		return &domain.UserError{
+			Code:    domain.USER_005,
+			Message: s.localizer.Localize(ctx, domain.USER_005, nil),
 		}
 	}
 
 	if user.Phone == "" {
-		return &errors.ServiceError{
-			Code:        domain.USER_005,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-			Description: "No phone number on file",
+		return &domain.UserError{
+			Code:    domain.USER_005,
+			Message: s.localizer.Localize(ctx, domain.USER_005, nil),
 		}
 	}
 
@@ -766,10 +720,9 @@ func (s *UserServiceImpl) SendPhoneVerification(ctx context.Context, userID stri
 	// Send verification SMS
 	if err := s.notificationService.SendPhoneVerification(ctx, userID, user.Phone, verificationCode); err != nil {
 		logger.Error("Failed to send phone verification", zap.Error(err))
-		return &errors.ServiceError{
-			Code:        domain.USER_029,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_029, nil),
-			Description: "Failed to send verification SMS",
+		return &domain.UserError{
+			Code:    domain.USER_029,
+			Message: s.localizer.Localize(ctx, domain.USER_029, nil),
 		}
 	}
 
@@ -794,10 +747,9 @@ func (s *UserServiceImpl) VerifyPhone(ctx context.Context, userID, verificationC
 
 	if err := s.userRepo.UpdateUser(ctx, userID, updates); err != nil {
 		logger.Error("Failed to update phone verification status", zap.Error(err))
-		return &errors.ServiceError{
-			Code:        domain.USER_026,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_026, nil),
-			Description: "Failed to verify phone",
+		return &domain.UserError{
+			Code:    domain.USER_026,
+			Message: s.localizer.Localize(ctx, domain.USER_026, nil),
 		}
 	}
 
@@ -814,55 +766,44 @@ func (s *UserServiceImpl) VerifyPhone(ctx context.Context, userID, verificationC
 
 func (s *UserServiceImpl) validateDocumentUpload(document *domain.DocumentUpload) error {
 	if document.Type == "" {
-		return &errors.ServiceError{
-			Code:        domain.USER_005,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-			Description: "Document type is required",
-			Field:       "type",
+		return &domain.UserError{
+			Code:    domain.USER_005,
+			Message: s.localizer.Localize(context.Background(), domain.USER_005, nil),
 		}
 	}
 
 	if err := s.validationService.ValidateDocumentType(document.Type); err != nil {
-		return &errors.ServiceError{
-			Code:        domain.USER_017,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_017, nil),
-			Description: "Unsupported document type",
-			Field:       "type",
+		return &domain.UserError{
+			Code:    domain.USER_017,
+			Message: s.localizer.Localize(context.Background(), domain.USER_017, nil),
 		}
 	}
 
 	if len(document.Content) == 0 {
-		return &errors.ServiceError{
-			Code:        domain.USER_005,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_005, nil),
-			Description: "Document content is required",
-			Field:       "content",
+		return &domain.UserError{
+			Code:    domain.USER_005,
+			Message: s.localizer.Localize(context.Background(), domain.USER_005, nil),
 		}
 	}
 
 	if err := s.validationService.ValidateFileSize(int64(len(document.Content))); err != nil {
-		return &errors.ServiceError{
-			Code:        domain.USER_012,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_012, nil),
-			Description: "File size exceeds maximum allowed",
-			Field:       "content",
+		return &domain.UserError{
+			Code:    domain.USER_012,
+			Message: s.localizer.Localize(context.Background(), domain.USER_012, nil),
 		}
 	}
 
 	if err := s.validationService.ValidateMimeType(document.MimeType); err != nil {
-		return &errors.ServiceError{
-			Code:        domain.USER_011,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_011, nil),
-			Description: "Invalid file format",
-			Field:       "mime_type",
+		return &domain.UserError{
+			Code:    domain.USER_011,
+			Message: s.localizer.Localize(context.Background(), domain.USER_011, nil),
 		}
 	}
 
 	if err := s.validationService.ValidateDocument(document.Type, document.Content, document.MimeType); err != nil {
-		return &errors.ServiceError{
-			Code:        domain.USER_011,
-			Message:     s.localizer.GetErrorMessage("en", domain.USER_011, nil),
-			Description: "Document validation failed",
+		return &domain.UserError{
+			Code:    domain.USER_011,
+			Message: s.localizer.Localize(context.Background(), domain.USER_011, nil),
 		}
 	}
 

@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/huuhoait/los-demo/services/user/domain"
-	"github.com/huuhoait/los-demo/services/shared/pkg/errors"
 )
 
 type PostgresUserRepository struct {

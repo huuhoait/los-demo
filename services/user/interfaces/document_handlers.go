@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/huuhoait/los-demo/services/user/domain"
-	"github.com/huuhoait/los-demo/services/shared/pkg/errors"
 )
 
 // Document Management Handlers
@@ -29,7 +28,7 @@ func (h *UserHandler) UploadDocument(c *gin.Context) {
 	err := c.Request.ParseMultipartForm(10 << 20) // 10 MB max
 	if err != nil {
 		logger.Error("Failed to parse multipart form", zap.Error(err))
-		h.respondError(c, &errors.ServiceError{
+		h.respondError(c, &domain.UserError{
 			Code:        domain.USER_005,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_005, nil),
 			Description: "Invalid form data",
@@ -41,7 +40,7 @@ func (h *UserHandler) UploadDocument(c *gin.Context) {
 	documentType := c.PostForm("document_type")
 	if documentType == "" {
 		logger.Error("Missing document type")
-		h.respondError(c, &errors.ServiceError{
+		h.respondError(c, &domain.UserError{
 			Code:        domain.USER_005,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_005, nil),
 			Description: "Document type is required",
@@ -54,7 +53,7 @@ func (h *UserHandler) UploadDocument(c *gin.Context) {
 	file, fileHeader, err := c.Request.FormFile("file")
 	if err != nil {
 		logger.Error("Failed to get uploaded file", zap.Error(err))
-		h.respondError(c, &errors.ServiceError{
+		h.respondError(c, &domain.UserError{
 			Code:        domain.USER_005,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_005, nil),
 			Description: "File upload is required",
@@ -68,7 +67,7 @@ func (h *UserHandler) UploadDocument(c *gin.Context) {
 	content, err := io.ReadAll(file)
 	if err != nil {
 		logger.Error("Failed to read file content", zap.Error(err))
-		h.respondError(c, &errors.ServiceError{
+		h.respondError(c, &domain.UserError{
 			Code:        domain.USER_013,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_013, nil),
 			Description: "Failed to read uploaded file",
@@ -79,7 +78,7 @@ func (h *UserHandler) UploadDocument(c *gin.Context) {
 	// Validate file size
 	if len(content) == 0 {
 		logger.Error("Empty file uploaded")
-		h.respondError(c, &errors.ServiceError{
+		h.respondError(c, &domain.UserError{
 			Code:        domain.USER_005,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_005, nil),
 			Description: "File cannot be empty",
@@ -289,7 +288,7 @@ func (h *UserHandler) getClientIP(c *gin.Context) string {
 func (h *UserHandler) validateFileUpload(fileHeader *multipart.FileHeader, content []byte) error {
 	// Check file size (10MB max)
 	if len(content) > 10*1024*1024 {
-		return &errors.ServiceError{
+		return &domain.UserError{
 			Code:        domain.USER_012,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_012, nil),
 			Description: "File size exceeds 10MB limit",
@@ -309,7 +308,7 @@ func (h *UserHandler) validateFileUpload(fileHeader *multipart.FileHeader, conte
 	}
 
 	if !isValidExt {
-		return &errors.ServiceError{
+		return &domain.UserError{
 			Code:        domain.USER_017,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_017, nil),
 			Description: "Unsupported file type",
@@ -318,7 +317,7 @@ func (h *UserHandler) validateFileUpload(fileHeader *multipart.FileHeader, conte
 
 	// Basic virus/malware check - scan for suspicious patterns
 	if h.containsSuspiciousContent(content) {
-		return &errors.ServiceError{
+		return &domain.UserError{
 			Code:        domain.USER_018,
 			Message:     h.localizer.GetErrorMessage("en", domain.USER_018, nil),
 			Description: "File contains suspicious content",

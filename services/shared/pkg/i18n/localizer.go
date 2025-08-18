@@ -231,6 +231,112 @@ other = "Application already exists"
 [LOAN_030]
 other = "Invalid offer terms"
 
+# User error messages
+[USER_001]
+other = "Invalid email format"
+
+[USER_002]
+other = "Invalid phone format"
+
+[USER_003]
+other = "Invalid SSN format"
+
+[USER_004]
+other = "Invalid date of birth"
+
+[USER_005]
+other = "Missing required field"
+
+[USER_006]
+other = "Email already exists"
+
+[USER_007]
+other = "Phone already exists"
+
+[USER_008]
+other = "SSN already exists"
+
+[USER_009]
+other = "User under minimum age"
+
+[USER_010]
+other = "KYC already completed"
+
+[USER_011]
+other = "Invalid document format"
+
+[USER_012]
+other = "File too large"
+
+[USER_013]
+other = "Upload failed"
+
+[USER_014]
+other = "Document not found"
+
+[USER_015]
+other = "Encryption failed"
+
+[USER_016]
+other = "S3 upload failed"
+
+[USER_017]
+other = "Unsupported document type"
+
+[USER_018]
+other = "Virus detected in file"
+
+[USER_019]
+other = "Document expired"
+
+[USER_020]
+other = "Document already exists"
+
+[USER_021]
+other = "KYC provider error"
+
+[USER_022]
+other = "KYC session expired"
+
+[USER_023]
+other = "KYC verification failed"
+
+[USER_024]
+other = "KYC manual review required"
+
+[USER_025]
+other = "KYC provider unavailable"
+
+[USER_026]
+other = "Database error"
+
+[USER_027]
+other = "Cache error"
+
+[USER_028]
+other = "Encryption error"
+
+[USER_029]
+other = "Notification error"
+
+[USER_030]
+other = "User not found"
+
+[USER_031]
+other = "Profile not found"
+
+[USER_032]
+other = "Unauthorized access"
+
+[USER_033]
+other = "Rate limit exceeded"
+
+[USER_034]
+other = "Service unavailable"
+
+[USER_035]
+other = "Data integrity error"
+
 # Success messages
 [APPLICATION_CREATED]
 other = "Loan application created successfully"
@@ -347,6 +453,112 @@ other = "Đơn xin vay đã tồn tại"
 
 [LOAN_030]
 other = "Điều khoản đề nghị không hợp lệ"
+
+# User error messages
+[USER_001]
+other = "Định dạng email không hợp lệ"
+
+[USER_002]
+other = "Định dạng số điện thoại không hợp lệ"
+
+[USER_003]
+other = "Định dạng SSN không hợp lệ"
+
+[USER_004]
+other = "Ngày sinh không hợp lệ"
+
+[USER_005]
+other = "Thiếu trường bắt buộc"
+
+[USER_006]
+other = "Email đã tồn tại"
+
+[USER_007]
+other = "Số điện thoại đã tồn tại"
+
+[USER_008]
+other = "SSN đã tồn tại"
+
+[USER_009]
+other = "Người dùng dưới độ tuổi tối thiểu"
+
+[USER_010]
+other = "KYC đã hoàn thành"
+
+[USER_011]
+other = "Định dạng tài liệu không hợp lệ"
+
+[USER_012]
+other = "Tệp quá lớn"
+
+[USER_013]
+other = "Tải lên thất bại"
+
+[USER_014]
+other = "Không tìm thấy tài liệu"
+
+[USER_015]
+other = "Mã hóa thất bại"
+
+[USER_016]
+other = "Tải lên S3 thất bại"
+
+[USER_017]
+other = "Loại tài liệu không được hỗ trợ"
+
+[USER_018]
+other = "Phát hiện vi-rút trong tệp"
+
+[USER_019]
+other = "Tài liệu đã hết hạn"
+
+[USER_020]
+other = "Tài liệu đã tồn tại"
+
+[USER_021]
+other = "Lỗi nhà cung cấp KYC"
+
+[USER_022]
+other = "Phiên KYC đã hết hạn"
+
+[USER_023]
+other = "Xác minh KYC thất bại"
+
+[USER_024]
+other = "Yêu cầu xem xét thủ công KYC"
+
+[USER_025]
+other = "Nhà cung cấp KYC không khả dụng"
+
+[USER_026]
+other = "Lỗi cơ sở dữ liệu"
+
+[USER_027]
+other = "Lỗi bộ nhớ đệm"
+
+[USER_028]
+other = "Lỗi mã hóa"
+
+[USER_029]
+other = "Lỗi thông báo"
+
+[USER_030]
+other = "Không tìm thấy người dùng"
+
+[USER_031]
+other = "Không tìm thấy hồ sơ"
+
+[USER_032]
+other = "Truy cập không được phép"
+
+[USER_033]
+other = "Vượt quá giới hạn tốc độ"
+
+[USER_034]
+other = "Dịch vụ không khả dụng"
+
+[USER_035]
+other = "Lỗi tính toàn vẹn dữ liệu"
 
 # Success messages
 [APPLICATION_CREATED]
