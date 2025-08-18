@@ -782,3 +782,8 @@ func (w *UnderwritingTaskWorker) handleCounterOfferGeneration(ctx context.Contex
 func (w *UnderwritingTaskWorker) GetCreditCheckHandler() *CreditCheckTaskHandler {
 	return w.creditCheckHandler
 }
+
+// GetIncomeVerificationHandler returns the income verification handler for debugging purposes
+func (w *UnderwritingTaskWorker) GetIncomeVerificationHandler() *IncomeVerificationTaskHandler {
+	return w.incomeVerificationHandler
+}
