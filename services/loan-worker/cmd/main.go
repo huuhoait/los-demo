@@ -104,7 +104,7 @@ func main() {
 }
 
 // initLogger initializes the zap logger
-func initLogger(cfg *config.Config) (*zap.Logger, error) {
+func initLogger(cfg *config.BaseConfig) (*zap.Logger, error) {
 	var level zapcore.Level
 	switch cfg.Logging.Level {
 	case "debug":

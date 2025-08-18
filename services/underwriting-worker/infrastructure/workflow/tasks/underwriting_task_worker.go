@@ -226,7 +226,27 @@ func (w *UnderwritingTaskWorker) wrapTaskHandler(taskName string, handler func(c
 		)
 
 		logger.Info("Executing underwriting task",
-			zap.Any("input_data", task.InputData))
+			zap.Any("input_data", task.InputData),
+			zap.String("task_type", task.TaskType))
+
+		// Validate task input
+		if task.InputData == nil {
+			logger.Error("Task input data is nil",
+				zap.String("task_id", task.TaskID),
+				zap.String("task_type", task.TaskType))
+			return &MockTaskResult{
+				TaskID:                task.TaskID,
+				Status:                "FAILED",
+				ReasonForIncompletion: "Task input data is nil",
+				OutputData: map[string]interface{}{
+					"error":           "Task input data is nil",
+					"processing_time": time.Since(startTime).String(),
+					"failed_at":       time.Now().UTC().Format(time.RFC3339),
+				},
+				WorkerID:      fmt.Sprintf("underwriting-worker-%d", time.Now().Unix()),
+				CompletedTime: time.Now(),
+			}, nil
+		}
 
 		// Execute the task handler
 		ctx := context.Background()
@@ -237,7 +257,9 @@ func (w *UnderwritingTaskWorker) wrapTaskHandler(taskName string, handler func(c
 		if err != nil {
 			logger.Error("Task execution failed",
 				zap.Error(err),
-				zap.Duration("processing_time", processingTime))
+				zap.Duration("processing_time", processingTime),
+				zap.String("task_id", task.TaskID),
+				zap.String("workflow_instance_id", task.WorkflowInstanceID))
 
 			return &MockTaskResult{
 				TaskID:                task.TaskID,
@@ -247,6 +269,8 @@ func (w *UnderwritingTaskWorker) wrapTaskHandler(taskName string, handler func(c
 					"error":           err.Error(),
 					"processing_time": processingTime.String(),
 					"failed_at":       time.Now().UTC().Format(time.RFC3339),
+					"task_type":       task.TaskType,
+					"workflow_id":     task.WorkflowInstanceID,
 				},
 				WorkerID:      fmt.Sprintf("underwriting-worker-%d", time.Now().Unix()),
 				CompletedTime: time.Now(),
@@ -255,7 +279,9 @@ func (w *UnderwritingTaskWorker) wrapTaskHandler(taskName string, handler func(c
 
 		logger.Info("Task execution completed successfully",
 			zap.Duration("processing_time", processingTime),
-			zap.Any("output_data", outputData))
+			zap.Any("output_data", outputData),
+			zap.String("task_id", task.TaskID),
+			zap.String("workflow_instance_id", task.WorkflowInstanceID))
 
 		return &MockTaskResult{
 			TaskID:        task.TaskID,
@@ -750,4 +776,9 @@ func (w *UnderwritingTaskWorker) handleCounterOfferGeneration(ctx context.Contex
 		},
 		"completedAt": time.Now().UTC().Format(time.RFC3339),
 	}, nil
+}
+
+// GetCreditCheckHandler returns the credit check handler for debugging purposes
+func (w *UnderwritingTaskWorker) GetCreditCheckHandler() *CreditCheckTaskHandler {
+	return w.creditCheckHandler
 }

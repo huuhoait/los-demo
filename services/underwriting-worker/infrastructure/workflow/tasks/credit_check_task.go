@@ -43,21 +43,30 @@ func (h *CreditCheckTaskHandler) Execute(ctx context.Context, input map[string]i
 	startTime := time.Now()
 	logger := h.logger.With(zap.String("operation", "credit_check"))
 
-	//logger.Info("Starting credit check task")
-	logger.Info("*****Starting credit check task1*****")
-	// Extract input parameters
+	logger.Info("Starting credit check task", zap.Any("input_data", input))
+
+	// Validate input parameters
+	if input == nil {
+		return nil, fmt.Errorf("input data is required")
+	}
+
+	// Extract and validate application ID
 	applicationID, ok := input["applicationId"].(string)
 	if !ok || applicationID == "" {
-		return nil, fmt.Errorf("application ID is required")
+		logger.Error("Invalid or missing applicationId", zap.Any("input", input))
+		return nil, fmt.Errorf("application ID is required and must be a non-empty string")
 	}
 
-	logger.Info("*****Starting credit check task22*****")
+	// Extract and validate user ID
 	userID, ok := input["userId"].(string)
 	if !ok || userID == "" {
-		return nil, fmt.Errorf("user ID is required")
+		logger.Error("Invalid or missing userId", zap.Any("input", input))
+		return nil, fmt.Errorf("user ID is required and must be a non-empty string")
 	}
 
-	logger.Info("*****Starting credit check task*****")
+	logger.Info("Validated input parameters",
+		zap.String("application_id", applicationID),
+		zap.String("user_id", userID))
 
 	// Declare variables
 	var application *domain.LoanApplication
@@ -79,21 +88,23 @@ func (h *CreditCheckTaskHandler) Execute(ctx context.Context, input map[string]i
 		// Get loan application from repository
 		application, err = h.loanApplicationRepo.GetByID(ctx, applicationID)
 		if err != nil {
-			logger.Error("Failed to get loan application", zap.Error(err))
-			return nil, fmt.Errorf("failed to get loan application: %w", err)
+			logger.Error("Failed to get loan application",
+				zap.String("application_id", applicationID),
+				zap.Error(err))
+			return h.createFailureResponse(applicationID, fmt.Errorf("failed to get loan application: %w", err)), nil
 		}
 
 		// Ensure application is not nil after successful retrieval
 		if application == nil {
-			logger.Error("Repository returned nil application")
-			return nil, fmt.Errorf("repository returned nil application for ID: %s", applicationID)
+			logger.Error("Repository returned nil application", zap.String("application_id", applicationID))
+			return h.createFailureResponse(applicationID, fmt.Errorf("repository returned nil application for ID: %s", applicationID)), nil
 		}
 	}
 
 	// Safety check to ensure application is not nil before logging
 	if application == nil {
-		logger.Error("Application is nil after retrieval attempt")
-		return nil, fmt.Errorf("application is nil for ID: %s", applicationID)
+		logger.Error("Application is nil after retrieval attempt", zap.String("application_id", applicationID))
+		return h.createFailureResponse(applicationID, fmt.Errorf("application is nil for ID: %s", applicationID)), nil
 	}
 
 	logger.Info("Retrieved loan application",
@@ -159,28 +170,43 @@ func (h *CreditCheckTaskHandler) Execute(ctx context.Context, input map[string]i
 	}
 
 	// Perform credit check using real service
+	logger.Info("Performing credit check with real service",
+		zap.String("application_id", applicationID),
+		zap.String("user_id", userID))
+
 	creditReport, err := h.creditService.GetCreditReport(ctx, applicationID, userID)
 	if err != nil {
-		logger.Error("Credit check failed", zap.Error(err))
+		logger.Error("Credit check failed",
+			zap.String("application_id", applicationID),
+			zap.String("user_id", userID),
+			zap.Error(err))
 		return h.createFailureResponse(applicationID, err), nil
 	}
 
 	// Check if creditReport is nil
 	if creditReport == nil {
-		logger.Error("Credit report is nil")
+		logger.Error("Credit report is nil",
+			zap.String("application_id", applicationID),
+			zap.String("user_id", userID))
 		return h.createFailureResponse(applicationID, fmt.Errorf("credit report is nil")), nil
 	}
 
 	// Analyze credit risk
+	logger.Info("Analyzing credit risk",
+		zap.String("application_id", applicationID))
+
 	riskAnalysis, err := h.creditService.AnalyzeCreditRisk(ctx, creditReport)
 	if err != nil {
-		logger.Error("Credit risk analysis failed", zap.Error(err))
+		logger.Error("Credit risk analysis failed",
+			zap.String("application_id", applicationID),
+			zap.Error(err))
 		return h.createFailureResponse(applicationID, err), nil
 	}
 
 	// Check if riskAnalysis is nil
 	if riskAnalysis == nil {
-		logger.Error("Risk analysis is nil")
+		logger.Error("Risk analysis is nil",
+			zap.String("application_id", applicationID))
 		return h.createFailureResponse(applicationID, fmt.Errorf("risk analysis is nil")), nil
 	}
 
