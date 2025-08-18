@@ -46,21 +46,36 @@ func (h *IncomeVerificationTaskHandler) Execute(ctx context.Context, input map[s
 
 	// Validate input parameters
 	if input == nil {
-		return nil, fmt.Errorf("input data is required")
+		logger.Error("Input data is nil - this indicates a workflow configuration issue")
+		return nil, fmt.Errorf("input data is required - check workflow input parameters")
 	}
+
+	// Log all input keys for debugging
+	inputKeys := make([]string, 0, len(input))
+	for key := range input {
+		inputKeys = append(inputKeys, key)
+	}
+	logger.Info("Input keys received", zap.Strings("input_keys", inputKeys))
 
 	// Extract and validate application ID
 	applicationID, ok := input["applicationId"].(string)
 	if !ok || applicationID == "" {
-		logger.Error("Invalid or missing applicationId", zap.Any("input", input))
-		return nil, fmt.Errorf("application ID is required and must be a non-empty string")
+		logger.Error("Invalid or missing applicationId",
+			zap.Any("input", input),
+			zap.String("applicationId_type", fmt.Sprintf("%T", input["applicationId"])),
+			zap.Any("applicationId_value", input["applicationId"]))
+		return nil, fmt.Errorf("application ID is required and must be a non-empty string - received: %v", input["applicationId"])
 	}
 
 	// Extract and validate user ID
 	userID, ok := input["userId"].(string)
 	if !ok || userID == "" {
-		logger.Error("Invalid or missing userId", zap.Any("input", input))
-		return nil, fmt.Errorf("user ID is required and must be a non-empty string")
+		logger.Error("Invalid or missing userId",
+			zap.Any("input", input),
+			zap.String("userId_type", fmt.Sprintf("%T", input["userId"])),
+			zap.Any("userId_value", input["userId"]),
+			zap.String("application_id", applicationID))
+		return nil, fmt.Errorf("user ID is required and must be a non-empty string - received: %v", input["userId"])
 	}
 
 	// Optional verification method

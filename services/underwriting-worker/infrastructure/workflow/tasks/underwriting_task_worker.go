@@ -124,9 +124,14 @@ func (w *UnderwritingTaskWorker) Start(ctx context.Context) error {
 
 	// Register workflow and task definitions with real Conductor
 	if !w.useMockConductor {
+		w.logger.Info("Registering task definitions with Conductor")
 		if err := w.registerWorkflowDefinitions(); err != nil {
 			w.logger.Error("Failed to register workflow definitions", zap.Error(err))
-			// Don't fail startup, just log the error
+			// Try to register just the task definitions as a fallback
+			if err := w.registerTaskDefinitionsOnly(); err != nil {
+				w.logger.Error("Failed to register task definitions as fallback", zap.Error(err))
+				return fmt.Errorf("failed to register task definitions: %w", err)
+			}
 		}
 	}
 
@@ -135,6 +140,49 @@ func (w *UnderwritingTaskWorker) Start(ctx context.Context) error {
 		return w.mockConductorClient.StartPolling()
 	}
 	return w.conductorClient.StartPolling()
+}
+
+// registerTaskDefinitionsOnly registers only the task definitions (without workflow)
+func (w *UnderwritingTaskWorker) registerTaskDefinitionsOnly() error {
+	if w.conductorClient == nil {
+		return fmt.Errorf("conductor client is nil")
+	}
+
+	w.logger.Info("Registering task definitions only with Conductor")
+
+	// Register task definitions
+	taskDefs := w.conductorClient.CreateTaskDefinitions()
+	successfulRegistrations := 0
+	totalTasks := len(taskDefs)
+
+	for _, taskDef := range taskDefs {
+		if err := w.conductorClient.RegisterTaskDefinition(taskDef); err != nil {
+			w.logger.Error("Failed to register task definition",
+				zap.String("task_name", taskDef.Name),
+				zap.Error(err))
+			// Continue with other tasks but track failures
+		} else {
+			w.logger.Info("Registered task definition", zap.String("task_name", taskDef.Name))
+			successfulRegistrations++
+		}
+	}
+
+	w.logger.Info("Task definition registration summary",
+		zap.Int("successful", successfulRegistrations),
+		zap.Int("total", totalTasks),
+		zap.Int("failed", totalTasks-successfulRegistrations))
+
+	// Ensure at least the core tasks are registered
+	if successfulRegistrations < 3 {
+		w.logger.Warn("Very few task definitions registered successfully, this may cause issues")
+		return fmt.Errorf("only %d out of %d task definitions registered successfully", successfulRegistrations, totalTasks)
+	}
+
+	// Add a small delay to ensure definitions are propagated in Conductor
+	w.logger.Info("Waiting for task definitions to propagate in Conductor...")
+	time.Sleep(3 * time.Second)
+
+	return nil
 }
 
 // Stop stops the task worker
